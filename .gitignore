@@ -43,6 +43,7 @@ dist/
 .DS_Store
 Thumbs.db
 
-# Evidencias temporales y artefactos locales
+# Evidencias académicas y artefactos locales
+/docs/evidencias/
 *.tmp
 *.bak
