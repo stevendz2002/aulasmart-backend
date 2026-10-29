@@ -69,7 +69,7 @@ erDiagram
     HORARIO_ACADEMICO {
         BIGINT id_horario PK
         BIGINT id_aula FK
-        VARCHAR id_externo UK
+        VARCHAR id_externo
         TIMESTAMPTZ fecha_inicio
         TIMESTAMPTZ fecha_fin
         VARCHAR fuente
@@ -99,7 +99,7 @@ erDiagram
     }
 ```
 
-`SINCRONIZACION_SIGA` es una entidad de control independiente: registra ejecuciones de sincronización y no representa una relación de negocio con cada aula o evento.
+`SINCRONIZACION_SIGA` es una entidad de control independiente: registra ejecuciones de sincronización y no representa una relación de negocio con cada aula o evento. La unicidad de `HORARIO_ACADEMICO.id_externo` es compuesta con `fuente` y solo se aplica cuando el identificador no es nulo; no se afirma que el valor sea único por sí solo.
 
 ## 3. Cardinalidades y reglas
 
