@@ -2,6 +2,8 @@ package co.edu.uceva.aulasmart.aulas.infrastructure.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -11,6 +13,7 @@ import java.time.Instant;
 @Table(name = "horario_academico")
 public class HorarioAcademicoEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_horario")
     private Long id;
     @Column(name = "id_aula", nullable = false)

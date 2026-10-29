@@ -3,6 +3,8 @@ package co.edu.uceva.aulasmart.aulas.infrastructure.persistence;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -12,6 +14,7 @@ import jakarta.persistence.Table;
 @Table(name = "aula")
 public class AulaEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_aula")
     private Long id;
     @Column(name = "codigo_siga", nullable = false, unique = true)
@@ -33,6 +36,44 @@ public class AulaEntity {
     private boolean activa;
 
     protected AulaEntity() {
+    }
+
+    public static AulaEntity crear(
+            Long codigoSiga,
+            String nombre,
+            EdificioEntity edificio,
+            int capacidad,
+            TipoAulaEntity tipoAula,
+            DependenciaEntity dependencia,
+            boolean activa
+    ) {
+        var entity = new AulaEntity();
+        entity.codigoSiga = codigoSiga;
+        entity.nombre = nombre;
+        entity.edificio = edificio;
+        entity.capacidad = capacidad;
+        entity.tipoAula = tipoAula;
+        entity.dependencia = dependencia;
+        entity.activa = activa;
+        return entity;
+    }
+
+    /**
+     * Actualiza los atributos observables en SIGA. `activa` es un atributo local
+     * de AulaSmart y deliberadamente no se modifica en la sincronización.
+     */
+    public void actualizar(
+            String nombre,
+            int capacidad,
+            EdificioEntity edificio,
+            TipoAulaEntity tipoAula,
+            DependenciaEntity dependencia
+    ) {
+        this.nombre = nombre;
+        this.capacidad = capacidad;
+        this.edificio = edificio;
+        this.tipoAula = tipoAula;
+        this.dependencia = dependencia;
     }
 
     public Long getId() {

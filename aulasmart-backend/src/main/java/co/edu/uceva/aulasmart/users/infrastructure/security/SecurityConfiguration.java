@@ -19,6 +19,9 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/api/sincronizaciones/**").hasAnyRole(
+                                "ADMINISTRADOR", "ADMINISTRATIVO"
+                        )
                         .requestMatchers(HttpMethod.GET, "/api/aulas/**").hasAnyRole(
                                 "ADMINISTRADOR", "ADMINISTRATIVO", "DOCENTE", "ESTUDIANTE"
                         )

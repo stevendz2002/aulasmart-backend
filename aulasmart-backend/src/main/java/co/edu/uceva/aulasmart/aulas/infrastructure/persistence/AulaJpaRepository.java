@@ -28,4 +28,6 @@ public interface AulaJpaRepository extends JpaRepository<AulaEntity, Long> {
 
     @EntityGraph(attributePaths = {"edificio", "tipoAula", "dependencia"})
     Optional<AulaEntity> findByIdAndActivaTrue(Long id);
+
+    Optional<AulaEntity> findByCodigoSiga(Long codigoSiga);
 }
