@@ -11,11 +11,11 @@ El contenedor se llama `aulasmart-postgres-test`. La actividad no instaló pgAdm
 - `compose.yaml`: servicio PostgreSQL, volumen persistente, puerto y chequeo de salud.
 - `.env.example`: plantilla sin credenciales reales.
 - `.env`: configuración local ignorada por Git.
-- `database/migrations/V1__initial_schema.sql`: esquema con claves y restricciones.
+- `aulasmart-backend/src/main/resources/db/migration/V1__initial_schema.sql`: esquema con claves y restricciones. `compose.yaml` lo monta también en `/database/migrations` dentro del contenedor, por lo que las rutas `psql` de esta guía siguen válidas.
 - `database/seeds/001_datos_prueba.sql`: datos marcados con `PRUEBA`; no son datos institucionales.
 - `database/validation/001_validaciones.sql`: consultas y aserciones ejecutables.
 
-El nombre de la migración es compatible con Flyway, pero **Flyway no se ejecutó** porque el backend Maven todavía no existe. En esta entrega el archivo se aplicó directamente con `psql`.
+El nombre de la migración es compatible con Flyway. En la entrega académica el archivo se aplicó directamente con `psql`. A partir del **backend inicial** el mismo archivo es la migración Flyway del backend: Flyway lo validó sobre esta base y fijó el baseline en la versión 1; los detalles están en [07-backend-inicial.md](07-backend-inicial.md).
 
 ## Reproducción
 
@@ -74,7 +74,7 @@ Al expandir `Databases > aulasmart_test > Schemas > public > Tables` deben apare
 7. Intervalo con fin anterior al inicio: rechazado por restricción `CHECK`.
 8. Aprobación sin revisor ni fecha: rechazada por restricción `CHECK`.
 
-La salida termina con `TODAS LAS VALIDACIONES FINALIZARON SIN ERRORES`. Estas pruebas verifican el modelo relacional, no un backend Spring Boot que aún no existe.
+La salida termina con `TODAS LAS VALIDACIONES FINALIZARON SIN ERRORES`. Estas pruebas verifican el modelo relacional; el comportamiento HTTP del backend inicial se verificó por separado en [07-backend-inicial.md](07-backend-inicial.md).
 
 ## Nota operativa
 

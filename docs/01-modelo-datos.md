@@ -124,7 +124,7 @@ La aprobación en AulaSmart no registra ni implica una reserva oficial en SIGA.
 
 ## 5. Implementación
 
-- Esquema reproducible: `database/migrations/V1__initial_schema.sql`.
+- Esquema reproducible: `aulasmart-backend/src/main/resources/db/migration/V1__initial_schema.sql`, dejado también disponible en el contenedor vía `compose.yaml` para su aplicación directa con `psql`.
 - Datos exclusivamente sintéticos: `database/seeds/001_datos_prueba.sql`.
 - Verificación de relaciones y reglas: `database/validation/001_validaciones.sql`.
 - Evidencia de campos externos y aspectos pendientes: `docs/evidencias/01-fuentes-siga.md`.

@@ -14,6 +14,7 @@ Los diagramas usan bloques Mermaid dentro de cada documento para mantener una ú
 
 - [Verificación de respuestas SIGA](evidencias/01-fuentes-siga.md).
 - [Resultados reales de PostgreSQL](evidencias/02-pruebas-postgresql.md).
+- [Estado verificado del backend inicial](07-backend-inicial.md).
 - [Registro de puntos de control](06-registro-verificacion.md).
 
 ## Verificación rápida de la base existente
@@ -28,6 +29,6 @@ docker compose exec db psql -U aulasmart -d aulasmart_test -v ON_ERROR_STOP=1 -f
 
 El resultado esperado de la comprobación actual es `healthy` y el mensaje final `TODAS LAS VALIDACIONES FINALIZARON SIN ERRORES`. Para crear la base desde cero y conectar pgAdmin, seguir [02-base-datos.md](02-base-datos.md).
 
-## Límites de esta entrega
+## Límites al cierre de esta entrega
 
-La base de datos sí está montada y probada. El frontend Angular, el backend Spring Boot, las integraciones y Flyway dentro de la aplicación todavía no están implementados; los diagramas representan su diseño previsto. Tampoco se ejecutó una conexión gráfica desde pgAdmin, aunque la conexión PostgreSQL mediante `psql` sí quedó comprobada.
+La base de datos está montada y probada. El backend Spring Boot que los diagramas presentaban como diseño previsto ya tiene un **primer avance instalado**: consulta de aulas, disponibilidad, seguridad por roles y migración Flyway, con sus verificaciones en [07-backend-inicial.md](07-backend-inicial.md). Todavía no existen la sincronización programada con SIGA, la creación y revisión de solicitudes por API, el frontend Angular ni AulaBot. Tampoco se ejecutó una conexión gráfica desde pgAdmin, aunque la conexión PostgreSQL mediante `psql` sí quedó comprobada.
