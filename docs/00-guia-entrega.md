@@ -15,6 +15,7 @@ Los diagramas usan bloques Mermaid dentro de cada documento para mantener una ú
 - [Verificación de respuestas SIGA](evidencias/01-fuentes-siga.md).
 - [Resultados reales de PostgreSQL](evidencias/02-pruebas-postgresql.md).
 - [Estado verificado del backend inicial](07-backend-inicial.md).
+- [Estado verificado de la sincronización con SIGA](08-sincronizacion-siga.md).
 - [Registro de puntos de control](06-registro-verificacion.md).
 
 ## Verificación rápida de la base existente
@@ -31,4 +32,4 @@ El resultado esperado de la comprobación actual es `healthy` y el mensaje final
 
 ## Límites al cierre de esta entrega
 
-La base de datos está montada y probada. El backend Spring Boot que los diagramas presentaban como diseño previsto ya tiene un **primer avance instalado**: consulta de aulas, disponibilidad, seguridad por roles y migración Flyway, con sus verificaciones en [07-backend-inicial.md](07-backend-inicial.md). Todavía no existen la sincronización programada con SIGA, la creación y revisión de solicitudes por API, el frontend Angular ni AulaBot. Tampoco se ejecutó una conexión gráfica desde pgAdmin, aunque la conexión PostgreSQL mediante `psql` sí quedó comprobada.
+La base de datos está montada y probada. El backend ha incorporado un **segundo avance verificado**: además de la consulta de aulas, disponibilidad, seguridad por roles y migración Flyway del [backend inicial](07-backend-inicial.md), ahora existe la **sincronización con SIGA** —manual y programada, con filas de control— comprobada con 104 aulas reales en la base de pruebas y detallada en [08-sincronizacion-siga.md](08-sincronizacion-siga.md). Todavía no existen la creación y revisión de solicitudes por API, el frontend Angular ni AulaBot, y la confirmación de la estructura de eventos propios de SIGA sigue pendiente. Tampoco se ejecutó una conexión gráfica desde pgAdmin, aunque la conexión PostgreSQL mediante `psql` sí quedó comprobada.
