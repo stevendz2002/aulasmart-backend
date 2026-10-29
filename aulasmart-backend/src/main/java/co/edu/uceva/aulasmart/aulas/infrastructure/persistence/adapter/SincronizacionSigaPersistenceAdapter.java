@@ -1,4 +1,5 @@
-package co.edu.uceva.aulasmart.aulas.infrastructure.persistence;
+package co.edu.uceva.aulasmart.aulas.infrastructure.persistence.adapter;
+import co.edu.uceva.aulasmart.aulas.infrastructure.persistence.repository.SincronizacionSigaJpaRepository;
 
 import co.edu.uceva.aulasmart.aulas.application.port.SincronizacionSigaPort;
 import co.edu.uceva.aulasmart.aulas.domain.model.Intervalo;

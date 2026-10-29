@@ -1,4 +1,5 @@
-package co.edu.uceva.aulasmart.solicitudes.infrastructure.persistence;
+package co.edu.uceva.aulasmart.solicitudes.infrastructure.persistence.adapter;
+import co.edu.uceva.aulasmart.solicitudes.infrastructure.persistence.repository.SolicitudAulaJpaRepository;
 
 import co.edu.uceva.aulasmart.aulas.application.port.SolicitudAprobadaPort;
 import co.edu.uceva.aulasmart.aulas.domain.model.Intervalo;

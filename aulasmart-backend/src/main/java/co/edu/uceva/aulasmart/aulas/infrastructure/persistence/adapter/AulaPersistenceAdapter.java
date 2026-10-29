@@ -1,4 +1,6 @@
-package co.edu.uceva.aulasmart.aulas.infrastructure.persistence;
+package co.edu.uceva.aulasmart.aulas.infrastructure.persistence.adapter;
+import co.edu.uceva.aulasmart.aulas.infrastructure.persistence.repository.AulaJpaRepository;
+import co.edu.uceva.aulasmart.aulas.infrastructure.persistence.mapper.AulaMapper;
 
 import co.edu.uceva.aulasmart.aulas.application.port.AulaConsultaPort;
 import co.edu.uceva.aulasmart.aulas.domain.model.Aula;

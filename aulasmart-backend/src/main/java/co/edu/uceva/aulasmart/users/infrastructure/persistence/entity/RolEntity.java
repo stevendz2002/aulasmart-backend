@@ -1,4 +1,4 @@
-package co.edu.uceva.aulasmart.users.infrastructure.persistence;
+package co.edu.uceva.aulasmart.users.infrastructure.persistence.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

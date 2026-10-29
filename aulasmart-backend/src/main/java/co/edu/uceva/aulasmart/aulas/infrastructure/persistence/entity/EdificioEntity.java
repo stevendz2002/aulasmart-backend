@@ -1,4 +1,4 @@
-package co.edu.uceva.aulasmart.aulas.infrastructure.persistence;
+package co.edu.uceva.aulasmart.aulas.infrastructure.persistence.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -8,22 +8,22 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "tipo_aula")
-public class TipoAulaEntity {
+@Table(name = "edificio")
+public class EdificioEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_tipo_aula")
+    @Column(name = "id_edificio")
     private Long id;
     @Column(name = "codigo_siga", nullable = false, unique = true)
     private Long codigoSiga;
     @Column(nullable = false)
     private String nombre;
 
-    protected TipoAulaEntity() {
+    protected EdificioEntity() {
     }
 
-    public static TipoAulaEntity crear(Long codigoSiga, String nombre) {
-        var entity = new TipoAulaEntity();
+    public static EdificioEntity crear(Long codigoSiga, String nombre) {
+        var entity = new EdificioEntity();
         entity.codigoSiga = codigoSiga;
         entity.nombre = nombre;
         return entity;

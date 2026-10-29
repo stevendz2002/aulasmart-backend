@@ -1,4 +1,5 @@
-package co.edu.uceva.aulasmart.solicitudes.infrastructure.persistence;
+package co.edu.uceva.aulasmart.solicitudes.infrastructure.persistence.repository;
+import co.edu.uceva.aulasmart.solicitudes.infrastructure.persistence.entity.SolicitudAulaEntity;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

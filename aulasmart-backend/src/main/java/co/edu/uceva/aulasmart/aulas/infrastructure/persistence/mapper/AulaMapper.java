@@ -1,13 +1,14 @@
-package co.edu.uceva.aulasmart.aulas.infrastructure.persistence;
+package co.edu.uceva.aulasmart.aulas.infrastructure.persistence.mapper;
+import co.edu.uceva.aulasmart.aulas.infrastructure.persistence.entity.AulaEntity;
 
 import co.edu.uceva.aulasmart.aulas.domain.model.Aula;
 import co.edu.uceva.aulasmart.aulas.domain.model.CatalogoAula;
 
-final class AulaMapper {
+public final class AulaMapper {
     private AulaMapper() {
     }
 
-    static Aula toDomain(AulaEntity entity) {
+    public static Aula toDomain(AulaEntity entity) {
         return new Aula(
                 entity.getId(),
                 entity.getCodigoSiga(),

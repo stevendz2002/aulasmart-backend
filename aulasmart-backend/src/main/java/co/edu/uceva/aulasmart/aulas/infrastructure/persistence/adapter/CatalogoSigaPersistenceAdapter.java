@@ -1,4 +1,12 @@
-package co.edu.uceva.aulasmart.aulas.infrastructure.persistence;
+package co.edu.uceva.aulasmart.aulas.infrastructure.persistence.adapter;
+import co.edu.uceva.aulasmart.aulas.infrastructure.persistence.repository.AulaJpaRepository;
+import co.edu.uceva.aulasmart.aulas.infrastructure.persistence.repository.DependenciaJpaRepository;
+import co.edu.uceva.aulasmart.aulas.infrastructure.persistence.repository.EdificioJpaRepository;
+import co.edu.uceva.aulasmart.aulas.infrastructure.persistence.repository.TipoAulaJpaRepository;
+import co.edu.uceva.aulasmart.aulas.infrastructure.persistence.entity.AulaEntity;
+import co.edu.uceva.aulasmart.aulas.infrastructure.persistence.entity.DependenciaEntity;
+import co.edu.uceva.aulasmart.aulas.infrastructure.persistence.entity.EdificioEntity;
+import co.edu.uceva.aulasmart.aulas.infrastructure.persistence.entity.TipoAulaEntity;
 
 import co.edu.uceva.aulasmart.aulas.application.port.CatalogoSigaPort;
 import co.edu.uceva.aulasmart.aulas.domain.model.AulaExterna;

@@ -1,7 +1,7 @@
 package co.edu.uceva.aulasmart.users.infrastructure.security;
 
-import co.edu.uceva.aulasmart.users.infrastructure.persistence.RolEntity;
-import co.edu.uceva.aulasmart.users.infrastructure.persistence.UsuarioJpaRepository;
+import co.edu.uceva.aulasmart.users.infrastructure.persistence.entity.RolEntity;
+import co.edu.uceva.aulasmart.users.infrastructure.persistence.repository.UsuarioJpaRepository;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

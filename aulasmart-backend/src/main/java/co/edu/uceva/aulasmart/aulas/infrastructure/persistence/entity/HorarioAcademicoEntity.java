@@ -1,4 +1,4 @@
-package co.edu.uceva.aulasmart.solicitudes.infrastructure.persistence;
+package co.edu.uceva.aulasmart.aulas.infrastructure.persistence.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,11 +10,11 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 
 @Entity
-@Table(name = "solicitud_aula")
-public class SolicitudAulaEntity {
+@Table(name = "horario_academico")
+public class HorarioAcademicoEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_solicitud")
+    @Column(name = "id_horario")
     private Long id;
     @Column(name = "id_aula", nullable = false)
     private Long aulaId;
@@ -22,9 +22,7 @@ public class SolicitudAulaEntity {
     private Instant fechaInicio;
     @Column(name = "fecha_fin", nullable = false)
     private Instant fechaFin;
-    @Column(nullable = false)
-    private String estado;
 
-    protected SolicitudAulaEntity() {
+    protected HorarioAcademicoEntity() {
     }
 }

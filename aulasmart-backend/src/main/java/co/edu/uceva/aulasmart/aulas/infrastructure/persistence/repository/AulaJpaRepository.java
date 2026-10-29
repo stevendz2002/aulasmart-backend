@@ -1,4 +1,5 @@
-package co.edu.uceva.aulasmart.aulas.infrastructure.persistence;
+package co.edu.uceva.aulasmart.aulas.infrastructure.persistence.repository;
+import co.edu.uceva.aulasmart.aulas.infrastructure.persistence.entity.AulaEntity;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
