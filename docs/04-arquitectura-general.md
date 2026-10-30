@@ -40,7 +40,7 @@ flowchart TB
         POSTGRES[("PostgreSQL<br/>base única AulaSmart")]
     end
 
-    SIGA["SIGA UCEVA<br/>aulas y eventos académicos"]
+    SIGA["SIGA UCEVA<br/>catálogo de aulas"]
     IA["Proveedor de IA<br/>API Gemini, pendiente de validación"]
 
     EST --> BROWSER
@@ -58,7 +58,7 @@ flowchart TB
 
 1. Los usuarios acceden desde el navegador a Angular. No existe acceso directo del frontend a PostgreSQL, SIGA o Gemini.
 2. Angular consume la API REST del backend. La autenticación y los permisos se verifican en Spring Security y en los casos de uso correspondientes.
-3. JPA ejecuta las consultas sobre PostgreSQL. La disponibilidad se calcula en `aulas` con horarios, solicitudes aprobadas y estado de sincronización.
+3. JPA ejecuta las consultas sobre PostgreSQL. La disponibilidad se calcula en `aulas` con las solicitudes aprobadas y el estado de sincronización.
 4. Un proceso programado dentro del mismo backend sincroniza SIGA. La frecuencia definitiva queda pendiente de observación del servicio y validación institucional.
 5. AulaBot utiliza el proveedor de IA para interpretar o redactar, pero obtiene los datos desde los casos de uso del backend. Una respuesta de IA no basta para afirmar disponibilidad.
 6. Actuator expone únicamente los endpoints operativos que se configuren y protejan; no implica una plataforma adicional de observabilidad.
@@ -73,7 +73,6 @@ flowchart TB
 
 ## Pendientes explícitos
 
-- Conseguir respuestas de eventos con registros para cerrar el adaptador y confirmar `id_externo`.
 - Comprobar disponibilidad, límites y condiciones de uso de Gemini.
 - Definir la frecuencia de sincronización y el umbral de vigencia permitido.
 - Implementar y probar el frontend y el backend representados; actualmente solo la base de datos está montada.

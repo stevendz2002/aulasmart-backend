@@ -14,7 +14,7 @@ El proyecto tiene un número acotado de módulos y un equipo académico pequeño
 
 ### Consistencia y transacciones
 
-La aprobación debe revisar horarios académicos y solicitudes aprobadas, registrar auditoría y evitar solapamientos. En el monolito estas operaciones pueden coordinarse en una transacción local y apoyarse en restricciones PostgreSQL. Con microservicios sería necesario diseñar consistencia entre servicios, compensaciones y tratamiento de respuestas parciales, sin un beneficio proporcional.
+La aprobación debe revisar las solicitudes aprobadas, registrar auditoría y evitar solapamientos. En el monolito estas operaciones pueden coordinarse en una transacción local y apoyarse en restricciones PostgreSQL. Con microservicios sería necesario diseñar consistencia entre servicios, compensaciones y tratamiento de respuestas parciales, sin un beneficio proporcional.
 
 ### Despliegue y operación
 

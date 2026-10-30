@@ -2,6 +2,8 @@
 
 Fecha de verificación: **29 de octubre de 2026**, en la rama `feat/backend-inicial`. Todos los resultados de este documento provienen de ejecuciones reales sobre el contenedor `aulasmart-postgres-test` y la base `aulasmart_test`.
 
+> **Estado de este documento en la fase actual:** registro histórico del backend inicial. Desde entonces la puerta de calidad de la disponibilidad cambió: ya no exige una ventana de eventos sincronizada (el concepto de eventos se eliminó en la migración V3 de la fase de reservas) y las ocupaciones provienen únicamente de solicitudes APROBADAS dentro de AulaSmart. El comportamiento vigente está en [09-reservas-aulas.md](09-reservas-aulas.md).
+
 ## Alcance implementado
 
 Un único despliegue Spring Boot 3.5.7 con Java 17, construido con Maven Wrapper (no requiere Maven instalado) y organizado como monolito modular en `co.edu.uceva.aulasmart`:

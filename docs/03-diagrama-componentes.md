@@ -58,8 +58,8 @@ flowchart LR
 ## Responsabilidades y límites
 
 - **users:** cuentas, roles, autenticación y autorización. Spring Security comprueba permisos en el backend; Angular solo adapta la experiencia visual.
-- **aulas:** catálogos, consulta con filtros, horarios académicos y regla de disponibilidad. Publica un servicio de aplicación para que otros módulos no reimplementen la regla.
-- **solicitudes:** creación, consulta, aprobación y rechazo. Antes de aprobar llama al servicio público de disponibilidad de `aulas` y ejecuta la operación transaccionalmente.
+- **aulas:** catálogos, consulta con filtros y regla de disponibilidad sobre reservas aprobadas. Publica un servicio de aplicación para que otros módulos no reimplementen la regla.
+- **solicitudes:** creación, consulta, aprobación y rechazo de reservas de aulas. Verifica el catálogo bajo puertos de `aulas` y ejecuta la operación transaccionalmente.
 - **chatbot:** interpreta la intención, solicita datos estructurados a `aulas` y redacta la respuesta con esos resultados. No calcula disponibilidad ni concede permisos.
 - **integrations.siga:** cliente HTTP, control de reintentos acotados, transformación, upsert y registro de sincronización. Aísla los nombres y particularidades de SIGA.
 - **integrations.ai:** adapta la API del proveedor. La clave se configura fuera del código y el módulo no recibe autoridad para decidir reglas institucionales.

@@ -2,6 +2,8 @@
 
 Fecha de verificación: **29 de octubre de 2026**, sobre la base `aulasmart_test` (contenedor `aulasmart-postgres-test`, PostgreSQL 17.4) y el endpoint público de SIGA `https://uceva.datasae.co/siga_new/web/app.php`. Todos los resultados provienen de ejecuciones reales: la suite de pruebas Maven, arranques reales del backend y llamadas HTTP reales tanto a SIGA como al API propio. El comportamiento del endpoint público de SIGA está previamente documentado en [evidencias/01-fuentes-siga.md](evidencias/01-fuentes-siga.md).
 
+> **Estado de este documento en la fase actual:** es el registro histórico de la fase de sincronización, cuando el alcance incluía el recurso `EVENTOS`. En la fase posterior de reservas de aulas el producto quedó definido como **web de reservas de aulas** y lo relativo a eventos se eliminó con la migración V3: no existe `SincronizadorDeEventosService`, la tabla `horario_academico` fue borrada, las filas `EVENTOS` de este registro fueron purgadas y las propiedades `aulasmart.siga.eventos.*` ya no forman parte de la configuración. Las evidencias de esta página conservan su valor histórico; el estado vigente (solo `AULAS`) está en [09-reservas-aulas.md](09-reservas-aulas.md).
+
 ## Alcance implementado
 
 Nuevo módulo `integrations.siga` dentro del mismo despliegue Spring Boot, además de puertos y adaptadores en el módulo `aulas`:
