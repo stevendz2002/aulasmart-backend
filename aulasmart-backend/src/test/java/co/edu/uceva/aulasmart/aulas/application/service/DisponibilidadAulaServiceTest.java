@@ -1,7 +1,6 @@
 package co.edu.uceva.aulasmart.aulas.application.service;
 
 import co.edu.uceva.aulasmart.aulas.application.port.AulaConsultaPort;
-import co.edu.uceva.aulasmart.aulas.application.port.HorarioAcademicoPort;
 import co.edu.uceva.aulasmart.aulas.application.port.SincronizacionSigaPort;
 import co.edu.uceva.aulasmart.aulas.application.port.SolicitudAprobadaPort;
 import co.edu.uceva.aulasmart.aulas.domain.exception.DisponibilidadNoVerificableException;
@@ -40,8 +39,6 @@ class DisponibilidadAulaServiceTest {
     @Mock
     private AulaConsultaPort aulaConsultaPort;
     @Mock
-    private HorarioAcademicoPort horarioAcademicoPort;
-    @Mock
     private SolicitudAprobadaPort solicitudAprobadaPort;
     @Mock
     private SincronizacionSigaPort sincronizacionSigaPort;
@@ -52,7 +49,6 @@ class DisponibilidadAulaServiceTest {
     void configurar() {
         service = new DisponibilidadAulaService(
                 aulaConsultaPort,
-                horarioAcademicoPort,
                 solicitudAprobadaPort,
                 sincronizacionSigaPort,
                 Clock.fixed(AHORA, ZoneOffset.UTC),
@@ -61,43 +57,35 @@ class DisponibilidadAulaServiceTest {
     }
 
     @Test
-    void excluyeHorariosYSolicitudesAprobadasSolapados() {
+    void excluyeSolicitudesAprobadasSolapadas() {
         var aulaUno = aula(1L, "PRUEBA Aula 1");
         var aulaDos = aula(2L, "PRUEBA Aula 2");
         var aulaTres = aula(3L, "PRUEBA Aula 3");
         var limite = AHORA.minus(Duration.ofHours(24));
-        when(sincronizacionSigaPort.datosCompletosYVigentes(INTERVALO, limite)).thenReturn(true);
-        when(horarioAcademicoPort.buscarAulasOcupadas(INTERVALO)).thenReturn(Set.of(1L));
+        when(sincronizacionSigaPort.catalogoAulasVigente(limite)).thenReturn(true);
         when(solicitudAprobadaPort.buscarAulasConSolicitudesAprobadas(INTERVALO)).thenReturn(Set.of(2L));
         when(aulaConsultaPort.buscarActivas(FILTRO)).thenReturn(List.of(aulaUno, aulaDos, aulaTres));
 
         var resultado = service.consultar(FILTRO, INTERVALO);
 
-        assertEquals(List.of(aulaTres), resultado.aulas());
+        assertEquals(List.of(aulaUno, aulaTres), resultado.aulas());
         assertEquals(AHORA, resultado.verificadoEn());
-        verify(sincronizacionSigaPort).datosCompletosYVigentes(INTERVALO, limite);
+        verify(sincronizacionSigaPort).catalogoAulasVigente(limite);
     }
 
     @Test
-    void noAfirmaDisponibilidadConSincronizacionInvalida() {
-        when(sincronizacionSigaPort.datosCompletosYVigentes(
-                INTERVALO,
-                AHORA.minus(Duration.ofHours(24))
-        )).thenReturn(false);
+    void noAfirmaDisponibilidadConSincronizacionVencida() {
+        when(sincronizacionSigaPort.catalogoAulasVigente(AHORA.minus(Duration.ofHours(24)))).thenReturn(false);
 
         assertThrows(DisponibilidadNoVerificableException.class, () -> service.consultar(FILTRO, INTERVALO));
 
-        verifyNoInteractions(horarioAcademicoPort, solicitudAprobadaPort, aulaConsultaPort);
+        verifyNoInteractions(solicitudAprobadaPort, aulaConsultaPort);
     }
 
     @Test
-    void devuelveAulasActivasCuandoNoExistenOcupaciones() {
+    void devuelveAulasActivasCuandoNoHayReservasAprobadas() {
         var aula = aula(1L, "PRUEBA Aula 1");
-        when(sincronizacionSigaPort.datosCompletosYVigentes(
-                INTERVALO,
-                AHORA.minus(Duration.ofHours(24))
-        )).thenReturn(true);
-        when(horarioAcademicoPort.buscarAulasOcupadas(INTERVALO)).thenReturn(Set.of());
+        when(sincronizacionSigaPort.catalogoAulasVigente(AHORA.minus(Duration.ofHours(24)))).thenReturn(true);
         when(solicitudAprobadaPort.buscarAulasConSolicitudesAprobadas(INTERVALO)).thenReturn(Set.of());
         when(aulaConsultaPort.buscarActivas(FILTRO)).thenReturn(List.of(aula));
 

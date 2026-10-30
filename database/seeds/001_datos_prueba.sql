@@ -38,12 +38,6 @@ INSERT INTO aula (
     (9002, -9002, 'PRUEBA Aula 102', 9001, 30, 9001, 9001, TRUE),
     (9003, -9003, 'PRUEBA Laboratorio 201', 9002, 25, 9002, 9001, FALSE);
 
-INSERT INTO horario_academico (
-    id_horario, id_aula, id_externo, fecha_inicio, fecha_fin, fuente
-) VALUES
-    (9001, 9001, 'PRUEBA-EVT-001', '2026-11-10 08:00:00-05',
-     '2026-11-10 10:00:00-05', 'PRUEBA');
-
 INSERT INTO solicitud_aula (
     id_solicitud, id_usuario, id_aula, fecha_inicio, fecha_fin,
     estado, motivo, revisada_por, revisada_en
@@ -57,11 +51,9 @@ INSERT INTO solicitud_aula (
 
 INSERT INTO sincronizacion_siga (
     id_sincronizacion, recurso, iniciada_en, finalizada_en, estado,
-    registros_procesados, ventana_inicio, ventana_fin, detalle_error
+    registros_procesados, detalle_error
 ) VALUES
     (9001, 'AULAS', '2026-10-29 08:00:00-05', '2026-10-29 08:01:00-05',
-     'EXITOSA', 3, NULL, NULL, NULL),
-    (9002, 'EVENTOS', '2026-10-29 08:00:00-05', '2026-10-29 08:02:00-05',
-     'EXITOSA', 1, '2026-01-01', '2026-12-31', NULL);
+     'EXITOSA', 3, NULL);
 
 COMMIT;

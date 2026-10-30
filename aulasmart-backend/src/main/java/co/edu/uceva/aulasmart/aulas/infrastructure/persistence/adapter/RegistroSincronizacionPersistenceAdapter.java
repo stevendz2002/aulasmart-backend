@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
-import java.time.LocalDate;
 
 @Component
 public class RegistroSincronizacionPersistenceAdapter implements RegistroSincronizacionPort {
@@ -22,8 +21,8 @@ public class RegistroSincronizacionPersistenceAdapter implements RegistroSincron
 
     @Override
     @Transactional
-    public Long registrarInicio(String recurso, LocalDate ventanaInicio, LocalDate ventanaFin) {
-        var registro = SincronizacionSigaEntity.crear(recurso, clock.instant(), ventanaInicio, ventanaFin);
+    public Long registrarInicio(String recurso) {
+        var registro = SincronizacionSigaEntity.crear(recurso, clock.instant());
         return repository.save(registro).getId();
     }
 

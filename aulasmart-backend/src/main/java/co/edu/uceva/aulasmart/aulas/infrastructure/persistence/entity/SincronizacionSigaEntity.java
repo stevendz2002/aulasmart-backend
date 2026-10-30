@@ -8,7 +8,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.time.Instant;
-import java.time.LocalDate;
 
 @Entity
 @Table(name = "sincronizacion_siga")
@@ -27,10 +26,6 @@ public class SincronizacionSigaEntity {
     private String estado;
     @Column(name = "registros_procesados", nullable = false)
     private int registrosProcesados;
-    @Column(name = "ventana_inicio")
-    private LocalDate ventanaInicio;
-    @Column(name = "ventana_fin")
-    private LocalDate ventanaFin;
     @Column(name = "detalle_error")
     private String detalleError;
 
@@ -42,15 +37,12 @@ public class SincronizacionSigaEntity {
      * `EN_CURSO` con `finalizada_en` nula; posteriormente {@link #finalizar}
      * actualiza el resultado en el mismo registro.
      */
-    public static SincronizacionSigaEntity crear(String recurso, Instant iniciadaEn,
-            LocalDate ventanaInicio, LocalDate ventanaFin) {
+    public static SincronizacionSigaEntity crear(String recurso, Instant iniciadaEn) {
         var entity = new SincronizacionSigaEntity();
         entity.recurso = recurso;
         entity.estado = "EN_CURSO";
         entity.iniciadaEn = iniciadaEn;
         entity.registrosProcesados = 0;
-        entity.ventanaInicio = ventanaInicio;
-        entity.ventanaFin = ventanaFin;
         return entity;
     }
 
@@ -83,14 +75,6 @@ public class SincronizacionSigaEntity {
 
     public int getRegistrosProcesados() {
         return registrosProcesados;
-    }
-
-    public LocalDate getVentanaInicio() {
-        return ventanaInicio;
-    }
-
-    public LocalDate getVentanaFin() {
-        return ventanaFin;
     }
 
     public String getDetalleError() {

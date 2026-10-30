@@ -5,8 +5,7 @@ import co.edu.uceva.aulasmart.integrations.siga.application.model.ResultadoSincr
 import java.time.Instant;
 
 /**
- * Resumen de una corrida de sincronización. `ventana` solo tiene valor en la
- * sincronización de eventos; para aulas es nula.
+ * Resumen de una corrida de sincronización.
  */
 public record SincronizacionResponse(
         String recurso,

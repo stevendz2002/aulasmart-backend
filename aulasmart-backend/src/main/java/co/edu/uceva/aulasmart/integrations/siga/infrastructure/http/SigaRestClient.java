@@ -5,20 +5,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
-import java.time.LocalDate;
 import java.util.List;
 
 /**
  * Consultas HTTP a los endpoints públicos de SIGA verificados en
- * `docs/evidencias/01-fuentes-siga.md`. Cada respuesta se valida antes de
- * entregar datos a la aplicación; una respuesta cuestionada lanza
- * {@link SigaRespuestaInvalidaException}.
+ * `docs/evidencias/01-fuentes-siga.md`. La plataforma es una web de reservas
+ * de aulas, así que la única consulta en uso es la del catálogo de aulas.
+ * Cada respuesta se valida antes de entregar datos a la aplicación; una
+ * respuesta cuestionada lanza {@link SigaRespuestaInvalidaException}.
  */
 @Component
 public class SigaRestClient {
 
     private static final String RUTA_AULAS = "/publicomanejoespacios/listarAulasPublico";
-    private static final String RUTA_EVENTOS = "/publicomanejoespacios/listarEventAulaPublico";
 
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
@@ -32,19 +31,6 @@ public class SigaRestClient {
         String cuerpo = restClient.get().uri(RUTA_AULAS).retrieve().body(String.class);
         requerirCuerpo(cuerpo, RUTA_AULAS);
         return SigaAulasRespuesta.desde(objectMapper, cuerpo).aulas();
-    }
-
-    public SigaEventosRespuesta listarEventos(LocalDate desde, LocalDate hasta) {
-        String cuerpo = restClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path(RUTA_EVENTOS)
-                        .queryParam("startDate", desde)
-                        .queryParam("endDate", hasta)
-                        .build())
-                .retrieve()
-                .body(String.class);
-        requerirCuerpo(cuerpo, RUTA_EVENTOS);
-        return SigaEventosRespuesta.desde(objectMapper, cuerpo);
     }
 
     private void requerirCuerpo(String cuerpo, String ruta) {

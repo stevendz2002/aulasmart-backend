@@ -11,25 +11,18 @@ import java.util.Set;
 /**
  * Coordinador de corridas de sincronización. Un método `synchronized` evita
  * que una corrida manual y la programada se solapen en la misma instancia del
- * monolito.
+ * monolito. La plataforma es una web de reservas de aulas: el único recurso
+ * sincronizable es el catálogo de aulas.
  */
 @Service
 public class SincronizacionSigaService {
 
-    private static final Set<String> RECURSOS_VALIDOS = Set.of(
-            SincronizadorDeAulasService.RECURSO,
-            SincronizadorDeEventosService.RECURSO
-    );
+    private static final Set<String> RECURSOS_VALIDOS = Set.of(SincronizadorDeAulasService.RECURSO);
 
     private final SincronizadorDeAulasService sincronizadorDeAulas;
-    private final SincronizadorDeEventosService sincronizadorDeEventos;
 
-    public SincronizacionSigaService(
-            SincronizadorDeAulasService sincronizadorDeAulas,
-            SincronizadorDeEventosService sincronizadorDeEventos
-    ) {
+    public SincronizacionSigaService(SincronizadorDeAulasService sincronizadorDeAulas) {
         this.sincronizadorDeAulas = sincronizadorDeAulas;
-        this.sincronizadorDeEventos = sincronizadorDeEventos;
     }
 
     public List<ResultadoSincronizacion> sincronizar(List<String> recursos) {
@@ -44,12 +37,11 @@ public class SincronizacionSigaService {
         String recursoNormalizado = recurso.toUpperCase(Locale.ROOT);
         if (!RECURSOS_VALIDOS.contains(recursoNormalizado)) {
             throw new IllegalArgumentException("Recurso de sincronización desconocido: `" + recurso
-                    + "`. Valores válidos: AULAS, EVENTOS.");
+                    + "`. Valor de sincronización válido: AULAS.");
         }
-        return switch (recursoNormalizado) {
-            case SincronizadorDeAulasService.RECURSO -> sincronizadorDeAulas.sincronizar();
-            case SincronizadorDeEventosService.RECURSO -> sincronizadorDeEventos.sincronizar();
-            default -> throw new IllegalArgumentException("Recurso de sincronización desconocido: `" + recurso + "`.");
-        };
+        if (SincronizadorDeAulasService.RECURSO.equals(recursoNormalizado)) {
+            return sincronizadorDeAulas.sincronizar();
+        }
+        throw new IllegalArgumentException("Recurso de sincronización desconocido: `" + recurso + "`.");
     }
 }

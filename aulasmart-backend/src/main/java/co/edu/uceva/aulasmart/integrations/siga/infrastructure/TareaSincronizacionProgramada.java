@@ -1,14 +1,10 @@
 package co.edu.uceva.aulasmart.integrations.siga.infrastructure;
 
 import co.edu.uceva.aulasmart.integrations.siga.application.service.SincronizacionSigaService;
-import co.edu.uceva.aulasmart.integrations.siga.application.service.SincronizadorDeAulasService;
-import co.edu.uceva.aulasmart.integrations.siga.application.service.SincronizadorDeEventosService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 /**
  * Tarea programada de sincronización diaria. Una falla nunca detiene la
@@ -31,10 +27,7 @@ public class TareaSincronizacionProgramada {
     )
     public void sincronizarCadaDia() {
         try {
-            servicio.sincronizar(List.of(
-                    SincronizadorDeAulasService.RECURSO,
-                    SincronizadorDeEventosService.RECURSO
-            ));
+            servicio.ejecutar("AULAS");
         } catch (Exception e) {
             REGISTRO.error("La sincronización programada terminó con error.", e);
         }

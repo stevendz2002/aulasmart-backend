@@ -44,7 +44,7 @@ public class SincronizadorDeAulasService {
 
     public ResultadoSincronizacion sincronizar() {
         Instant inicio = clock.instant();
-        Long idRegistro = registroSincronizacionPort.registrarInicio(RECURSO, null, null);
+        Long idRegistro = registroSincronizacionPort.registrarInicio(RECURSO);
         try {
             List<AulaExterna> aulas = cliente.listarAulas();
             validarCodigosUnicos(aulas);

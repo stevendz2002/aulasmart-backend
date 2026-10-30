@@ -48,7 +48,7 @@ class SincronizadorDeAulasServiceTest {
 
     @Test
     void aplicaCatalogoYRegistraLaCorridaExitosa() {
-        when(registroSincronizacionPort.registrarInicio(SincronizadorDeAulasService.RECURSO, null, null))
+        when(registroSincronizacionPort.registrarInicio(SincronizadorDeAulasService.RECURSO))
                 .thenReturn(7L);
         when(cliente.listarAulas()).thenReturn(List.of(externa(195), externa(406)));
         when(catalogoSigaPort.aplicarAulasExternas(List.of(externa(195), externa(406)))).thenReturn(2);
@@ -66,7 +66,7 @@ class SincronizadorDeAulasServiceTest {
 
     @Test
     void registraLaCorridaComoFallidaConCodigosDuplicadosYNoAplicaNada() {
-        when(registroSincronizacionPort.registrarInicio(SincronizadorDeAulasService.RECURSO, null, null))
+        when(registroSincronizacionPort.registrarInicio(SincronizadorDeAulasService.RECURSO))
                 .thenReturn(7L);
         when(cliente.listarAulas()).thenReturn(List.of(externa(406), externa(406)));
 
@@ -80,7 +80,7 @@ class SincronizadorDeAulasServiceTest {
 
     @Test
     void registraLaCorridaComoFallidaSiLaConsultaFalla() {
-        when(registroSincronizacionPort.registrarInicio(SincronizadorDeAulasService.RECURSO, null, null))
+        when(registroSincronizacionPort.registrarInicio(SincronizadorDeAulasService.RECURSO))
                 .thenReturn(7L);
         when(cliente.listarAulas()).thenThrow(new IllegalStateException("conexión rechazada"));
 

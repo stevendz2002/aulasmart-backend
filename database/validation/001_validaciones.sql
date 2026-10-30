@@ -2,10 +2,10 @@
 
 \echo '1. Tablas y datos semánticos de prueba'
 SELECT 'aula' AS entidad, COUNT(*) FROM aula
-UNION ALL SELECT 'horario_academico', COUNT(*) FROM horario_academico
 UNION ALL SELECT 'solicitud_aula', COUNT(*) FROM solicitud_aula
 UNION ALL SELECT 'usuario', COUNT(*) FROM usuario
-UNION ALL SELECT 'rol', COUNT(*) FROM rol;
+UNION ALL SELECT 'rol', COUNT(*) FROM rol
+UNION ALL SELECT 'sincronizacion_siga', COUNT(*) FROM sincronizacion_siga;
 
 \echo '2. Consulta por edificio y capacidad mínima (solo activas)'
 SELECT a.id_aula, a.nombre, e.nombre AS edificio, a.capacidad, t.nombre AS tipo
@@ -15,34 +15,23 @@ JOIN tipo_aula t ON t.id_tipo_aula = a.id_tipo_aula
 WHERE a.activa AND e.id_edificio = 9001 AND a.capacidad >= 40
 ORDER BY a.id_aula;
 
-\echo '3. Disponibilidad: excluye eventos y solicitudes aprobadas solapados'
+\echo '3. Disponibilidad: exige catálogo AULAS vigente y excluye reservas aprobadas solapadas'
 WITH parametros AS (
     SELECT '2026-11-10 08:00:00-05'::timestamptz AS inicio,
            '2026-11-10 10:00:00-05'::timestamptz AS fin
-), sincronizacion_completa AS (
-    SELECT
-        EXISTS (
-            SELECT 1 FROM sincronizacion_siga
-            WHERE recurso = 'AULAS' AND estado = 'EXITOSA'
-        ) AND EXISTS (
-            SELECT 1 FROM sincronizacion_siga s, parametros p
-            WHERE s.recurso = 'EVENTOS' AND s.estado = 'EXITOSA'
-              AND s.ventana_inicio <= p.inicio::date
-              AND s.ventana_fin >= p.fin::date
-        ) AS valida
+), sincronizacion_vigente AS (
+    SELECT EXISTS (
+        SELECT 1 FROM sincronizacion_siga
+        WHERE recurso = 'AULAS' AND estado = 'EXITOSA'
+    ) AS valida
 )
 SELECT a.id_aula, a.nombre
 FROM aula a
 CROSS JOIN parametros p
-CROSS JOIN sincronizacion_completa sc
-WHERE sc.valida
+CROSS JOIN sincronizacion_vigente sv
+WHERE sv.valida
   AND a.activa
   AND a.capacidad >= 30
-  AND NOT EXISTS (
-      SELECT 1 FROM horario_academico h
-      WHERE h.id_aula = a.id_aula
-        AND h.fecha_inicio < p.fin AND h.fecha_fin > p.inicio
-  )
   AND NOT EXISTS (
       SELECT 1 FROM solicitud_aula s
       WHERE s.id_aula = a.id_aula AND s.estado = 'APROBADA'
@@ -50,18 +39,18 @@ WHERE sc.valida
   )
 ORDER BY a.id_aula;
 
-\echo '4. Ocupaciones que explican el conflicto del aula 9001'
-SELECT h.id_horario, h.id_aula, h.fecha_inicio, h.fecha_fin, h.fuente
-FROM horario_academico h
-WHERE h.id_aula = 9001
-  AND h.fecha_inicio < '2026-11-10 10:00:00-05'
-  AND h.fecha_fin > '2026-11-10 08:00:00-05';
+\echo '4. Las ocupaciones provienen solo de reservas aprobadas'
+SELECT s.id_solicitud, s.id_aula, s.fecha_inicio, s.fecha_fin, s.estado
+FROM solicitud_aula s
+WHERE s.id_aula = 9002
+  AND s.estado = 'APROBADA'
+  AND s.fecha_inicio < '2026-11-10 13:00:00-05'
+  AND s.fecha_fin > '2026-11-10 10:00:00-05';
 
 \echo '5. No existen referencias huérfanas'
 DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM aula a LEFT JOIN edificio e USING (id_edificio) WHERE e.id_edificio IS NULL)
-       OR EXISTS (SELECT 1 FROM horario_academico h LEFT JOIN aula a USING (id_aula) WHERE a.id_aula IS NULL)
        OR EXISTS (SELECT 1 FROM solicitud_aula s LEFT JOIN usuario u ON u.id_usuario = s.id_usuario WHERE u.id_usuario IS NULL) THEN
         RAISE EXCEPTION 'Se encontraron referencias huérfanas';
     END IF;
@@ -117,6 +106,18 @@ BEGIN
         RAISE EXCEPTION 'La validación de auditoría no funcionó';
     EXCEPTION WHEN check_violation THEN
         RAISE NOTICE 'OK: aprobación sin auditoría rechazada';
+    END;
+END $$;
+
+\echo '9. El único recurso de sincronización es AULAS'
+DO $$
+BEGIN
+    BEGIN
+        INSERT INTO sincronizacion_siga (recurso, estado, registros_procesados)
+        VALUES ('EVENTOS', 'EN_CURSO', 0);
+        RAISE EXCEPTION 'El recurso EVENTOS sigue aceptado';
+    EXCEPTION WHEN check_violation THEN
+        RAISE NOTICE 'OK: recurso EVENTOS rechazado';
     END;
 END $$;
 

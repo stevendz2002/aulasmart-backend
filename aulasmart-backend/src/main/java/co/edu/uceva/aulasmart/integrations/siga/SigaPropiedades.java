@@ -9,14 +9,7 @@ import java.time.Duration;
  * `application.properties` y se registran mediante `@EnableConfigurationProperties`.
  */
 @ConfigurationProperties(prefix = "aulasmart.siga")
-public record SigaPropiedades(String baseUrl, Duration timeout, Eventos eventos, Programado programado) {
-
-    /**
-     * Ventana de eventos que la sincronización debe intentar cubrir en cada
-     * corrida, medida desde la fecha institucional actual.
-     */
-    public record Eventos(int diasHaciaAtras, int diasHaciaAdelante) {
-    }
+public record SigaPropiedades(String baseUrl, Duration timeout, Programado programado) {
 
     public record Programado(String cron, String zona) {
     }
