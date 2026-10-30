@@ -37,6 +37,10 @@ public class UsuarioEntity {
     protected UsuarioEntity() {
     }
 
+    public Long getId() {
+        return id;
+    }
+
     public String getCorreo() {
         return correo;
     }

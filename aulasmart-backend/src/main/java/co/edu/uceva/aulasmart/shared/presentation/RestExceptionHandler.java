@@ -3,6 +3,9 @@ package co.edu.uceva.aulasmart.shared.presentation;
 import co.edu.uceva.aulasmart.aulas.domain.exception.AulaNoEncontradaException;
 import co.edu.uceva.aulasmart.aulas.domain.exception.DisponibilidadNoVerificableException;
 import co.edu.uceva.aulasmart.aulas.domain.exception.IntervaloInvalidoException;
+import co.edu.uceva.aulasmart.solicitudes.domain.exception.ReservaSolapadaException;
+import co.edu.uceva.aulasmart.solicitudes.domain.exception.SolicitudNoEncontradaException;
+import co.edu.uceva.aulasmart.solicitudes.domain.exception.SolicitudYaRevisadaException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +24,30 @@ public class RestExceptionHandler {
             HttpServletRequest request
     ) {
         return respuesta(HttpStatus.NOT_FOUND, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(SolicitudNoEncontradaException.class)
+    ResponseEntity<ApiError> manejarSolicitudNoEncontrada(
+            SolicitudNoEncontradaException exception,
+            HttpServletRequest request
+    ) {
+        return respuesta(HttpStatus.NOT_FOUND, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(SolicitudYaRevisadaException.class)
+    ResponseEntity<ApiError> manejarSolicitudYaRevisada(
+            SolicitudYaRevisadaException exception,
+            HttpServletRequest request
+    ) {
+        return respuesta(HttpStatus.CONFLICT, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(ReservaSolapadaException.class)
+    ResponseEntity<ApiError> manejarReservaSolapada(
+            ReservaSolapadaException exception,
+            HttpServletRequest request
+    ) {
+        return respuesta(HttpStatus.CONFLICT, exception.getMessage(), request);
     }
 
     @ExceptionHandler(DisponibilidadNoVerificableException.class)
