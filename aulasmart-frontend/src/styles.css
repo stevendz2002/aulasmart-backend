@@ -1,1 +1,61 @@
-/* You can add global styles to this file, and also import other style files */
+/* AulaSmart — estilos globales compartidos */
+* { box-sizing: border-box; }
+
+.seccion { margin-bottom: 28px; }
+.seccion h2 { margin: 0 0 4px; font-size: 1.15rem; color: #1f4e79; }
+.seccion .ayuda { margin: 0 0 12px; color: #8a94a6; font-size: 0.9rem; }
+
+.formulario {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: 14px;
+}
+.formulario label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: #36506b;
+}
+.formulario input, .formulario select, .formulario textarea {
+  padding: 7px 9px;
+  border: 1px solid #c6cfdd;
+  border-radius: 6px;
+  font: inherit;
+  min-width: 130px;
+}
+.formulario textarea { min-width: 260px; }
+
+.boton {
+  padding: 8px 18px;
+  border: 0;
+  border-radius: 6px;
+  background: #1f4e79;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+.boton:disabled { opacity: 0.6; cursor: wait; }
+.boton.secundario { background: #e6ecf4; color: #1f4e79; }
+.boton.ok { background: #2e7d32; }
+.boton.no { background: #b3261e; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid #e3e8f0; }
+th { background: #f7f9fc; color: #36506b; font-weight: 600; }
+td.numero { text-align: right; }
+
+.estado { font-weight: 600; }
+.estado.PENDIENTE { color: #a67c00; }
+.estado.APROBADA { color: #2e7d32; }
+.estado.RECHAZADA { color: #b3261e; }
+
+.mensaje-error { color: #b3261e; margin: 8px 0 0; }
+.mensaje-exito { color: #2e7d32; margin: 8px 0 0; }
+.mensaje-info { color: #36506b; margin: 8px 0 0; }
