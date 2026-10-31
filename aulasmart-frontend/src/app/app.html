@@ -1,12 +1,22 @@
 <div class="contenedor">
   <header class="barra">
-    <a class="marca" routerLink="/">{{ marca() }}</a>
+    <a class="marca" routerLink="/">{{ marca }}</a>
     <nav>
       <a routerLink="/aulas" routerLinkActive="activo" [routerLinkActiveOptions]="{ exact: false }">Aulas</a>
       <a routerLink="/solicitudes" routerLinkActive="activo">Solicitudes</a>
       <a routerLink="/bot" routerLinkActive="activo">AulaBot</a>
     </nav>
-    <span class="sesion">Sin sesión</span>
+    @if (authService.sesion(); as sesion) {
+      <span class="sesion" [title]="sesion.roles.join(', ')">
+        {{ sesion.correo }}
+        <button type="button" class="salir" (click)="cerrarSesion()">Salir</button>
+      </span>
+    } @else {
+      <span class="sesion">
+        Sin sesión
+        <a routerLink="/login" class="ingresar">Ingresar</a>
+      </span>
+    }
   </header>
 
   <main>

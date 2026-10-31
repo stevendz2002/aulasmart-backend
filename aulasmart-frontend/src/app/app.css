@@ -51,8 +51,27 @@ nav a:hover {
 
 .sesion {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.85rem;
   color: #8a94a6;
+}
+
+.sesion .ingresar {
+  color: #1f4e79;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.salir {
+  border: 1px solid #c6cfdd;
+  background: #fff;
+  color: #36506b;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font: inherit;
+  cursor: pointer;
 }
 
 main {
