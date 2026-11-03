@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 
-import { AuthService } from '../../../core/auth-service';
+import { AuthService } from '../../../../core/auth-service';
 
 /**
  * Vista de usuarios, exclusiva de ADMINISTRATIVO / ADMINISTRADOR.
