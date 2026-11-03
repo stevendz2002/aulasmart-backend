@@ -56,7 +56,7 @@ export class LoginPage {
     this.authService.login(correo, password).subscribe({
       next: () => {
         this.cargando.set(false);
-        void this.router.navigateByUrl('/aulas');
+        void this.router.navigateByUrl('/');
       },
       error: (err: HttpErrorResponse) => {
         this.cargando.set(false);
