@@ -11,7 +11,7 @@ export const routes: Routes = [
   {
     path: 'aulas',
     canActivate: [requiereRoles()],
-    loadComponent: () => import('./features/aulas/aulas-page').then(m => m.AulasPage)
+    loadComponent: () => import('./features/aulas/presentation/pages/aulas-page').then(m => m.AulasPage)
   },
   {
     path: 'solicitudes',

@@ -1,15 +1,16 @@
 import { Component, OnInit, WritableSignal, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-
-import { AulasData } from './aulas-data';
-import { Aula, Disponibilidad } from '../../core/modelos';
+import { GET_ALL_CLASSROOMS_USE_CASE, GET_AVAILABLE_CLASSROOMS_USE_CASE } from '../application/classrooms-di';
+import { GetAllClassroomsUseCase } from '../application/use-cases/get-all-classrooms.use-case';
+import { GetAvailableClassroomsUseCase } from '../application/use-cases/get-available-classrooms.use-case';
+import { Classroom, Availability, ClassroomFilter } from '../domain/entities/classroom';
 
 @Component({
   selector: 'app-aulas-page',
   template: `
     <section class="seccion">
-      <h2>Catálogo de aulas</h2>
-      <p class="ayuda">Catálogo sincronizado desde SIGA. Busca por nombre y filtra por capacidad mínima.</p>
+      <h2>Consulta de aulas</h2>
+      <p class="ayuda">Encuentra un aula libre para la franja que necesitas. Catálogo sincronizado desde SIGA.</p>
 
       <form class="formulario" (submit)="consultarCatalogo($event)">
         <label>
@@ -43,11 +44,11 @@ import { Aula, Disponibilidad } from '../../core/modelos';
           <tbody>
             @for (aula of lista; track aula.id) {
               <tr>
-                <td>{{ aula.nombre }}</td>
-                <td>{{ aula.edificio.nombre }}</td>
-                <td>{{ aula.tipoAula.nombre }}</td>
-                <td>{{ aula.dependencia.nombre }}</td>
-                <td class="numero">{{ aula.capacidad }}</td>
+                <td>{{ aula.name }}</td>
+                <td>{{ aula.building.name }}</td>
+                <td>{{ aula.type.name }}</td>
+                <td>{{ aula.department.name }}</td>
+                <td class="numero">{{ aula.capacity }}</td>
               </tr>
             }
           </tbody>
@@ -91,46 +92,49 @@ import { Aula, Disponibilidad } from '../../core/modelos';
             <tr>
               <th>Aula</th>
               <th>Edificio</th>
-              <th>Capacidad</th>
+              <th class="numero">Capacidad</th>
             </tr>
           </thead>
           <tbody>
-            @for (aula of resultado.aulas; track aula.id) {
+            @for (aula of resultado.classrooms; track aula.id) {
               <tr>
-                <td>{{ aula.nombre }}</td>
-                <td>{{ aula.edificio.nombre }}</td>
-                <td class="numero">{{ aula.capacidad }}</td>
+                <td>{{ aula.name }}</td>
+                <td>{{ aula.building.name }}</td>
+                <td class="numero">{{ aula.capacity }}</td>
               </tr>
             }
           </tbody>
         </table>
         <p class="mensaje-info">
-          {{ resultado.aulas.length }} aula(s) libres en el intervalo · verificado a las
-          {{ comoHora(resultado.verificadoEn) }}.
+          {{ resultado.classrooms.length }} aula(s) libres en el intervalo · verificado a las
+          {{ comoHora(resultado.range.verifiedAt) }}.
         </p>
       }
     </section>
   `
 })
 export class AulasPage implements OnInit {
-  private readonly aulasData = inject(AulasData);
+  private readonly getAllClassrooms = inject<GetAllClassroomsUseCase>(GET_ALL_CLASSROOMS_USE_CASE);
+  private readonly getAvailableClassrooms = inject<GetAvailableClassroomsUseCase>(
+    GET_AVAILABLE_CLASSROOMS_USE_CASE
+  );
 
-  private readonly catalogo = signal<Aula[] | null>(null);
+  private readonly catalogo = signal<Classroom[] | null>(null);
   private readonly nombreBuscado = signal('');
 
-  protected readonly aulas = computed<Aula[] | null>(() => {
+  protected readonly aulas = computed<Classroom[] | null>(() => {
     const todas = this.catalogo();
     if (todas === null) {
       return null;
     }
     const nombre = this.nombreBuscado().toLowerCase();
-    return nombre === '' ? todas : todas.filter(aula => aula.nombre.toLowerCase().includes(nombre));
+    return nombre === '' ? todas : todas.filter(aula => aula.name.toLowerCase().includes(nombre));
   });
 
   protected readonly cargandoCatalogo = signal(false);
   protected readonly errorCatalogo = signal<string | null>(null);
 
-  protected readonly disponibilidad = signal<Disponibilidad | null>(null);
+  protected readonly disponibilidad = signal<Availability | null>(null);
   protected readonly cargandoDisponibilidad = signal(false);
   protected readonly errorDisponibilidad = signal<string | null>(null);
 
@@ -146,9 +150,7 @@ export class AulasPage implements OnInit {
     this.nombreBuscado.set((this.valor('#buscarNombre') ?? '').trim());
 
     const capacidad = Number.parseInt(this.valor('#capacidadCatalogo') ?? '', 10);
-    this.cargarCatalogo({
-      capacidadMinima: Number.isFinite(capacidad) && capacidad > 0 ? capacidad : undefined
-    });
+    this.cargarCatalogo({ minCapacity: Number.isFinite(capacidad) && capacidad > 0 ? capacidad : undefined });
   }
 
   protected consultarDisponibilidad(evento: Event): void {
@@ -163,12 +165,10 @@ export class AulasPage implements OnInit {
     const capacidad = Number.parseInt(this.valor('#capacidadDisponibilidad') ?? '', 10);
     this.cargandoDisponibilidad.set(true);
     this.errorDisponibilidad.set(null);
-    this.aulasData
-      .disponibles(
-        new Date(inicio),
-        new Date(fin),
-        { capacidadMinima: Number.isFinite(capacidad) && capacidad > 0 ? capacidad : undefined }
-      )
+    this.getAvailableClassrooms
+      .execute(new Date(inicio), new Date(fin), {
+        minCapacity: Number.isFinite(capacidad) && capacidad > 0 ? capacidad : undefined
+      })
       .subscribe({
         next: disponibilidad => {
           this.disponibilidad.set(disponibilidad);
@@ -182,10 +182,10 @@ export class AulasPage implements OnInit {
     return new Date(iso).toLocaleTimeString();
   }
 
-  private cargarCatalogo(filtro: { capacidadMinima?: number }): void {
+  private cargarCatalogo(filter: ClassroomFilter): void {
     this.cargandoCatalogo.set(true);
     this.errorCatalogo.set(null);
-    this.aulasData.listar(filtro).subscribe({
+    this.getAllClassrooms.execute(filter).subscribe({
       next: aulas => {
         this.catalogo.set(aulas);
         this.cargandoCatalogo.set(false);
@@ -204,7 +204,7 @@ export class AulasPage implements OnInit {
     } else if (error.status === 401) {
       mensaje.set('Tu sesión expiró. Vuelve a iniciar sesión.');
     } else {
-      mensaje.set(`No fue posible completar la consulta (HTTP ${error.status}).`);
+      mensaje.set(`No fue posible completar la consulta (HTTP ${(error as { status?: number }).status}).`);
     }
   }
 
