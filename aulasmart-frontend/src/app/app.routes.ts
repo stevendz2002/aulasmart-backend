@@ -16,12 +16,13 @@ export const routes: Routes = [
   {
     path: 'solicitudes',
     canActivate: [requiereRoles('DOCENTE', 'ADMINISTRATIVO', 'ADMINISTRADOR')],
-    loadComponent: () => import('./features/solicitudes/solicitudes-page').then(m => m.SolicitudesPage)
+    loadComponent: () =>
+      import('./features/solicitudes/presentation/pages/solicitudes-page').then(m => m.SolicitudesPage)
   },
   {
-    path: 'bot',
+    path: 'aulabot',
     canActivate: [requiereRoles()],
-    loadComponent: () => import('./features/bot/bot-page').then(m => m.BotPage)
+    loadComponent: () => import('./features/aulabot/aulabot-page').then(m => m.AulaBotPage)
   },
   { path: '**', redirectTo: '' }
 ];

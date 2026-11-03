@@ -4,7 +4,7 @@
     <nav>
       <a routerLink="/aulas" routerLinkActive="activo" [routerLinkActiveOptions]="{ exact: false }">Aulas</a>
       <a routerLink="/solicitudes" routerLinkActive="activo">Solicitudes</a>
-      <a routerLink="/bot" routerLinkActive="activo">AulaBot</a>
+      <a routerLink="/aulabot" routerLinkActive="activo">AulaBot</a>
     </nav>
     @if (authService.sesion(); as sesion) {
       <span class="sesion" [title]="sesion.roles.join(', ')">

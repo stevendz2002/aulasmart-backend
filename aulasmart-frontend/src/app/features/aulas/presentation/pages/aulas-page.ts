@@ -1,9 +1,9 @@
 import { Component, OnInit, WritableSignal, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-import { GET_ALL_CLASSROOMS_USE_CASE, GET_AVAILABLE_CLASSROOMS_USE_CASE } from '../application/classrooms-di';
-import { GetAllClassroomsUseCase } from '../application/use-cases/get-all-classrooms.use-case';
-import { GetAvailableClassroomsUseCase } from '../application/use-cases/get-available-classrooms.use-case';
-import { Classroom, Availability, ClassroomFilter } from '../domain/entities/classroom';
+import { GET_ALL_CLASSROOMS_USE_CASE, GET_AVAILABLE_CLASSROOMS_USE_CASE } from '../../application/classrooms-di';
+import { GetAllClassroomsUseCase } from '../../application/use-cases/get-all-classrooms.use-case';
+import { GetAvailableClassroomsUseCase } from '../../application/use-cases/get-available-classrooms.use-case';
+import { Classroom, Availability, ClassroomFilter } from '../../domain/entities/classroom';
 
 @Component({
   selector: 'app-aulas-page',
