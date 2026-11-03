@@ -17,6 +17,18 @@ interface SidebarGroup {
   links: SidebarLink[];
 }
 
+/** Umbral en el que la barra inicia colapsada (pantallas angostas). */
+const UMBRAL_COLAPSO_PX = 720;
+
+/** Verdadero en ventanas angostas con soporte de matchMedia (p. ej. navegador). */
+function iniciaColapsada(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia(`(max-width: ${UMBRAL_COLAPSO_PX}px)`).matches
+  );
+}
+
 /**
  * Menú lateral del shell: navegación agrupada (General / Administración) y
  * filtrada por el rol real de la sesión. Colapsable a iniciales de un ancho
@@ -68,7 +80,7 @@ interface SidebarGroup {
 export class Sidebar {
   private readonly authService = inject(AuthService);
 
-  protected readonly colapsada = signal(false);
+  protected readonly colapsada = signal(iniciaColapsada());
 
   /**
    * Grupos visibles según la sesión: «Administración» solo para

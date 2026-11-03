@@ -3,7 +3,10 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ACADEMIC_PERIOD, AcademicPeriodConfig } from '../../../core/config/academic-period';
 
 /** Semana del período académico a partir de la fecha de inicio de clases. */
-function semanaDelPeriodo(periodo: AcademicPeriodConfig, ahora: Date): number | null {
+export function semanaDelPeriodo(
+  periodo: AcademicPeriodConfig,
+  ahora: Date
+): number | null {
   const inicio = new Date(`${periodo.startDate}T00:00:00`);
   if (Number.isNaN(inicio.getTime())) {
     return null;
