@@ -1,9 +1,46 @@
-/* AulaSmart — estilos globales compartidos */
+/* AulaSmart UCEVA — design tokens (identidad azul y blanco) y estilos globales */
+:root {
+  --color-primary: #2563EB;
+  --color-primary-dark: #123B70;
+  --color-primary-light: #DBEAFE;
+
+  --color-background: #F8FAFC;
+  --color-surface: #FFFFFF;
+
+  --color-text: #1E293B;
+  --color-text-secondary: #64748B;
+
+  --color-border: #E2E8F0;
+
+  --color-success: #16A34A;
+  --color-warning: #D97706;
+  --color-danger: #DC2626;
+  --color-muted: #94A3B8;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 2px 8px rgba(15, 23, 42, 0.10);
+}
+
 * { box-sizing: border-box; }
 
+body {
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-text);
+  font: 15px/1.5 system-ui, sans-serif;
+}
+
 .seccion { margin-bottom: 28px; }
-.seccion h2 { margin: 0 0 4px; font-size: 1.15rem; color: #1f4e79; }
-.seccion .ayuda { margin: 0 0 12px; color: #8a94a6; font-size: 0.9rem; }
+.seccion h2 {
+  margin: 0 0 4px;
+  font-size: 1.15rem;
+  color: var(--color-primary-dark);
+}
+.seccion .ayuda { margin: 0 0 12px; color: var(--color-text-secondary); font-size: 0.9rem; }
 
 .formulario {
   display: flex;
@@ -17,45 +54,57 @@
   flex-direction: column;
   gap: 4px;
   font-size: 0.85rem;
-  color: #36506b;
+  color: var(--color-text-secondary);
 }
 .formulario input, .formulario select, .formulario textarea {
   padding: 7px 9px;
-  border: 1px solid #c6cfdd;
-  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
   font: inherit;
   min-width: 130px;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+.formulario input:focus, .formulario select:focus, .formulario textarea:focus {
+  outline: 2px solid var(--color-primary-light);
+  border-color: var(--color-primary);
 }
 .formulario textarea { min-width: 260px; }
 
 .boton {
   padding: 8px 18px;
   border: 0;
-  border-radius: 6px;
-  background: #1f4e79;
-  color: #fff;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: var(--color-surface);
   font: inherit;
   cursor: pointer;
 }
 .boton:disabled { opacity: 0.6; cursor: wait; }
-.boton.secundario { background: #e6ecf4; color: #1f4e79; }
-.boton.ok { background: #2e7d32; }
-.boton.no { background: #b3261e; }
+.boton.secundario { background: var(--color-primary-light); color: var(--color-primary-dark); }
+.boton.ok { background: var(--color-success); }
+.boton.no { background: var(--color-danger); }
 
 table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
-th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid #e3e8f0; }
-th { background: #f7f9fc; color: #36506b; font-weight: 600; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--color-border); }
+th { background: var(--color-background); color: var(--color-text-secondary); font-weight: 600; }
+tbody tr:last-child td { border-bottom: 0; }
 td.numero { text-align: right; }
+tbody tr:hover td { background: var(--color-primary-light); }
 
 .estado { font-weight: 600; }
-.estado.PENDIENTE { color: #a67c00; }
-.estado.APROBADA { color: #2e7d32; }
-.estado.RECHAZADA { color: #b3261e; }
+.estado.PENDIENTE { color: var(--color-warning); }
+.estado.APROBADA { color: var(--color-success); }
+.estado.RECHAZADA { color: var(--color-danger); }
 
-.mensaje-error { color: #b3261e; margin: 8px 0 0; }
-.mensaje-exito { color: #2e7d32; margin: 8px 0 0; }
-.mensaje-info { color: #36506b; margin: 8px 0 0; }
+.mensaje-error { color: var(--color-danger); margin: 8px 0 0; }
+.mensaje-exito { color: var(--color-success); margin: 8px 0 0; }
+.mensaje-info { color: var(--color-text-secondary); margin: 8px 0 0; }
