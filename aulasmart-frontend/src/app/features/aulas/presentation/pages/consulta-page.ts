@@ -6,7 +6,7 @@ import { GetAvailableClassroomsUseCase } from '../../application/use-cases/get-a
 import { Classroom, Availability, ClassroomFilter } from '../../domain/entities/classroom';
 
 @Component({
-  selector: 'app-aulas-page',
+  selector: 'app-consulta-page',
   template: `
     <section class="seccion">
       <h2>Consulta de aulas</h2>
@@ -113,7 +113,7 @@ import { Classroom, Availability, ClassroomFilter } from '../../domain/entities/
     </section>
   `
 })
-export class AulasPage implements OnInit {
+export class ConsultaPage implements OnInit {
   private readonly getAllClassrooms = inject<GetAllClassroomsUseCase>(GET_ALL_CLASSROOMS_USE_CASE);
   private readonly getAvailableClassrooms = inject<GetAvailableClassroomsUseCase>(
     GET_AVAILABLE_CLASSROOMS_USE_CASE

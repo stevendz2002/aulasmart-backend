@@ -1,0 +1,99 @@
+.sidebar {
+  width: 240px;
+  flex: 0 0 auto;
+  background: var(--color-primary-dark);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 16px 12px;
+  box-sizing: border-box;
+  transition: width 0.15s ease;
+}
+
+.sidebar.colapsada {
+  width: 64px;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px;
+}
+
+.marca a {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.3px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.marca .sigla {
+  font-size: 1.3rem;
+}
+
+.alternar {
+  border: 0;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+
+.alternar:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.grupo .titulo {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  padding: 0 8px;
+  margin-bottom: 2px;
+}
+
+.grupo a {
+  color: #fff;
+  text-decoration: none;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.grupo a:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.grupo a.activo {
+  background: var(--color-primary);
+  font-weight: 600;
+}
+
+.colapsada .grupo a {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.colapsada .grupo {
+  align-items: center;
+}
+
+.colapsada .alternar {
+  align-self: center;
+}

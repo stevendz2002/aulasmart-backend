@@ -27,10 +27,10 @@ describe('requiereRoles', () => {
     expect(resultado.toString()).toBe('/login');
   });
 
-  it('con sesion pero sin el rol pedido redirige a /aulas', () => {
+  it('con sesion pero sin el rol pedido redirige al dashboard', () => {
     authService.sesion.set({ correo: 'docente@prueba.aulasmart.local', roles: ['DOCENTE'], claveCodificada: 'x' });
     const resultado = evaluar(requiereRoles('ADMINISTRATIVO', 'ADMINISTRADOR'));
-    expect(resultado instanceof UrlTree ? resultado.toString() : resultado).toBe('/aulas');
+    expect(resultado instanceof UrlTree ? resultado.toString() : resultado).toBe('/');
   });
 
   it('con sesion y alguno de los roles requeridos permite el acceso', () => {

@@ -1,0 +1,54 @@
+.barra {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.subtitulo {
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+
+.sesion {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.correo {
+  font-size: 0.85rem;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.roles {
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+}
+
+.salir {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-sm);
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.salir:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.ingresar {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
