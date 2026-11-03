@@ -36,5 +36,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/aulas/presentation/pages/gestion-aulas-page').then(m => m.GestionAulasPage)
   },
+  {
+    path: 'usuarios',
+    canActivate: [requiereRoles('ADMINISTRATIVO', 'ADMINISTRADOR')],
+    loadComponent: () =>
+      import('./features/usuarios/presentation/pages/usuarios-page').then(m => m.UsuariosPage)
+  },
   { path: '**', redirectTo: '' }
 ];

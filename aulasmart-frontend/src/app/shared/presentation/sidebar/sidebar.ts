@@ -91,7 +91,10 @@ export class Sidebar {
     if (this.authService.tieneAlgunRol(['ADMINISTRATIVO', 'ADMINISTRADOR'])) {
       grupos.push({
         title: 'Administración',
-        links: [{ path: '/aulas', label: 'Gestión de aulas', initial: 'G' }]
+        links: [
+          { path: '/aulas', label: 'Gestión de aulas', initial: 'G' },
+          { path: '/usuarios', label: 'Usuarios', initial: 'U' }
+        ]
       });
     }
 
