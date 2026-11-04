@@ -1,13 +1,17 @@
-<div class="disposicion">
-  <app-sidebar />
+@if (enIngreso()) {
+  <main class="sin-shell">
+    <router-outlet />
+  </main>
+} @else {
+  <div class="disposicion">
+    <app-sidebar />
 
-  <div class="cuerpo">
-    <app-header />
+    <div class="cuerpo">
+      <app-header />
 
-    <main>
-      <router-outlet />
-    </main>
-
-    <app-footer />
+      <main>
+        <router-outlet />
+      </main>
+    </div>
   </div>
-</div>
+}

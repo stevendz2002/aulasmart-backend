@@ -1,13 +1,17 @@
-/* Shell de la aplicación: menú lateral + cuerpo (cabecera/contenido/pie). */
+/* Shell de la aplicación: menú lateral fijo + cuerpo con scroll propio.
+   La sidebar (y con ella la tarjeta del período académico) permanece quieta:
+   el desplazamiento ocurre únicamente en la columna del contenido. */
 
 :host {
   display: block;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .disposicion {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .cuerpo {
@@ -15,12 +19,26 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 main {
   flex: 1;
   width: 100%;
-  max-width: 1100px;
-  padding: 24px;
+  max-width: 1320px;
+  padding: 24px 28px;
   box-sizing: border-box;
+}
+
+/* Vista sin shell (ingreso): el contenido ocupa toda la pantalla. */
+main.sin-shell {
+  max-width: none;
+  padding: 0;
+}
+
+@media (max-width: 720px) {
+  main {
+    padding: 16px;
+  }
 }
