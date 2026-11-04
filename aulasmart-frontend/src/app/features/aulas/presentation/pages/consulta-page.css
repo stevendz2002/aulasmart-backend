@@ -1,5 +1,5 @@
-/* Consulta de aulas (diseño aprobado): cabecera, tarjeta con franja,
-   pestanas de disponibilidad, buscador y tabla del catálogo SIGA. */
+/* Consulta de aulas (rediseño): cabecera, panel de franja con chips horarios,
+   pestañas de disponibilidad, buscador y grid de tarjetas por aula. */
 
 .cabecera {
   margin-bottom: 20px;
@@ -24,9 +24,12 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   padding: 16px 18px;
+  margin-bottom: 16px;
 }
 
-.franja {
+/* Panel de consulta de franja */
+
+.tarjeta.consulta .consulta__franja {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
@@ -36,7 +39,8 @@
   margin-bottom: 12px;
 }
 
-.franja label {
+.tarjeta.consulta .campo-fecha,
+.tarjeta.consulta .campo-capacidad {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -44,7 +48,8 @@
   color: var(--color-text-secondary);
 }
 
-.franja input {
+.tarjeta.consulta input[type='date'],
+.tarjeta.consulta input[type='number'] {
   padding: 7px 9px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
@@ -54,16 +59,57 @@
   min-width: 130px;
 }
 
-.franja input:focus {
+.tarjeta.consulta input:focus {
   outline: 2px solid var(--color-primary-light);
   border-color: var(--color-primary);
 }
 
+.chips-franja {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1 1 260px;
+}
+
+.chip-franja {
+  border: 1px solid var(--color-border);
+  background: var(--color-background);
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+
+.chip-franja:hover {
+  color: var(--color-text);
+  border-color: var(--color-primary-light);
+}
+
+.chip-franja.activa {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+  font-weight: 600;
+}
+
+.tarjeta.consulta .franja-extra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
 .nota-franja {
-  margin: 0 0 12px;
+  margin: 10px 0 0;
   font-size: 0.8rem;
   color: var(--color-text-secondary);
 }
+
+/* Controles: pestañas + buscador */
 
 .controles {
   display: flex;
@@ -127,15 +173,14 @@
   gap: 8px;
   border: 1px solid var(--color-border);
   border-radius: 999px;
-  padding: 7px 13px;
+  padding: 6px 12px;
   background: var(--color-background);
-  min-width: min(320px, 100%);
+  color: var(--color-text-secondary);
 }
 
 .busqueda svg {
-  width: 15px;
-  height: 15px;
-  color: var(--color-text-secondary);
+  width: 16px;
+  height: 16px;
   flex: 0 0 auto;
 }
 
@@ -143,42 +188,152 @@
   border: 0;
   background: transparent;
   font: inherit;
+  font-size: 0.85rem;
   color: var(--color-text);
+  min-width: 220px;
+}
+
+.busqueda input:focus {
   outline: none;
-  width: 100%;
-  min-width: 0;
 }
 
-.tabla-envoltorio {
-  overflow-x: auto;
+.busqueda:focus-within {
+  border-color: var(--color-primary);
 }
 
-td.aula {
+/* Grid de tarjetas de aulas */
+
+.grid-aulas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 12px;
+}
+
+.aula-card {
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: box-shadow 0.12s ease, border-color 0.12s ease;
+}
+
+.aula-card:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: var(--color-primary-light);
+}
+
+.aula-card.libre {
+  border-left: 4px solid var(--color-success);
+}
+
+.aula-card.ocupada {
+  border-left: 4px solid var(--color-danger);
+  opacity: 0.85;
+}
+
+.aula-card__cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.aula-card__cabecera h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.aula-card__ubicacion {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+}
+
+.aula-card__pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+}
+
+.aula-card__capacidad {
   font-weight: 600;
+  color: var(--color-text);
 }
 
-/* Chips de estado frente a la franja consultada. */
-.estado {
+.chip.estado-chip {
   display: inline-flex;
   align-items: center;
-  padding: 3px 10px;
   border-radius: 999px;
+  padding: 2px 9px;
   font-size: 0.72rem;
   font-weight: 600;
   white-space: nowrap;
 }
 
-.estado.libre {
+.chip.estado-chip.libre {
   background: #DCFCE7;
-  color: #166534;
+  color: var(--color-success);
 }
 
-.estado.ocupada {
+.chip.estado-chip.ocupada {
   background: #FEE2E2;
-  color: #991B1B;
+  color: var(--color-danger);
 }
 
-.estado.desconocida {
-  background: var(--color-background);
-  color: var(--color-muted);
+/* Mensajes */
+
+.mensaje-info {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  margin: 8px 0;
+}
+
+.mensaje-error {
+  color: var(--color-danger);
+  font-size: 0.9rem;
+  margin: 8px 0;
+}
+
+.mensaje-exito {
+  color: var(--color-success);
+  font-size: 0.9rem;
+  margin: 8px 0;
+}
+
+/* Botones */
+
+.boton {
+  border: 0;
+  background: var(--color-primary);
+  color: #fff;
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.boton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.boton.secundario {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.boton.no {
+  background: var(--color-danger);
 }
