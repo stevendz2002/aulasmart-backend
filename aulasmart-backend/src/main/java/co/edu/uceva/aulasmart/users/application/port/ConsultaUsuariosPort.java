@@ -5,12 +5,13 @@ import java.util.Set;
 
 /**
  * Consulta de usuarios por correo para resolver el principal autenticado:
- * entrega su identificador y sus roles sin exponer la relación de credenciales.
+ * entrega su identificador, nombre real de la cuenta y sus roles sin exponer
+ * la relación de credenciales.
  */
 public interface ConsultaUsuariosPort {
 
     Optional<UsuarioAutenticado> buscarPorCorreo(String correo);
 
-    record UsuarioAutenticado(Long id, Set<String> roles) {
+    record UsuarioAutenticado(Long id, String nombre, Set<String> roles) {
     }
 }

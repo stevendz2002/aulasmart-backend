@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class SesionResponseTest {
 
     @Test
-    void derivaElCorreoYLosRolesDeLasAutoridadesDeLaPeticion() {
+    void derivaElCorreoLosRolesYElNombreRealDeLaCuenta() {
         var authentication = new UsernamePasswordAuthenticationToken(
                 "docente@prueba.aulasmart.local",
                 "n/a",
@@ -22,9 +22,25 @@ class SesionResponseTest {
                 )
         );
 
-        var sesion = SesionResponse.desde(authentication);
+        var sesion = SesionResponse.desde(authentication, "PRUEBA Docente");
 
         assertEquals("docente@prueba.aulasmart.local", sesion.correo());
+        assertEquals("PRUEBA Docente", sesion.nombre());
         assertEquals(List.of("DOCENTE", "ESTUDIANTE"), sesion.roles());
+    }
+
+    @Test
+    void admiteNombreNuloCuandoLaCuentaNoSeResuelveEnLaPeticion() {
+        var authentication = new UsernamePasswordAuthenticationToken(
+                "docente@prueba.aulasmart.local",
+                "n/a",
+                List.of(new SimpleGrantedAuthority("ROLE_DOCENTE"))
+        );
+
+        var sesion = SesionResponse.desde(authentication, null);
+
+        assertEquals("docente@prueba.aulasmart.local", sesion.correo());
+        assertEquals(null, sesion.nombre());
+        assertEquals(List.of("DOCENTE"), sesion.roles());
     }
 }
