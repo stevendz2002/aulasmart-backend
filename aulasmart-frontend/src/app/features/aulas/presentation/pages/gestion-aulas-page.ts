@@ -23,15 +23,18 @@ import { SigaSyncRun } from '../../domain/entities/siga-sync-run';
         <button type="button" class="boton secundario" (click)="recargar()" [disabled]="cargando()">
           {{ cargando() ? 'Consultando…' : 'Actualizar' }}
         </button>
-        <button type="button" class="boton" (click)="sincronizar()" [disabled]="sincronizando()">
-          {{ sincronizando() ? 'Sincronizando…' : 'Sincronizar SIGA' }}
+        <button type="button" class="boton" (click)="sincronizar('AULAS')" [disabled]="sincronizando()">
+          {{ sincronizando() ? 'Sincronizando…' : 'Sincronizar catálogo' }}
+        </button>
+        <button type="button" class="boton" (click)="sincronizar('EVENTOS')" [disabled]="sincronizando()">
+          Sincronizar eventos
         </button>
       </p>
 
       <p class="mensaje-info">
-        La creación, edición e inactivación de aulas depende de endpoints de escritura que el
-        backend aún no publica; cuando existan, esta vista los consumirá con casos de uso propios
-        restringidos al personal administrativo.
+        «Sincronizar catálogo» refresca las aulas; «Sincronizar eventos» descarga la ocupación real
+        por clases del calendario público de SIGA (próximos 7 días) para que la consulta de
+        disponibilidad excluya también esos salones ocupados.
       </p>
 
       @if (error(); as mensaje) {
@@ -109,11 +112,11 @@ export class GestionAulasPage implements OnInit {
     });
   }
 
-  protected sincronizar(): void {
+  protected sincronizar(recurso: 'AULAS' | 'EVENTOS'): void {
     this.sincronizando.set(true);
     this.errorSincronizacion.set(null);
     this.ultimaSincronizacion.set(null);
-    this.triggerSigaSync.execute().subscribe({
+    this.triggerSigaSync.execute(recurso).subscribe({
       next: corridas => {
         this.sincronizando.set(false);
         this.ultimaSincronizacion.set(corridas[0] ?? null);

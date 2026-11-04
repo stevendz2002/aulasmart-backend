@@ -54,4 +54,29 @@ describe('HttpSigaSyncRepository', () => {
       }
     ]);
   });
+
+  it('dispara POST con recurso=EVENTOS para la ocupación académica', () => {
+    let corridas: SigaSyncRun[] | undefined;
+    repository.trigger('EVENTOS').subscribe(result => (corridas = result));
+
+    const req = requests.expectOne(
+      http =>
+        http.url === 'http://localhost:8080/api/sincronizaciones' &&
+        http.params.get('recurso') === 'EVENTOS'
+    );
+    req.flush([
+      {
+        recurso: 'EVENTOS',
+        estado: 'EXITOSA',
+        registrosProcesados: 812,
+        iniciadaEn: '2026-11-03T11:00:00Z',
+        finalizadaEn: '2026-11-03T11:00:41Z',
+        duracionMilisegundos: 41000,
+        detalleError: null
+      }
+    ]);
+
+    expect(corridas?.[0].resource).toBe('EVENTOS');
+    expect(corridas?.[0].recordsProcessed).toBe(812);
+  });
 });

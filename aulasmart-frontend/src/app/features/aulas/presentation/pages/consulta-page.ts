@@ -37,7 +37,8 @@ interface PestanaEstado {
         <h2>Consulta de aulas</h2>
         <p class="ayuda">
           Explora el catálogo sincronizado desde SIGA y verifica qué aulas están libres
-          en la franja de tu clase. Solo cuentan las solicitudes APROBADAS.
+          en la franja de tu clase. Un aula aparece ocupada si tiene clase en el calendario
+          académico de SIGA o una reserva APROBADA en AulaSmart.
         </p>
       </div>
     </header>
@@ -330,8 +331,8 @@ export class ConsultaPage implements OnInit {
     cargando.set(false);
     if (error.status === 503) {
       mensaje.set(
-        'No se puede confirmar la disponibilidad: la sincronización con SIGA está desactualizada. ' +
-        'Solicita al personal administrativo lanzar una sincronización e intenta de nuevo.'
+        'No se puede confirmar la disponibilidad: el catálogo o los eventos de SIGA están ' +
+        'desactualizados. Solicita al personal administrativo lanzar la sincronización e intenta de nuevo.'
       );
     } else if (error.status === 401) {
       mensaje.set('Tu sesión expiró. Vuelve a iniciar sesión.');
