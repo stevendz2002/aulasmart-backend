@@ -1,6 +1,7 @@
 package co.edu.uceva.aulasmart.solicitudes.application.service;
 
 import co.edu.uceva.aulasmart.aulas.application.port.AulaConsultaPort;
+import co.edu.uceva.aulasmart.aulas.application.port.HorarioAcademicoPort;
 import co.edu.uceva.aulasmart.aulas.application.port.SolicitudAprobadaPort;
 import co.edu.uceva.aulasmart.aulas.domain.exception.AulaNoEncontradaException;
 import co.edu.uceva.aulasmart.aulas.domain.model.Aula;
@@ -45,6 +46,8 @@ class RegistrarSolicitudServiceTest {
     private AulaConsultaPort aulaConsultaPort;
     @Mock
     private SolicitudAprobadaPort solicitudAprobadaPort;
+    @Mock
+    private HorarioAcademicoPort horarioAcademicoPort;
 
     private RegistrarSolicitudService service;
 
@@ -54,6 +57,7 @@ class RegistrarSolicitudServiceTest {
                 solicitudReservaPort,
                 aulaConsultaPort,
                 solicitudAprobadaPort,
+                horarioAcademicoPort,
                 Clock.fixed(AHORA, ZoneOffset.UTC)
         );
     }
@@ -100,13 +104,27 @@ class RegistrarSolicitudServiceTest {
         assertThrows(AulaNoEncontradaException.class, () ->
                 service.registrar(DOCENTE, AULA, INTERVALO.inicio(), INTERVALO.fin(), "Clase"));
 
-        verifyNoInteractions(solicitudReservaPort, solicitudAprobadaPort);
+        verifyNoInteractions(solicitudReservaPort, solicitudAprobadaPort, horarioAcademicoPort);
     }
 
     @Test
     void rechazaIntervaloSolapadoConReservaAprobada() {
         when(aulaConsultaPort.buscarActivaPorId(AULA)).thenReturn(Optional.of(aula()));
         when(solicitudAprobadaPort.buscarAulasConSolicitudesAprobadas(INTERVALO)).thenReturn(Set.of(AULA));
+
+        var exception = assertThrows(ReservaSolapadaException.class, () ->
+                service.registrar(DOCENTE, AULA, INTERVALO.inicio(), INTERVALO.fin(), "Clase"));
+
+        assertEquals("El aula " + AULA + " ya tiene una reserva aprobada que se solapa con el intervalo solicitado.",
+                exception.getMessage());
+        verifyNoInteractions(solicitudReservaPort);
+    }
+
+    @Test
+    void rechazaIntervaloSolapadoConClaseDeSiga() {
+        when(aulaConsultaPort.buscarActivaPorId(AULA)).thenReturn(Optional.of(aula()));
+        when(solicitudAprobadaPort.buscarAulasConSolicitudesAprobadas(INTERVALO)).thenReturn(Set.of());
+        when(horarioAcademicoPort.buscarAulasConEventos(INTERVALO)).thenReturn(Set.of(AULA));
 
         var exception = assertThrows(ReservaSolapadaException.class, () ->
                 service.registrar(DOCENTE, AULA, INTERVALO.inicio(), INTERVALO.fin(), "Clase"));

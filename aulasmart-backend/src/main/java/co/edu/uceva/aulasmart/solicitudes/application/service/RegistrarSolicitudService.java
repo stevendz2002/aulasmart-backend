@@ -1,6 +1,7 @@
 package co.edu.uceva.aulasmart.solicitudes.application.service;
 
 import co.edu.uceva.aulasmart.aulas.application.port.AulaConsultaPort;
+import co.edu.uceva.aulasmart.aulas.application.port.HorarioAcademicoPort;
 import co.edu.uceva.aulasmart.aulas.application.port.SolicitudAprobadaPort;
 import co.edu.uceva.aulasmart.aulas.domain.exception.AulaNoEncontradaException;
 import co.edu.uceva.aulasmart.aulas.domain.model.Intervalo;
@@ -25,17 +26,20 @@ public class RegistrarSolicitudService {
     private final SolicitudReservaPort solicitudReservaPort;
     private final AulaConsultaPort aulaConsultaPort;
     private final SolicitudAprobadaPort solicitudAprobadaPort;
+    private final HorarioAcademicoPort horarioAcademicoPort;
     private final Clock clock;
 
     public RegistrarSolicitudService(
             SolicitudReservaPort solicitudReservaPort,
             AulaConsultaPort aulaConsultaPort,
             SolicitudAprobadaPort solicitudAprobadaPort,
+            HorarioAcademicoPort horarioAcademicoPort,
             Clock clock
     ) {
         this.solicitudReservaPort = solicitudReservaPort;
         this.aulaConsultaPort = aulaConsultaPort;
         this.solicitudAprobadaPort = solicitudAprobadaPort;
+        this.horarioAcademicoPort = horarioAcademicoPort;
         this.clock = clock;
     }
 
@@ -57,6 +61,9 @@ public class RegistrarSolicitudService {
         aulaConsultaPort.buscarActivaPorId(aulaId)
                 .orElseThrow(() -> new AulaNoEncontradaException(aulaId));
         if (solicitudAprobadaPort.buscarAulasConSolicitudesAprobadas(intervalo).contains(aulaId)) {
+            throw new ReservaSolapadaException(aulaId);
+        }
+        if (horarioAcademicoPort.buscarAulasConEventos(intervalo).contains(aulaId)) {
             throw new ReservaSolapadaException(aulaId);
         }
 
