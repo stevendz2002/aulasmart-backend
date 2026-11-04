@@ -9,9 +9,13 @@ Este proyecto es la SPA del sistema **AulaSmart** de la UCEVA: gestión y consul
 ```
 src/app/
 ├── core/                  Sesion (HTTP Basic), interceptor, guardas de ruta,
-│                          url de API y configuración del período académico.
-├── shared/presentation/   Shell: sidebar agrupado por roles, header con sesión
-│                          real y footer con período académico (2026-2).
+│                          url de API, derivaciones de presentación del correo
+│                          (nombre-usuario.ts) y configuración del período
+│                          académico (2026-2, 16 semanas).
+├── shared/presentation/   Shell aprobado: sidebar blanca con íconos y badge de
+│                          pendientes (API real), topbar con buscador de aulas
+│                          (Ctrl/⌘K), menú de sesión y tarjeta fija del período
+│                          académico (no se desplaza con la página).
 └── features/
     aulas/                 Catálogo y disponibilidad + sincronización SIGA.
     solicitudes/           Ciclo de vida de solicitudes de reserva.
@@ -69,6 +73,17 @@ npm run build      # build de producción
 Credenciales del entorno de prueba (semilla sintética, no institucional):
 `docente@prueba.aulasmart.local` / `revisor@prueba.aulasmart.local`, contraseña `password` (hash público de ejemplo). Autenticación por HTTP Basic en cada petición — la SPA no mantiene sesión en el servidor.
 
+El frontend adopta el **diseño visual aprobado** (identidad azul y blanco) delimitando a lo que la API entrega. Mapeo honesto del diseño: los KPIs y paneles del dashboard derivan de los endpoints reales (_Aulas disponibles_, _Aulas registradas_, _Solicitudes pendientes_, _Solicitudes aprobadas_, _Libres ahora por edificio_); las métricas del boceto que el backend no expone (ocupación semanal, ocupación por día, actividad reciente) **no se simulan**. El nombre visible en el shell se deriva del correo real (`paola.ramirez@uceva.edu.co` → «Paola Ramirez`) porque `whoami` solo expone `correo` y `roles`, y el "solicitante" se muestra como `Docente id N` (no hay endpoint de personas).
+
+## Login (solo inicio de sesión)
+
+La pantalla de ingreso es de **dos paneles** (diseño aprobado): panel oscuro con la propuesta de valor y una cuadrícula horaria puramente decorativa (ilustración de marca, sin datos), y formulario institucional (`nombre@uceva.edu.co`, contraseña con alterna mostrar/ocultar). **No registra cuentas ni recupera contraseñas**: crear cuentas y gestionar accesos es responsabilidad del administrador (la UI lo indica con «Contacta al administrador»).
+
+## Pestañas y buscador por página
+
+- **Solicitudes**: pestañas Todas/Pendientes/Aprobadas/Rechazadas con conteos reales de la única lista de la API, buscador por ID (`SOL-n`), aula, solicitante o motivo (filtro cliente), y acciones ✓/✗ para el personal revisor en filas pendientes.
+- **Consulta de aulas**: formulario de franja contra `GET /api/aulas/disponibles`, pestañas Todas/Libres/Ocupadas con conteos derivados de la respuesta real, buscador del catálogo y chips de estado (Libre / Ocupada en la franja).
+
 ## Dependencias documentadas (alcance real)
 
 El frontend **no simula** capacidades que el backend aún no publica; los lugares quedan explícitos en la UI:
@@ -76,5 +91,6 @@ El frontend **no simula** capacidades que el backend aún no publica; los lugare
 - CRUD de aulas: solo lectura; escritura pendiente de endpoints del backend.
 - Directorio de usuarios: solo `GET /api/usuarios/whoami`; listado completo pendiente.
 - AulaBot: interfaz detallada pendiente de `use-case`/endpoint del módulo chatbot.
+- Centro de notificaciones: sin endpoint del backend; el shell no muestra campana ni alertas simuladas (las pendientes se informan con el badge real de la sidebar).
 - Períodos académicos: configuración centralizada en `core/config/academic-period.ts` hasta publicar el endpoint correspondiente.
 - Roles: la matriz anterior refleja la `SecurityConfiguration` real del backend (p. ej. crear solicitudes es exclusivo de DOCENTE y revisar pertenece a ADMINISTRATIVO/ADMINISTRADOR).
