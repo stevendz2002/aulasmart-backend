@@ -88,4 +88,14 @@ public class UsuarioEntity {
     public void asignarRoles(Set<RolEntity> roles) {
         this.roles = roles;
     }
+
+    /** Edición del perfil por el administrador (nombre de la cuenta). */
+    public void actualizarNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    /** Activa o desactiva la cuenta (el administrador gestiona el acceso). */
+    public void actualizarActivo(boolean activo) {
+        this.activo = activo;
+    }
 }

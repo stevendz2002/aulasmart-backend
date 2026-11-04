@@ -17,7 +17,9 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -100,5 +102,60 @@ class GestionUsuariosServiceTest {
         assertEquals(9003L, resultado.get(0).id());
         assertEquals("ADMINISTRADOR", resultado.get(0).roles().get(0));
         verify(gestionUsuariosPort).listar();
+    }
+
+    @Test
+    void editaElNombreYLosRolesDeUnaCuenta() {
+        when(gestionUsuariosPort.editar(7L, "Laura Torres Gómez", List.of("DOCENTE", "ESTUDIANTE"), null))
+                .thenReturn(new PerfilUsuario(7L, "Laura Torres Gómez", "laura@uceva.edu.co", true,
+                        List.of("DOCENTE", "ESTUDIANTE"), AHORA));
+
+        var perfil = service.editar(7L, " Laura Torres Gómez ", List.of("docente", "ESTUDIANTE"), null, 9003L);
+
+        assertEquals("Laura Torres Gómez", perfil.nombre());
+        verify(gestionUsuariosPort).editar(7L, "Laura Torres Gómez", List.of("DOCENTE", "ESTUDIANTE"), null);
+    }
+
+    @Test
+    void desactivaUnaCuentaQueNoEsLaDelPropioAdministrador() {
+        when(gestionUsuariosPort.editar(7L, null, null, false)).thenReturn(new PerfilUsuario(
+                7L, "Cuenta", "cuenta@uceva.edu.co", false, List.of("DOCENTE"), AHORA));
+
+        var perfil = service.editar(7L, null, null, false, 9003L);
+
+        assertEquals(false, perfil.activo());
+        verify(gestionUsuariosPort).editar(7L, null, null, false);
+    }
+
+    @Test
+    void rechazaQueElAdministradorDesactiveSuPropiaCuenta() {
+        assertThrows(RegistroInvalidoException.class,
+                () -> service.editar(9003L, null, null, false, 9003L));
+
+        verify(gestionUsuariosPort, never()).editar(anyLong(), anyString(), anyList(), any());
+    }
+
+    @Test
+    void rechazaEdicionesConRolesFueraDelCatalogo() {
+        assertThrows(RolInvalidoException.class,
+                () -> service.editar(7L, null, List.of("DECANO"), null, 9003L));
+
+        verify(gestionUsuariosPort, never()).editar(anyLong(), anyString(), anyList(), any());
+    }
+
+    @Test
+    void rechazaEdicionesConNombreVacioOExcesivo() {
+        assertThrows(RegistroInvalidoException.class,
+                () -> service.editar(7L, "   ", null, null, 9003L));
+        assertThrows(RegistroInvalidoException.class,
+                () -> service.editar(7L, "x".repeat(121), null, null, 9003L));
+
+        verify(gestionUsuariosPort, never()).editar(anyLong(), anyString(), anyList(), any());
+    }
+
+    @Test
+    void rechazaEdicionesSinIdentificadorDeCuenta() {
+        assertThrows(RegistroInvalidoException.class,
+                () -> service.editar(null, "Nombre", null, null, 9003L));
     }
 }

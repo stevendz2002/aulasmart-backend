@@ -9,6 +9,7 @@ import co.edu.uceva.aulasmart.solicitudes.domain.exception.SolicitudYaRevisadaEx
 import co.edu.uceva.aulasmart.users.domain.exception.CorreoYaRegistradoException;
 import co.edu.uceva.aulasmart.users.domain.exception.RegistroInvalidoException;
 import co.edu.uceva.aulasmart.users.domain.exception.RolInvalidoException;
+import co.edu.uceva.aulasmart.users.domain.exception.UsuarioNoEncontradoException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -67,6 +68,14 @@ public class RestExceptionHandler {
             HttpServletRequest request
     ) {
         return respuesta(HttpStatus.BAD_REQUEST, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(UsuarioNoEncontradoException.class)
+    ResponseEntity<ApiError> manejarUsuarioNoEncontrado(
+            UsuarioNoEncontradoException exception,
+            HttpServletRequest request
+    ) {
+        return respuesta(HttpStatus.NOT_FOUND, exception.getMessage(), request);
     }
 
     @ExceptionHandler(DisponibilidadNoVerificableException.class)
