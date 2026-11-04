@@ -3,6 +3,7 @@ package co.edu.uceva.aulasmart.aulas.infrastructure.persistence.adapter;
 import co.edu.uceva.aulasmart.aulas.application.port.HorarioAcademicoPort;
 import co.edu.uceva.aulasmart.aulas.domain.model.EventoExterno;
 import co.edu.uceva.aulasmart.aulas.domain.model.Intervalo;
+import co.edu.uceva.aulasmart.aulas.domain.model.OcupacionAula;
 import co.edu.uceva.aulasmart.aulas.infrastructure.persistence.entity.HorarioAcademicoEntity;
 import co.edu.uceva.aulasmart.aulas.infrastructure.persistence.repository.AulaJpaRepository;
 import co.edu.uceva.aulasmart.aulas.infrastructure.persistence.repository.HorarioAcademicoJpaRepository;
@@ -48,7 +49,8 @@ public class HorarioAcademicoPersistenceAdapter implements HorarioAcademicoPort 
                             aula.getId(),
                             evento.idExterno(),
                             evento.inicio(),
-                            evento.fin()
+                            evento.fin(),
+                            evento.titulo()
                     ))
             );
         }
@@ -62,5 +64,13 @@ public class HorarioAcademicoPersistenceAdapter implements HorarioAcademicoPort 
     @Transactional(readOnly = true)
     public Set<Long> buscarAulasConEventos(Intervalo intervalo) {
         return horarios.buscarAulasConEventos(intervalo.inicio(), intervalo.fin());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OcupacionAula> buscarOcupacionDeAula(Long idAula, Intervalo intervalo) {
+        return horarios.buscarOcupacionDeAula(idAula, intervalo.inicio(), intervalo.fin()).stream()
+                .map(h -> new OcupacionAula(h.getAulaId(), h.getDetalles(), h.getFechaInicio(), h.getFechaFin()))
+                .toList();
     }
 }

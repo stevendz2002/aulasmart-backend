@@ -41,6 +41,9 @@ public class HorarioAcademicoEntity {
     @Column(nullable = false)
     private String fuente;
 
+    @Column(name = "detalles")
+    private String detalles;
+
     protected HorarioAcademicoEntity() {
     }
 
@@ -48,7 +51,8 @@ public class HorarioAcademicoEntity {
             Long aulaId,
             String idExterno,
             Instant fechaInicio,
-            Instant fechaFin
+            Instant fechaFin,
+            String detalles
     ) {
         var entidad = new HorarioAcademicoEntity();
         entidad.aulaId = aulaId;
@@ -56,6 +60,7 @@ public class HorarioAcademicoEntity {
         entidad.fechaInicio = fechaInicio;
         entidad.fechaFin = fechaFin;
         entidad.fuente = FUENTE_SIGA;
+        entidad.detalles = detalles;
         return entidad;
     }
 
@@ -81,5 +86,9 @@ public class HorarioAcademicoEntity {
 
     public String getFuente() {
         return fuente;
+    }
+
+    public String getDetalles() {
+        return detalles;
     }
 }

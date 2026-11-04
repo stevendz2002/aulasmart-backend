@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 
 public interface HorarioAcademicoJpaRepository extends JpaRepository<HorarioAcademicoEntity, Long> {
@@ -22,6 +23,18 @@ public interface HorarioAcademicoJpaRepository extends JpaRepository<HorarioAcad
             WHERE h.fechaInicio < :fin AND h.fechaFin > :inicio
             """)
     Set<Long> buscarAulasConEventos(
+            @Param("inicio") Instant inicio,
+            @Param("fin") Instant fin
+    );
+
+    @Query("""
+            SELECT h FROM HorarioAcademicoEntity h
+            WHERE h.aulaId = :idAula
+              AND h.fechaInicio < :fin AND h.fechaFin > :inicio
+            ORDER BY h.fechaInicio
+            """)
+    List<HorarioAcademicoEntity> buscarOcupacionDeAula(
+            @Param("idAula") Long idAula,
             @Param("inicio") Instant inicio,
             @Param("fin") Instant fin
     );

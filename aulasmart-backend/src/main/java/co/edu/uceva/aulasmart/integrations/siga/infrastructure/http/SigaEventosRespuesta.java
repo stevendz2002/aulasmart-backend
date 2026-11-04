@@ -76,7 +76,8 @@ public record SigaEventosRespuesta(int total, List<EventoExterno> eventos) {
         Instant inicio = fechaHora(nodo, "start_dt", indice);
         Instant fin = fechaHora(nodo, "end_dt", indice);
         String identificador = identificadorExterno(nodo, inicio, indice);
-        return new EventoExterno(numero(nodo, "code_location", indice), identificador, inicio, fin);
+        String titulo = textoOpcional(nodo, "evt_title");
+        return new EventoExterno(numero(nodo, "code_location", indice), identificador, inicio, fin, titulo);
     }
 
     /**
@@ -124,6 +125,15 @@ public record SigaEventosRespuesta(int total, List<EventoExterno> eventos) {
                     "El evento en el índice " + indice + " no incluye `" + campo + "` como número.");
         }
         return valor.asLong();
+    }
+
+    private static String textoOpcional(JsonNode nodo, String campo) {
+        JsonNode valor = nodo.get(campo);
+        if (valor == null || !valor.isTextual()) {
+            return null;
+        }
+        var texto = valor.asText().trim();
+        return texto.isEmpty() ? null : texto;
     }
 }
 

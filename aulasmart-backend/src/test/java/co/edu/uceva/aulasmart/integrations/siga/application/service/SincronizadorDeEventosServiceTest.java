@@ -41,7 +41,8 @@ class SincronizadorDeEventosServiceTest {
 
     private static final EventoExterno CLASE =
             new EventoExterno(195L, "161510|2026-11-03 07:20:00",
-                    Instant.parse("2026-11-03T12:20:00Z"), Instant.parse("2026-11-03T14:00:00Z"));
+                    Instant.parse("2026-11-03T12:20:00Z"), Instant.parse("2026-11-03T14:00:00Z"),
+                    "Asignatura: 22034-220 - COSTOS Y PRESUPUESTOS");
 
     @Mock
     private SigaRestClient cliente;

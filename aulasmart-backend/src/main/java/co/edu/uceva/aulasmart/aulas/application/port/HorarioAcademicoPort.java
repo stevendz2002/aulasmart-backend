@@ -2,6 +2,7 @@ package co.edu.uceva.aulasmart.aulas.application.port;
 
 import co.edu.uceva.aulasmart.aulas.domain.model.EventoExterno;
 import co.edu.uceva.aulasmart.aulas.domain.model.Intervalo;
+import co.edu.uceva.aulasmart.aulas.domain.model.OcupacionAula;
 
 import java.time.Instant;
 import java.util.List;
@@ -27,4 +28,7 @@ public interface HorarioAcademicoPort {
     );
 
     Set<Long> buscarAulasConEventos(Intervalo intervalo);
+
+    /** Ocupación de un aula en el intervalo (para la ficha de detalles). */
+    List<OcupacionAula> buscarOcupacionDeAula(Long idAula, Intervalo intervalo);
 }

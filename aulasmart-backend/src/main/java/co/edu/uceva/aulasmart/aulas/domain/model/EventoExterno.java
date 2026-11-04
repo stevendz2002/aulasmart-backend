@@ -6,14 +6,15 @@ import java.util.Objects;
 /**
  * Ocupación observada de un aula en el calendario público de SIGA: una
  * franja real (clase, reserva o evento institucional) durante la cual el
- * aula NO está disponible para reservar. Llega por la sincronización de
- * eventos; el identificador externo permite rastrear la ocurrencia en SIGA.
+ * aula NO está disponible para reservar. El título proviene del evento SIGA
+ * (`evt_title`) y se conserva para mostrar el detalle en la ficha del aula.
  */
 public record EventoExterno(
         Long codigoAulaSiga,
         String idExterno,
         Instant inicio,
-        Instant fin
+        Instant fin,
+        String titulo
 ) {
     public EventoExterno {
         Objects.requireNonNull(codigoAulaSiga, "El código SIGA del aula del evento es obligatorio.");
