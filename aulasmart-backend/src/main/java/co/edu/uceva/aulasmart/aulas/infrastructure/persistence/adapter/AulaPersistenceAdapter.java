@@ -34,4 +34,9 @@ public class AulaPersistenceAdapter implements AulaConsultaPort {
     public Optional<Aula> buscarActivaPorId(Long idAula) {
         return repository.findByIdAndActivaTrue(idAula).map(AulaMapper::toDomain);
     }
+
+    @Override
+    public List<Long> buscarCodigosSigaDeAulasActivas() {
+        return repository.buscarCodigosSigaDeAulasActivas();
+    }
 }

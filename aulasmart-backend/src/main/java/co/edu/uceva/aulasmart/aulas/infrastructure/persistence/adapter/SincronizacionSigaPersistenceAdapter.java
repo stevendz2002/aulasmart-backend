@@ -21,4 +21,11 @@ public class SincronizacionSigaPersistenceAdapter implements SincronizacionSigaP
                 "AULAS", "EXITOSA", limiteActualizacion
         );
     }
+
+    @Override
+    public boolean eventosVigente(Instant limiteActualizacion) {
+        return repository.existsByRecursoAndEstadoAndFinalizadaEnGreaterThanEqual(
+                "EVENTOS", "EXITOSA", limiteActualizacion
+        );
+    }
 }
