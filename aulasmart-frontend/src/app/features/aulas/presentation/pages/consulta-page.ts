@@ -21,7 +21,7 @@ interface PestanaEstado {
 
 /**
  * Consulta de aulas (diseño aprobado): formulario de franja contra el
- * endpoint real de disponibilidad, pestañas Todas / Libres / Ocupadas con
+ * endpoint real de disponibilidad, pestanas Todas / Libres / Ocupadas con
  * conteos reales, buscador del lado del cliente y chips de estado derivados
  * de la respuesta de la API (nunca datos simulados). El catálogo llega
  * sincronizado desde SIGA.
@@ -79,15 +79,15 @@ interface PestanaEstado {
 
       <div class="controles">
         <div class="pestanas" role="tablist" aria-label="Filtrar por disponibilidad en la franja">
-          @for (pestaña of pestanas(); track pestaña.valor) {
+          @for (pestana of pestanas(); track pestana.valor) {
             <button
               type="button"
               role="tab"
-              [class.activa]="pestañaActiva() === pestaña.valor"
-              [attr.aria-selected]="pestañaActiva() === pestaña.valor"
-              (click)="elegirPestana(pestaña.valor)"
+              [class.activa]="pestanaActiva() === pestana.valor"
+              [attr.aria-selected]="pestanaActiva() === pestana.valor"
+              (click)="elegirPestana(pestana.valor)"
             >
-              {{ pestaña.etiqueta }} <span class="cuenta">{{ pestaña.cuenta ?? '—' }}</span>
+              {{ pestana.etiqueta }} <span class="cuenta">{{ pestana.cuenta ?? '—' }}</span>
             </button>
           }
         </div>
@@ -163,7 +163,7 @@ export class ConsultaPage implements OnInit {
   );
 
   protected readonly textoBusqueda = signal('');
-  protected readonly pestañaActiva = signal<PestanaEstado['valor']>('TODAS');
+  protected readonly pestanaActiva = signal<PestanaEstado['valor']>('TODAS');
 
   protected readonly catalogo = signal<Classroom[] | null>(null);
   protected readonly cargandoCatalogo = signal(false);
@@ -211,15 +211,15 @@ export class ConsultaPage implements OnInit {
     ];
   });
 
-  /** Filtrado cliente por pestaña y texto (nombre, edificio, tipo o dependencia). */
+  /** Filtrado cliente por pestana y texto (nombre, edificio, tipo o dependencia). */
   protected readonly visibles = computed<AulaVista[]>(() => {
-    const pestaña = this.pestañaActiva();
+    const pestana = this.pestanaActiva();
     const texto = this.textoBusqueda().trim().toLowerCase();
     return this.aulasConEstado().filter(vista => {
-      if (pestaña === 'LIBRES' && vista.estado !== 'LIBRE') {
+      if (pestana === 'LIBRES' && vista.estado !== 'LIBRE') {
         return false;
       }
-      if (pestaña === 'OCUPADAS' && vista.estado !== 'OCUPADAS') {
+      if (pestana === 'OCUPADAS' && vista.estado !== 'OCUPADA') {
         return false;
       }
       if (texto === '') {
@@ -243,7 +243,7 @@ export class ConsultaPage implements OnInit {
   }
 
   protected elegirPestana(valor: PestanaEstado['valor']): void {
-    this.pestañaActiva.set(valor);
+    this.pestanaActiva.set(valor);
   }
 
   protected buscar(texto: string): void {
@@ -309,9 +309,9 @@ export class ConsultaPage implements OnInit {
     });
   }
 
-  /** Con datos de franja, la pestaña por omisión vuelve a «Todas». */
+  /** Con datos de franja, la pestana por omisión vuelve a «Todas». */
   private ajustarPestanaSegunDisponibilidad(): void {
-    this.pestañaActiva.set('TODAS');
+    this.pestanaActiva.set('TODAS');
   }
 
   private cargarCatalogo(filter: ClassroomFilter): void {
