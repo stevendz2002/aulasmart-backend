@@ -15,3 +15,9 @@ export interface CreateUserDto {
   clave: string;
   roles: string[];
 }
+
+export interface UpdateUserDto {
+  nombre?: string;
+  roles?: string[];
+  activo?: boolean;
+}

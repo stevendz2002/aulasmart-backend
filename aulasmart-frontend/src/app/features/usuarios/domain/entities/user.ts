@@ -14,10 +14,17 @@ export interface User {
   createdAt: string;
 }
 
-/** Datos que el ADMINISTRADOR entrega para crear una cuenta. */
+/** Datos para crear una cuenta. */
 export interface CreateUserAccountCommand {
   fullName: string;
   email: string;
   password: string;
   roles: SystemRole[];
+}
+
+/** Cambios parciales sobre una cuenta existente (null/ausente = no tocar). */
+export interface UpdateUserAccountCommand {
+  fullName?: string;
+  roles?: SystemRole[];
+  active?: boolean;
 }

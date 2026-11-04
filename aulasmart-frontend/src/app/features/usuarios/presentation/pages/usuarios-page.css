@@ -235,8 +235,24 @@
   color: var(--color-primary-dark);
 }
 
-.formulario.cuenta-nueva .nota {
-  margin: 0;
+/* Acciones por fila del directorio */
+.tabla-envoltorio td.acciones {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tabla-envoltorio td.acciones .boton {
+  padding: 4px 10px;
   font-size: 0.78rem;
-  color: var(--color-text-secondary);
+}
+
+.boton.no {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.acciones-formulario {
+  display: flex;
+  gap: 8px;
 }

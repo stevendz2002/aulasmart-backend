@@ -4,22 +4,18 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../../core/auth-service';
 import {
   CREATE_USER_ACCOUNT_USE_CASE,
-  GET_USERS_USE_CASE
+  GET_USERS_USE_CASE,
+  UPDATE_USER_ACCOUNT_USE_CASE
 } from '../../application/users-di';
 import { GetUsersUseCase } from '../../application/use-cases/get-users.use-case';
 import { CreateUserAccountUseCase } from '../../application/use-cases/create-user-account.use-case';
-import { CreateUserAccountCommand, SystemRole, User } from '../../domain/entities/user';
+import { UpdateUserAccountUseCase } from '../../application/use-cases/update-user-account.use-case';
+import { CreateUserAccountCommand, SystemRole, UpdateUserAccountCommand, User } from '../../domain/entities/user';
 
-/** Roles del catálogo del backend (tabla rol), mostrados como checkboxes. */
 const ROLES_SISTEMA: SystemRole[] = ['ADMINISTRADOR', 'ADMINISTRATIVO', 'DOCENTE', 'ESTUDIANTE'];
 
-type Pestana = 'directorio' | 'crear';
+type Pestana = 'directorio' | 'crear' | 'editar';
 
-/**
- * Gestión de usuarios (rol ADMINISTRADOR): directorio del sistema y creación
- * de cuentas. La lógica de negocio vive en los casos de uso y el backend —
- * la presentación solo reúne los datos del formulario y el estado en señales.
- */
 @Component({
   selector: 'app-usuarios-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,8 +24,8 @@ type Pestana = 'directorio' | 'crear';
     <section class="cabecera">
       <h2>Usuarios</h2>
       <p class="ayuda">
-        Directorio del sistema y creación de cuentas. Solo el administrador gestiona
-        cuentas (<code>GET/POST /api/usuarios</code>): las personas no se autorregistran.
+        Directorio del sistema y creación/edición de cuentas. Solo el administrador
+        gestiona cuentas (<code>GET/POST/PATCH /api/usuarios</code>).
       </p>
     </section>
 
@@ -44,6 +40,12 @@ type Pestana = 'directorio' | 'crear';
                   [class.activa]="pestanaActiva() === 'crear'" (click)="cambiarPestana('crear')">
             Crear cuenta
           </button>
+          @if (editando(); as usuario) {
+            <button type="button" role="tab" [attr.aria-selected]="pestanaActiva() === 'editar'"
+                    [class.activa]="pestanaActiva() === 'editar'" (click)="cambiarPestana('editar')">
+              Editando: {{ usuario.fullName }}
+            </button>
+          }
         </div>
 
         @if (pestanaActiva() === 'directorio') {
@@ -84,6 +86,7 @@ type Pestana = 'directorio' | 'crear';
                   <th>Correo</th>
                   <th>Roles</th>
                   <th>Estado</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -95,6 +98,12 @@ type Pestana = 'directorio' | 'crear';
                     <td>{{ usuario.roles.join(', ') }}</td>
                     <td><span [class]="usuario.active ? 'chip activo' : 'chip inactivo'">
                       {{ usuario.active ? 'Activo' : 'Inactivo' }}</span></td>
+                    <td class="acciones">
+                      <button type="button" class="boton secundario" (click)="iniciarEdicion(usuario)">Editar</button>
+                      <button type="button" class="boton" [class.no]="usuario.active" (click)="alternarActivacion(usuario)">
+                        {{ usuario.active ? 'Desactivar' : 'Activar' }}
+                      </button>
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -127,11 +136,7 @@ type Pestana = 'directorio' | 'crear';
             <legend>Roles de la cuenta</legend>
             @for (rol of rolesCatalogo; track rol) {
               <label class="rol">
-                <input
-                  type="checkbox"
-                  [checked]="rolesElegidos().has(rol)"
-                  (change)="alternarRol(rol)"
-                />
+                <input type="checkbox" [checked]="rolesElegidos().has(rol)" (change)="alternarRol(rol)" />
                 <span class="chip rol-chip">{{ rotuloRol(rol) }}</span>
               </label>
             }
@@ -150,12 +155,47 @@ type Pestana = 'directorio' | 'crear';
           <p class="nota">La respuesta confirma la cuenta creada y el directorio se recarga.</p>
         </form>
       }
+
+      @if (pestanaActiva() === 'editar' && editando(); as usuario) {
+        <form class="formulario cuenta-nueva" (submit)="guardarEdicion($event)">
+          <label for="nombre-edicion">
+            Nombre completo
+            <input id="nombre-edicion" type="text" required maxlength="120"
+                   [value]="nombreEdicion()" (input)="nombreEdicion.set($any($event.target).value)" />
+          </label>
+
+          <fieldset class="roles">
+            <legend>Roles de la cuenta</legend>
+            @for (rol of rolesCatalogo; track rol) {
+              <label class="rol">
+                <input type="checkbox" [checked]="rolesEdicion().has(rol)" (change)="alternarRolEdicion(rol)" />
+                <span class="chip rol-chip">{{ rotuloRol(rol) }}</span>
+              </label>
+            }
+          </fieldset>
+
+          <div class="acciones-formulario">
+            <button type="submit" class="boton" [disabled]="cargandoEdicion()">
+              {{ cargandoEdicion() ? 'Guardando…' : 'Guardar cambios' }}
+            </button>
+            <button type="button" class="boton secundario" (click)="cancelarEdicion()">Cancelar</button>
+          </div>
+
+          @if (errorEdicion(); as mensaje) {
+            <p class="mensaje-error">{{ mensaje }}</p>
+          }
+          @if (exitoEdicion(); as mensaje) {
+            <p class="mensaje-exito">{{ mensaje }}</p>
+          }
+        </form>
+      }
     </section>
   `
 })
 export class UsuariosPage implements OnInit {
   private readonly getUsers = inject<GetUsersUseCase>(GET_USERS_USE_CASE);
   private readonly createUserAccount = inject<CreateUserAccountUseCase>(CREATE_USER_ACCOUNT_USE_CASE);
+  private readonly updateUserAccount = inject<UpdateUserAccountUseCase>(UPDATE_USER_ACCOUNT_USE_CASE);
 
   protected readonly pestanaActiva = signal<Pestana>('directorio');
   protected readonly usuarios = signal<User[]>([]);
@@ -177,12 +217,20 @@ export class UsuariosPage implements OnInit {
     );
   });
 
-  // Estado del formulario de creación de cuentas.
+  // Crear
   protected readonly rolesCatalogo = ROLES_SISTEMA;
   protected readonly rolesElegidos = signal<Set<SystemRole>>(new Set(['DOCENTE']));
   protected readonly cargandoCreacion = signal(false);
   protected readonly errorCreacion = signal<string | null>(null);
   protected readonly exitoCreacion = signal<string | null>(null);
+
+  // Editar
+  protected readonly editando = signal<User | null>(null);
+  protected readonly nombreEdicion = signal('');
+  protected readonly rolesEdicion = signal<Set<SystemRole>>(new Set());
+  protected readonly cargandoEdicion = signal(false);
+  protected readonly errorEdicion = signal<string | null>(null);
+  protected readonly exitoEdicion = signal<string | null>(null);
 
   ngOnInit(): void {
     this.cargarDirectorio();
@@ -208,7 +256,18 @@ export class UsuariosPage implements OnInit {
     });
   }
 
-  /** Etiqueta legible del rol en el formulario de creación. */
+  protected alternarRolEdicion(rol: SystemRole): void {
+    this.rolesEdicion.update(roles => {
+      const siguiente = new Set(roles);
+      if (siguiente.has(rol)) {
+        siguiente.delete(rol);
+      } else {
+        siguiente.add(rol);
+      }
+      return siguiente;
+    });
+  }
+
   protected rotuloRol(rol: SystemRole): string {
     const rotulos: Record<SystemRole, string> = {
       ADMINISTRADOR: 'Administrador',
@@ -248,6 +307,62 @@ export class UsuariosPage implements OnInit {
     });
   }
 
+  protected iniciarEdicion(usuario: User): void {
+    this.editando.set(usuario);
+    this.nombreEdicion.set(usuario.fullName);
+    this.rolesEdicion.set(new Set(usuario.roles as SystemRole[]));
+    this.errorEdicion.set(null);
+    this.exitoEdicion.set(null);
+    this.pestanaActiva.set('editar');
+  }
+
+  protected guardarEdicion(evento: Event): void {
+    evento.preventDefault();
+    const usuario = this.editando();
+    if (!usuario) {
+      return;
+    }
+    const command: UpdateUserAccountCommand = {
+      fullName: this.nombreEdicion().trim(),
+      roles: [...this.rolesEdicion()]
+    };
+
+    this.cargandoEdicion.set(true);
+    this.errorEdicion.set(null);
+    this.exitoEdicion.set(null);
+    this.updateUserAccount.execute(usuario.id, command).subscribe({
+      next: actualizado => {
+        this.cargandoEdicion.set(false);
+        this.exitoEdicion.set(`Cuenta de ${actualizado.fullName} actualizada.`);
+        this.usuarios.update(lista => lista.map(u => (u.id === actualizado.id ? actualizado : u)));
+      },
+      error: (err: HttpErrorResponse) => {
+        this.cargandoEdicion.set(false);
+        this.errorEdicion.set(this.mensajeDeErrorDeEdicion(err));
+      }
+    });
+  }
+
+  protected cancelarEdicion(): void {
+    this.editando.set(null);
+    this.pestanaActiva.set('directorio');
+  }
+
+  protected alternarActivacion(usuario: User): void {
+    const accion = usuario.active ? 'desactivar' : 'activar';
+    if (!confirm(`¿Confirmas ${accion} la cuenta de ${usuario.fullName}?`)) {
+      return;
+    }
+    this.updateUserAccount.execute(usuario.id, { active: !usuario.active }).subscribe({
+      next: actualizado => {
+        this.usuarios.update(lista => lista.map(u => (u.id === actualizado.id ? actualizado : u)));
+      },
+      error: (err: HttpErrorResponse) => {
+        this.errorDirectorio.set(this.mensajeDeErrorDeEdicion(err));
+      }
+    });
+  }
+
   private cargarDirectorio(): void {
     this.cargandoDirectorio.set(true);
     this.errorDirectorio.set(null);
@@ -279,5 +394,19 @@ export class UsuariosPage implements OnInit {
       return 'Solo el administrador puede crear cuentas con esta API.';
     }
     return `No fue posible crear la cuenta (HTTP ${err.status}).`;
+  }
+
+  private mensajeDeErrorDeEdicion(err: HttpErrorResponse): string {
+    const detalle = typeof err.error?.message === 'string' ? err.error.message : null;
+    if (err.status === 404) {
+      return detalle ?? 'La cuenta ya no existe en el directorio.';
+    }
+    if (err.status === 400) {
+      return detalle ?? 'Datos inválidos: revisa nombre y roles.';
+    }
+    if (err.status === 401 || err.status === 403) {
+      return 'Solo el administrador puede editar cuentas con esta API.';
+    }
+    return `No fue posible actualizar la cuenta (HTTP ${err.status}).`;
   }
 }

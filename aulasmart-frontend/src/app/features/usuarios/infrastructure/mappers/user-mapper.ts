@@ -1,5 +1,5 @@
-import { UserDto, CreateUserDto } from '../dto/user-dto';
-import { CreateUserAccountCommand, User } from '../../domain/entities/user';
+import { UserDto, CreateUserDto, UpdateUserDto } from '../dto/user-dto';
+import { CreateUserAccountCommand, UpdateUserAccountCommand, User } from '../../domain/entities/user';
 
 /**
  * Adapter (patrón Adapter): traduce los DTO del backend, en español tal como
@@ -25,5 +25,19 @@ export class UserMapper {
       clave: command.password,
       roles: command.roles
     };
+  }
+
+  static toUpdateDto(command: UpdateUserAccountCommand): UpdateUserDto {
+    const dto: UpdateUserDto = {};
+    if (command.fullName !== undefined) {
+      dto.nombre = command.fullName;
+    }
+    if (command.roles !== undefined) {
+      dto.roles = command.roles;
+    }
+    if (command.active !== undefined) {
+      dto.activo = command.active;
+    }
+    return dto;
   }
 }
