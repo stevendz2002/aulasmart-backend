@@ -123,3 +123,6 @@
 .franjas-libres { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-bottom: 8px; }
 .franjas-libres__etiqueta { font-size: 0.75rem; color: var(--color-text-secondary); margin-right: 2px; }
 .franjas-libres .chip-franja { padding: 3px 8px; font-size: 0.72rem; }
+
+/* Oculta el icono nativo del picker para evitar el duplicado con el SVG */
+.input-icono input::-webkit-calendar-picker-indicator { opacity: 0; cursor: pointer; width: 100%; height: 100%; position: absolute; right: 0; top: 0; }
