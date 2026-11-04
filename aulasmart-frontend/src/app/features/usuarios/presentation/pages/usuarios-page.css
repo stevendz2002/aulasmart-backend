@@ -1,0 +1,242 @@
+/* Gestión de usuarios (rol ADMINISTRADOR): pestanas directorio/crear,
+   buscador y tabla; formulario de creación de cuentas. */
+
+.cabecera {
+  margin-bottom: 20px;
+}
+
+.cabecera h2 {
+  margin: 0 0 4px;
+  font-size: 1.45rem;
+  color: var(--color-text);
+}
+
+.cabecera .ayuda {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  max-width: 72ch;
+}
+
+.tarjeta {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 16px 18px;
+}
+
+.controles {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.pestanas {
+  display: inline-flex;
+  gap: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 4px;
+  background: var(--color-background);
+}
+
+.pestanas button {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.pestanas button:hover {
+  color: var(--color-text);
+}
+
+.pestanas button.activa {
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+.pestanas .cuenta {
+  font-size: 0.72rem;
+  border-radius: 999px;
+  padding: 0 7px;
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+}
+
+.pestanas button.activa .cuenta {
+  background: rgba(255, 255, 255, 0.24);
+  color: #fff;
+}
+
+.busqueda {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: var(--color-background);
+  color: var(--color-text-secondary);
+}
+
+.busqueda svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.busqueda input {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  min-width: 220px;
+}
+
+.busqueda input:focus {
+  outline: none;
+}
+
+.busqueda:focus-within {
+  border-color: var(--color-primary);
+}
+
+.tabla-envoltorio {
+  overflow-x: auto;
+}
+
+.tabla-envoltorio table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.tabla-envoltorio th,
+.tabla-envoltorio td {
+  text-align: left;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.tabla-envoltorio th {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+}
+
+.tabla-envoltorio td.numero,
+.tabla-envoltorio th.numero {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabla-envoltorio td.nombre {
+  font-weight: 600;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.chip.activo {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+}
+
+.chip.inactivo {
+  background: var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+/* Formulario de creación de cuentas */
+
+.formulario.cuenta-nueva {
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.formulario.cuenta-nueva label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.84rem;
+  color: var(--color-text-secondary);
+}
+
+.formulario.cuenta-nueva input {
+  padding: 9px 11px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+.formulario.cuenta-nueva input:focus {
+  outline: 2px solid var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+
+.roles {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.roles legend {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  padding: 0 4px;
+}
+
+.roles .rol {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.rol-chip {
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.roles .rol input:checked + .rol-chip {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+}
+
+.formulario.cuenta-nueva .nota {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+}

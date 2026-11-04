@@ -1,50 +1,283 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, computed, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { AuthService } from '../../../../core/auth-service';
+import {
+  CREATE_USER_ACCOUNT_USE_CASE,
+  GET_USERS_USE_CASE
+} from '../../application/users-di';
+import { GetUsersUseCase } from '../../application/use-cases/get-users.use-case';
+import { CreateUserAccountUseCase } from '../../application/use-cases/create-user-account.use-case';
+import { CreateUserAccountCommand, SystemRole, User } from '../../domain/entities/user';
+
+/** Roles del catálogo del backend (tabla rol), mostrados como checkboxes. */
+const ROLES_SISTEMA: SystemRole[] = ['ADMINISTRADOR', 'ADMINISTRATIVO', 'DOCENTE', 'ESTUDIANTE'];
+
+type Pestana = 'directorio' | 'crear';
 
 /**
- * Vista de usuarios, exclusiva de ADMINISTRATIVO / ADMINISTRADOR.
- * Solo lectura: el único endpoint de usuarios publicado por el backend es
- * `GET /api/usuarios/whoami` (sesión activa). El directorio completo de
- * usuarios aún no existe en la API y no se simula — dependencia documentada.
+ * Gestión de usuarios (rol ADMINISTRADOR): directorio del sistema y creación
+ * de cuentas. La lógica de negocio vive en los casos de uso y el backend —
+ * la presentación solo reúne los datos del formulario y el estado en señales.
  */
 @Component({
   selector: 'app-usuarios-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './usuarios-page.css',
   template: `
-    <section class="seccion">
+    <section class="cabecera">
       <h2>Usuarios</h2>
       <p class="ayuda">
-        Única información publicada por la API actual: el perfil de la sesión activa
-        (<code>GET /api/usuarios/whoami</code>). El listado completo de usuarios del sistema es una
-        dependencia pendiente del backend; no se simula.
+        Directorio del sistema y creación de cuentas. Solo el administrador gestiona
+        cuentas (<code>GET/POST /api/usuarios</code>): las personas no se autorregistran.
       </p>
+    </section>
 
-      @if (authService.sesion(); as sesion) {
-        <table>
-          <thead>
-            <tr>
-              <th>Campo</th>
-              <th>Valor</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Correo</td>
-              <td>{{ sesion.correo }}</td>
-            </tr>
-            <tr>
-              <td>Roles</td>
-              <td>{{ sesion.roles.join(', ') }}</td>
-            </tr>
-          </tbody>
-        </table>
-      } @else {
-        <p class="mensaje-error">Sin sesión activa.</p>
+    <section class="tarjeta">
+      <div class="controles">
+        <div class="pestanas" role="tablist" aria-label="Gestión de usuarios">
+          <button type="button" role="tab" [attr.aria-selected]="pestanaActiva() === 'directorio'"
+                  [class.activa]="pestanaActiva() === 'directorio'" (click)="cambiarPestana('directorio')">
+            Directorio <span class="cuenta">{{ visibles().length }}</span>
+          </button>
+          <button type="button" role="tab" [attr.aria-selected]="pestanaActiva() === 'crear'"
+                  [class.activa]="pestanaActiva() === 'crear'" (click)="cambiarPestana('crear')">
+            Crear cuenta
+          </button>
+        </div>
+
+        @if (pestanaActiva() === 'directorio') {
+          <label class="busqueda">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" aria-hidden="true">
+              <path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM16.2 16.2 21 21" />
+            </svg>
+            <input
+              #entradaBusqueda
+              type="search"
+              placeholder="Buscar por nombre, correo o rol…"
+              aria-label="Buscar usuarios"
+              [value]="textoBusqueda()"
+              (input)="buscar(entradaBusqueda.value)"
+            />
+          </label>
+        }
+      </div>
+
+      @if (pestanaActiva() === 'directorio') {
+        @if (errorDirectorio(); as mensaje) {
+          <p class="mensaje-error">{{ mensaje }}</p>
+        }
+        <div class="tabla-envoltorio">
+          @if (cargandoDirectorio()) {
+            <p class="mensaje-info">Consultando el directorio…</p>
+          } @else if (usuarios().length === 0 && !errorDirectorio()) {
+            <p class="mensaje-info">El directorio está vacío: crea la primera cuenta en la pestaña Crear cuenta.</p>
+          } @else if (visibles().length === 0 && !errorDirectorio()) {
+            <p class="mensaje-info">Ningún usuario coincide con la búsqueda.</p>
+          } @else {
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Correo</th>
+                  <th>Roles</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (usuario of visibles(); track usuario.id) {
+                  <tr>
+                    <td class="numero">{{ usuario.id }}</td>
+                    <td class="nombre">{{ usuario.fullName }}</td>
+                    <td>{{ usuario.email }}</td>
+                    <td>{{ usuario.roles.join(', ') }}</td>
+                    <td><span [class]="usuario.active ? 'chip activo' : 'chip inactivo'">
+                      {{ usuario.active ? 'Activo' : 'Inactivo' }}</span></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      }
+
+      @if (pestanaActiva() === 'crear') {
+        <form class="formulario cuenta-nueva" (submit)="crearCuenta($event)">
+          <label for="nombre">
+            Nombre completo
+            <input id="nombre" type="text" required maxlength="120"
+                   placeholder="Ej: Ana María Restrepo" autocomplete="off" />
+          </label>
+
+          <label for="correo">
+            Correo institucional
+            <input id="correo" type="email" required maxlength="254"
+                   placeholder="nombre@uceva.edu.co" autocomplete="off" />
+          </label>
+
+          <label for="clave">
+            Contraseña temporal (mínimo 8 caracteres)
+            <input id="clave" type="password" required minlength="8"
+                   placeholder="••••••••" autocomplete="new-password" />
+          </label>
+
+          <fieldset class="roles">
+            <legend>Roles de la cuenta</legend>
+            @for (rol of rolesCatalogo; track rol) {
+              <label class="rol">
+                <input
+                  type="checkbox"
+                  [checked]="rolesElegidos().has(rol)"
+                  (change)="alternarRol(rol)"
+                />
+                <span class="chip rol-chip">{{ rotuloRol(rol) }}</span>
+              </label>
+            }
+          </fieldset>
+
+          <button type="submit" class="boton" [disabled]="cargandoCreacion()">
+            {{ cargandoCreacion() ? 'Creando cuenta…' : 'Crear cuenta' }}
+          </button>
+
+          @if (errorCreacion(); as mensaje) {
+            <p class="mensaje-error">{{ mensaje }}</p>
+          }
+          @if (exitoCreacion(); as mensaje) {
+            <p class="mensaje-exito">{{ mensaje }}</p>
+          }
+          <p class="nota">La respuesta confirma la cuenta creada y el directorio se recarga.</p>
+        </form>
       }
     </section>
   `
 })
-export class UsuariosPage {
-  protected readonly authService = inject(AuthService);
+export class UsuariosPage implements OnInit {
+  private readonly getUsers = inject<GetUsersUseCase>(GET_USERS_USE_CASE);
+  private readonly createUserAccount = inject<CreateUserAccountUseCase>(CREATE_USER_ACCOUNT_USE_CASE);
+
+  protected readonly pestanaActiva = signal<Pestana>('directorio');
+  protected readonly usuarios = signal<User[]>([]);
+  protected readonly cargandoDirectorio = signal(false);
+  protected readonly errorDirectorio = signal<string | null>(null);
+
+  protected readonly textoBusqueda = signal('');
+  protected readonly visibles = computed(() => {
+    const consulta = this.textoBusqueda().toLowerCase().trim();
+    const todos = this.usuarios();
+    if (!consulta) {
+      return todos;
+    }
+    return todos.filter(
+      usuario =>
+        usuario.fullName.toLowerCase().includes(consulta) ||
+        usuario.email.toLowerCase().includes(consulta) ||
+        usuario.roles.join(' ').toLowerCase().includes(consulta)
+    );
+  });
+
+  // Estado del formulario de creación de cuentas.
+  protected readonly rolesCatalogo = ROLES_SISTEMA;
+  protected readonly rolesElegidos = signal<Set<SystemRole>>(new Set(['DOCENTE']));
+  protected readonly cargandoCreacion = signal(false);
+  protected readonly errorCreacion = signal<string | null>(null);
+  protected readonly exitoCreacion = signal<string | null>(null);
+
+  ngOnInit(): void {
+    this.cargarDirectorio();
+  }
+
+  protected cambiarPestana(pestana: Pestana): void {
+    this.pestanaActiva.set(pestana);
+  }
+
+  protected buscar(texto: string): void {
+    this.textoBusqueda.set(texto);
+  }
+
+  protected alternarRol(rol: SystemRole): void {
+    this.rolesElegidos.update(roles => {
+      const siguiente = new Set(roles);
+      if (siguiente.has(rol)) {
+        siguiente.delete(rol);
+      } else {
+        siguiente.add(rol);
+      }
+      return siguiente;
+    });
+  }
+
+  /** Etiqueta legible del rol en el formulario de creación. */
+  protected rotuloRol(rol: SystemRole): string {
+    const rotulos: Record<SystemRole, string> = {
+      ADMINISTRADOR: 'Administrador',
+      ADMINISTRATIVO: 'Administrativo',
+      DOCENTE: 'Docente',
+      ESTUDIANTE: 'Estudiante'
+    };
+    return rotulos[rol];
+  }
+
+  protected crearCuenta(evento: Event): void {
+    evento.preventDefault();
+    const formulario = evento.target as HTMLFormElement;
+
+    const command: CreateUserAccountCommand = {
+      fullName: formulario.querySelector<HTMLInputElement>('#nombre')!.value.trim(),
+      email: formulario.querySelector<HTMLInputElement>('#correo')!.value.trim(),
+      password: formulario.querySelector<HTMLInputElement>('#clave')!.value,
+      roles: [...this.rolesElegidos()]
+    };
+
+    this.cargandoCreacion.set(true);
+    this.errorCreacion.set(null);
+    this.exitoCreacion.set(null);
+    this.createUserAccount.execute(command).subscribe({
+      next: usuario => {
+        this.cargandoCreacion.set(false);
+        this.exitoCreacion.set(`Cuenta creada para ${usuario.fullName}.`);
+        this.rolesElegidos.set(new Set(['DOCENTE']));
+        formulario.reset();
+        this.cargarDirectorio();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.cargandoCreacion.set(false);
+        this.errorCreacion.set(this.mensajeDeErrorDeCreacion(err));
+      }
+    });
+  }
+
+  private cargarDirectorio(): void {
+    this.cargandoDirectorio.set(true);
+    this.errorDirectorio.set(null);
+    this.getUsers.execute().subscribe({
+      next: usuarios => {
+        this.usuarios.set(usuarios);
+        this.cargandoDirectorio.set(false);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.cargandoDirectorio.set(false);
+        this.errorDirectorio.set(
+          err.status === 401 || err.status === 403
+            ? 'La API entregó el directorio solo al administrador: tu sesión no conserva ese permiso.'
+            : `No fue posible consultar el directorio (HTTP ${err.status}).`
+        );
+      }
+    });
+  }
+
+  private mensajeDeErrorDeCreacion(err: HttpErrorResponse): string {
+    const detalle = typeof err.error?.message === 'string' ? err.error.message : null;
+    if (err.status === 409) {
+      return detalle ?? 'Ya existe una cuenta con ese correo.';
+    }
+    if (err.status === 400) {
+      return detalle ?? 'Datos inválidos: revisa nombre, correo, clave (mín. 8) y roles.';
+    }
+    if (err.status === 401 || err.status === 403) {
+      return 'Solo el administrador puede crear cuentas con esta API.';
+    }
+    return `No fue posible crear la cuenta (HTTP ${err.status}).`;
+  }
 }

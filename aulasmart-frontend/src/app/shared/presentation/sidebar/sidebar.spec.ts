@@ -43,7 +43,12 @@ describe('Sidebar', () => {
   });
 
   it('no muestra Administración a un DOCENTE', () => {
-    authService.sesion.set({ correo: 'docente@prueba.aulasmart.local', roles: ['DOCENTE'], claveCodificada: 'x' });
+    authService.sesion.set({
+      correo: 'docente@prueba.aulasmart.local',
+      nombre: 'PRUEBA Docente',
+      roles: ['DOCENTE'],
+      claveCodificada: 'x'
+    });
     const f = fixture();
     f.detectChanges();
 
@@ -51,10 +56,34 @@ describe('Sidebar', () => {
     expect(textos).not.toContain('Administración');
   });
 
-  it('muestra Administración con gestión y usuarios a ADMINISTRATIVO y badge de pendientes', () => {
+  it('ADMINISTRATIVO ve Administración con gestión de aulas pero SIN usuarios', () => {
     authService.sesion.set({
       correo: 'secretaria@prueba.aulasmart.local',
+      nombre: 'PRUEBA Revisor',
       roles: ['ADMINISTRATIVO'],
+      claveCodificada: 'x'
+    });
+    const f = fixture();
+    f.detectChanges();
+
+    const peticion = requests.expectOne('http://localhost:8080/api/solicitudes?estado=PENDIENTE');
+    peticion.flush([]);
+    f.detectChanges();
+
+    const textos = f.debugElement.queryAll(By.css('.titulo-grupo')).map(e => e.nativeElement.textContent);
+    expect(textos).toContain('Administración');
+    const enlaces = f.debugElement
+      .queryAll(By.css('a'))
+      .map(e => e.nativeElement.getAttribute('href'));
+    expect(enlaces).toContain('/aulas');
+    expect(enlaces).not.toContain('/usuarios');
+  });
+
+  it('ADMINISTRADOR ve Administración con gestión de aulas y usuarios, y badge de pendientes', () => {
+    authService.sesion.set({
+      correo: 'admin@prueba.aulasmart.local',
+      nombre: 'PRUEBA Administrador',
+      roles: ['ADMINISTRADOR'],
       claveCodificada: 'x'
     });
     const f = fixture();

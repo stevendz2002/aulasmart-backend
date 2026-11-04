@@ -7,11 +7,14 @@ import { apiUrl } from './api-url';
 
 interface PerfilWhoami {
   correo: string;
+  /** Nombre real de la cuenta (tabla usuario); null si no se resuelve. */
+  nombre: string | null;
   roles: string[];
 }
 
 interface SesionGuardada {
   correo: string;
+  nombre: string | null;
   roles: string[];
   claveCodificada: string;
 }

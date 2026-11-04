@@ -38,7 +38,7 @@ export const routes: Routes = [
   },
   {
     path: 'usuarios',
-    canActivate: [requiereRoles('ADMINISTRATIVO', 'ADMINISTRADOR')],
+    canActivate: [requiereRoles('ADMINISTRADOR')],
     loadComponent: () =>
       import('./features/usuarios/presentation/pages/usuarios-page').then(m => m.UsuariosPage)
   },

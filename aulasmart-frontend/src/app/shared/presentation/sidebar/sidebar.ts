@@ -119,8 +119,9 @@ export class Sidebar implements OnInit {
 
   /**
    * Grupos visibles según la sesión: «Administración» solo para
-   * ADMINISTRATIVO / ADMINISTRADOR (decisión documentada alineada con la
-   * SecurityConfiguration real del backend).
+   * ADMINISTRATIVO / ADMINISTRADOR; dentro de ese grupo, «Usuarios» se
+   * reserva exclusivamente al ADMINISTRADOR (quien crea las cuentas),
+   * alineado con la SecurityConfiguration real del backend.
    */
   protected readonly grupos = computed<SidebarGroup[]>(() => {
     const grupos: SidebarGroup[] = [
@@ -136,13 +137,11 @@ export class Sidebar implements OnInit {
     ];
 
     if (this.authService.tieneAlgunRol(['ADMINISTRATIVO', 'ADMINISTRADOR'])) {
-      grupos.push({
-        title: 'Administración',
-        links: [
-          { path: '/aulas', label: 'Gestión de aulas', icon: 'aulas' },
-          { path: '/usuarios', label: 'Usuarios', icon: 'usuarios' }
-        ]
-      });
+      const enlaces: SidebarLink[] = [{ path: '/aulas', label: 'Gestión de aulas', icon: 'aulas' }];
+      if (this.authService.tieneAlgunRol(['ADMINISTRADOR'])) {
+        enlaces.push({ path: '/usuarios', label: 'Usuarios', icon: 'usuarios' });
+      }
+      grupos.push({ title: 'Administración', links: enlaces });
     }
 
     return grupos;

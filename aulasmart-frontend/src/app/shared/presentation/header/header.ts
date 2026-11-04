@@ -9,7 +9,7 @@ import {
 import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../../core/auth-service';
-import { inicialesDesdeCorreo, nombreDesdeCorreo } from '../../../core/nombre-usuario';
+import { inicialesDesdeCorreo, inicialesDesdeNombre, nombreDesdeCorreo } from '../../../core/nombre-usuario';
 import { GET_ALL_CLASSROOMS_USE_CASE } from '../../../features/aulas/application/classrooms-di';
 import { GetAllClassroomsUseCase } from '../../../features/aulas/application/use-cases/get-all-classrooms.use-case';
 import { Classroom } from '../../../features/aulas/domain/entities/classroom';
@@ -112,14 +112,26 @@ export class Header {
   protected readonly catalogo = signal<Classroom[] | null>(null);
   protected readonly menuAbierto = signal(false);
 
+  /** Nombre real de la cuenta (whoami); deriva del correo si no está disponible. */
   protected readonly nombre = computed(() => {
     const sesion = this.authService.sesion();
-    return sesion === null ? '' : nombreDesdeCorreo(sesion.correo);
+    if (sesion === null) {
+      return '';
+    }
+    return sesion.nombre && sesion.nombre.trim() !== ''
+      ? sesion.nombre.trim()
+      : nombreDesdeCorreo(sesion.correo);
   });
 
   protected readonly iniciales = computed(() => {
     const sesion = this.authService.sesion();
-    return sesion === null ? '' : inicialesDesdeCorreo(sesion.correo);
+    if (sesion === null) {
+      return '';
+    }
+    if (sesion.nombre && sesion.nombre.trim() !== '') {
+      return inicialesDesdeNombre(sesion.nombre.trim());
+    }
+    return inicialesDesdeCorreo(sesion.correo);
   });
 
   protected readonly resultados = computed<Classroom[]>(() => {

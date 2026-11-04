@@ -189,7 +189,12 @@ export class DashboardPage implements OnInit {
   protected readonly fechaHoy = fechaLarga(this.ahora);
   protected readonly nombreVisible = computed(() => {
     const sesion = this.authService.sesion();
-    return sesion === null ? '' : nombreDesdeCorreo(sesion.correo);
+    if (sesion === null) {
+      return '';
+    }
+    return sesion.nombre && sesion.nombre.trim() !== ''
+      ? sesion.nombre.trim()
+      : nombreDesdeCorreo(sesion.correo);
   });
 
   private readonly catalogo = signal<Classroom[]>([]);

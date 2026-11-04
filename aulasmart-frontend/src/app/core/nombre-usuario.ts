@@ -1,8 +1,9 @@
 /**
- * Derivaciones de presentación a partir del correo real de la sesión. La API
- * (`/api/usuarios/whoami`) solo expone `correo` y `roles`: el nombre visible
- * se deriva del correo, nunca se inventa (p. ej. `paola.ramirez@uceva.edu.co`
- * → «Paola Ramirez»).
+ * Derivaciones de presentación para el nombre visible de la sesión. La API
+ * (`/api/usuarios/whoami`) entrega `nombre` real de la cuenta cuando puede
+ * resolverlo; cuando llega, se muestra tal cual. Sin ese campo, el nombre
+ * se deriva del correo, nunca se inventa (p. ej.
+ * `paola.ramirez@uceva.edu.co` → «Paola Ramirez»).
  */
 
 /** Convierte una frase en formato título (cada palabra capitalizada). */
@@ -32,4 +33,13 @@ export function inicialesDesdeCorreo(correo: string): string {
   }
   const iniciales = palabras.slice(0, 2).map(palabra => palabra[0].toUpperCase()).join('');
   return iniciales.length > 0 ? iniciales : 'AU';
+}
+
+/** Iniciales para el avatar a partir del nombre real de la cuenta. */
+export function inicialesDesdeNombre(nombre: string): string {
+  const palabras = nombre.split(/\s+/).filter(palabra => palabra.length > 0);
+  if (palabras.length === 0) {
+    return 'AU';
+  }
+  return palabras.slice(0, 2).map(palabra => palabra[0].toUpperCase()).join('');
 }
