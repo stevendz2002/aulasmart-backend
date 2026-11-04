@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, computed, inject, signal } from '@angular/core';
 
 import { AuthService } from '../../../../core/auth-service';
 import {
@@ -27,7 +27,7 @@ function horaCorta(iso: string): string {
 }
 
 /**
- * Bandeja de solicitudes (diseño aprobado): pestañas con conteos reales por
+ * Bandeja de solicitudes (diseño aprobado): pestanas con conteos reales por
  * estado, buscador por ID/aula/solicitante y tabla con acciones ✓/✗ para el
  * personal revisor. Los conteos se derivan de la única lista real de la API
  * (un pedido `ALL`) y el filtro es del lado del cliente: no se inventan
@@ -97,15 +97,15 @@ function horaCorta(iso: string): string {
     <section class="tarjeta listado">
       <div class="controles">
         <div class="pestanas" role="tablist" aria-label="Filtrar por estado">
-          @for (pestaña of pestanas(); track pestaña.valor) {
+          @for (pestana of pestanas(); track pestana.valor) {
             <button
               type="button"
               role="tab"
-              [class.activa]="pestañaActiva() === pestaña.valor"
-              [attr.aria-selected]="pestañaActiva() === pestaña.valor"
-              (click)="elegirPestana(pestaña.valor)"
+              [class.activa]="pestanaActiva() === pestana.valor"
+              [attr.aria-selected]="pestanaActiva() === pestana.valor"
+              (click)="elegirPestana(pestana.valor)"
             >
-              {{ pestaña.etiqueta }} <span class="cuenta">{{ pestaña.cuenta }}</span>
+              {{ pestana.etiqueta }} <span class="cuenta">{{ pestana.cuenta }}</span>
             </button>
           }
         </div>
@@ -218,7 +218,7 @@ export class SolicitudesPage implements OnInit {
   protected readonly mensajeRevision = signal<string | null>(null);
   protected readonly revisionExitosa = signal(false);
 
-  protected readonly pestañaActiva = signal<RequestStatus | 'TODAS'>('TODAS');
+  protected readonly pestanaActiva = signal<RequestStatus | 'TODAS'>('TODAS');
   protected readonly textoBusqueda = signal('');
 
   protected readonly inicioPorDefecto = this.trasHoras(14);
@@ -243,13 +243,13 @@ export class SolicitudesPage implements OnInit {
     ];
   });
 
-  /** Filtrado cliente por pestaña + texto (ID, aula, solicitante o motivo). */
+  /** Filtrado cliente por pestana + texto (ID, aula, solicitante o motivo). */
   protected readonly visibles = computed<ClassroomRequest[]>(() => {
     const lista = this.solicitudes() ?? [];
-    const pestaña = this.pestañaActiva();
+    const pestana = this.pestanaActiva();
     const texto = this.textoBusqueda().trim().toLowerCase();
     return lista.filter(solicitud => {
-      if (pestaña !== 'TODAS' && solicitud.status !== pestaña) {
+      if (pestana !== 'TODAS' && solicitud.status !== pestana) {
         return false;
       }
       if (texto === '') {
@@ -280,7 +280,7 @@ export class SolicitudesPage implements OnInit {
   }
 
   protected elegirPestana(valor: RequestStatus | 'TODAS'): void {
-    this.pestañaActiva.set(valor);
+    this.pestanaActiva.set(valor);
   }
 
   protected buscar(texto: string): void {
@@ -322,7 +322,7 @@ export class SolicitudesPage implements OnInit {
             `Solicitud SOL-${solicitud.id} registrada como ${solicitud.status}, queda a la espera de revisión.`
           );
           this.textoBusqueda.set('');
-          this.pestañaActiva.set('TODAS');
+          this.pestanaActiva.set('TODAS');
           this.cargar('ALL');
         },
         error: error => {
@@ -338,7 +338,7 @@ export class SolicitudesPage implements OnInit {
       next: respuesta => {
         this.revisionExitosa.set(true);
         this.mensajeRevision.set(`Solicitud SOL-${respuesta.id}: ${respuesta.status}.`);
-        this.pestañaActiva.set('TODAS');
+        this.pestanaActiva.set('TODAS');
         this.cargar('ALL');
       },
       error: error => {
