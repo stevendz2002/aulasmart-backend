@@ -1,0 +1,254 @@
+/* Dashboard: hero contextual, indicadores reales, últimas solicitudes,
+   libres por edificio y nota honesta de AulaBot. */
+
+.presentacion .fecha {
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+  margin: 0 0 4px;
+}
+
+.presentacion .fila {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.presentacion h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  color: var(--color-text);
+}
+
+.presentacion .lazo {
+  margin: 6px 0 0;
+  color: var(--color-text-secondary);
+}
+
+.acciones {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 14px;
+  margin: 26px 0;
+}
+
+.tarjeta {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tarjeta header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tarjeta .titulo {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.tarjeta .icono {
+  font-size: 0.7rem;
+  color: var(--color-border);
+}
+
+.tarjeta.var-libre .icono { color: var(--color-success); }
+.tarjeta.var-catalogo .icono { color: var(--color-primary); }
+.tarjeta.var-pendiente .icono { color: var(--color-warning); }
+.tarjeta.var-aprobada .icono { color: var(--color-success); }
+
+.tarjeta .valor {
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.1;
+}
+
+.tarjeta .detalle {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.tablero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(260px, 1fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+@media (max-width: 1000px) {
+  .tablero {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.panel header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.panel header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--color-text);
+}
+
+.panel header .apagada {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+}
+
+.panel header a {
+  font-size: 0.85rem;
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.panel .listado {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel .listado li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.panel .listado li:last-child {
+  border-bottom: 0;
+}
+
+.solicitudes .aula {
+  flex: 0 0 auto;
+  width: 64px;
+  text-align: center;
+  border: 1px solid var(--color-border);
+  background: var(--color-background);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 6px 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.solicitudes .contenido {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.solicitudes .contenido strong {
+  font-size: 0.9rem;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.solicitudes .contenido span {
+  font-size: 0.76rem;
+  color: var(--color-text-secondary);
+}
+
+.solicitudes .estado {
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+}
+
+.edificios .nombre {
+  flex: 0 0 118px;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.edificios .barra {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.edificios .relleno {
+  display: block;
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 999px;
+}
+
+.edificios .cifra {
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.aulabot {
+  margin-top: 14px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.aulabot h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+
+.aulabot .apagada {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  max-width: 62ch;
+}
