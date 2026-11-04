@@ -12,28 +12,56 @@ import { ReviewClassroomRequestUseCase } from '../../application/use-cases/revie
 import { GET_ALL_CLASSROOMS_USE_CASE } from '../../../aulas/application/classrooms-di';
 import { GetAllClassroomsUseCase } from '../../../aulas/application/use-cases/get-all-classrooms.use-case';
 import { Classroom } from '../../../aulas/domain/entities/classroom';
-import { ClassroomRequest, ReviewDecision } from '../../domain/entities/classroom-request';
+import { ClassroomRequest, ReviewDecision, RequestStatus } from '../../domain/entities/classroom-request';
 import { RequestStatusFilter } from '../../domain/repositories/classroom-request-repository';
 
+/** Pestaña de estado con su conteo real (etiqueta, valor y número). */
+interface PestanaEstado {
+  etiqueta: string;
+  valor: RequestStatus | 'TODAS';
+  cuenta: number;
+}
+
+function horaCorta(iso: string): string {
+  return new Date(iso).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+}
+
+/**
+ * Bandeja de solicitudes (diseño aprobado): pestañas con conteos reales por
+ * estado, buscador por ID/aula/solicitante y tabla con acciones ✓/✗ para el
+ * personal revisor. Los conteos se derivan de la única lista real de la API
+ * (un pedido `ALL`) y el filtro es del lado del cliente: no se inventan
+ * endpoints ni chiffres. DOCENTE conserva su formulario de registro y ve su
+ * propio listado; para todos los roles el "solicitante" se muestra como
+ * `Docente id N` porque la API no expone nombres de personas.
+ */
 @Component({
   selector: 'app-solicitudes-page',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [],
+  styleUrl: './solicitudes-page.css',
   template: `
-    <section class="seccion">
-      <h2>Solicitudes de aula</h2>
-      <p class="ayuda">
-        @if (esDocente()) {
-          Partes como <strong>DOCENTE</strong>: registra tus reservas y consulta su estado.
-        } @else if (esRevisor()) {
-          Partes como <strong>{{ sesion()?.correo }}</strong>: revisa y decide las solicitudes.
-        } @else {
-          Consulta del histórico de solicitudes.
-        }
-      </p>
-    </section>
+    <header class="cabecera">
+      <div>
+        <h2>Solicitudes de aula</h2>
+        <p class="ayuda">
+          @if (esDocente()) {
+            Registra tu reserva y sigue su estado: un revisor del área administrativa la aprobará o la rechazará.
+          } @else if (esRevisor()) {
+            Revisa las solicitudes pendientes y decide: aprobar reserva el aula en la franja, rechazar la devuelve al docente.
+          } @else {
+            Histórico de solicitudes de reserva de aulas.
+          }
+        </p>
+      </div>
+    </header>
 
     @if (esDocente()) {
-      <section class="seccion">
-        <h3>Registrar nueva solicitud</h3>
+      <section class="tarjeta registro">
+        <header>
+          <h3>Registrar nueva solicitud</h3>
+          <span class="apagada">El intervalo obedece la semántica [inicio, fin)</span>
+        </header>
         <form class="formulario" (submit)="registrarReserva($event)">
           <label>
             Aula
@@ -66,22 +94,36 @@ import { RequestStatusFilter } from '../../domain/repositories/classroom-request
       </section>
     }
 
-    <section class="seccion">
-      <h3>{{ tituloListado() }}</h3>
-      <form class="formulario" (submit)="actualizarEstado($event)">
-        <label>
-          Estado
-          <select id="filtroEstado">
-            <option value="ALL" selected>Todas</option>
-            <option value="PENDIENTE">Pendientes</option>
-            <option value="APROBADA">Aprobadas</option>
-            <option value="RECHAZADA">Rechazadas</option>
-          </select>
+    <section class="tarjeta listado">
+      <div class="controles">
+        <div class="pestanas" role="tablist" aria-label="Filtrar por estado">
+          @for (pestaña of pestanas(); track pestaña.valor) {
+            <button
+              type="button"
+              role="tab"
+              [class.activa]="pestañaActiva() === pestaña.valor"
+              [attr.aria-selected]="pestañaActiva() === pestaña.valor"
+              (click)="elegirPestana(pestaña.valor)"
+            >
+              {{ pestaña.etiqueta }} <span class="cuenta">{{ pestaña.cuenta }}</span>
+            </button>
+          }
+        </div>
+
+        <label class="busqueda">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM16.2 16.2 21 21" />
+          </svg>
+          <input
+            #entradaBusqueda
+            type="search"
+            placeholder="Buscar por ID, aula o solicitante…"
+            aria-label="Buscar solicitudes"
+            [value]="textoBusqueda()"
+            (input)="buscar(entradaBusqueda.value)"
+          />
         </label>
-        <button class="boton secundario" type="submit" [disabled]="cargando()">
-          {{ cargando() ? 'Consultando…' : 'Aplicar' }}
-        </button>
-      </form>
+      </div>
 
       @if (mensajeRevision(); as mensaje) {
         <p [class.mensaje-exito]="revisionExitosa()" [class.mensaje-error]="!revisionExitosa()">{{ mensaje }}</p>
@@ -90,42 +132,70 @@ import { RequestStatusFilter } from '../../domain/repositories/classroom-request
         <p class="mensaje-error">{{ mensaje }}</p>
       }
 
-      @if (solicitudes(); as lista) {
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Aula</th>
-              <th>Fecha / horario</th>
-              <th>Estado</th>
-              <th>Motivo</th>
-              @if (esRevisor()) { <th>Acciones</th> }
-            </tr>
-          </thead>
-          <tbody>
-            @for (solicitud of lista; track solicitud.id) {
-              <tr>
-                <td>{{ solicitud.id }}</td>
-                <td>{{ nombreAula(solicitud.classroomId) }}</td>
-                <td>{{ intervalo(solicitud) }}</td>
-                <td><span class="estado {{ solicitud.status }}">{{ solicitud.status }}</span></td>
-                <td>{{ solicitud.reason }}</td>
-                @if (esRevisor()) {
-                  <td>
-                    @if (solicitud.status === 'PENDIENTE') {
-                      <button class="boton ok" type="button" (click)="decidir(solicitud, 'APROBAR')">Aprobar</button>
-                      <button class="boton no" type="button" (click)="decidir(solicitud, 'RECHAZAR')">Rechazar</button>
-                    } @else {
-                      revisada {{ revisadaEn(solicitud) }}
-                    }
-                  </td>
-                }
-              </tr>
+      <div class="tabla-envoltorio">
+        @if (solicitudes() === null || cargando()) {
+          <p class="mensaje-info">Consultando solicitudes…</p>
+        } @else if (visibles().length === 0) {
+          <p class="mensaje-info">
+            @if (solicitudes()!.length === 0) {
+              Sin solicitudes registradas todavía.
+            } @else {
+              Ninguna solicitud coincide con el filtro actual.
             }
-          </tbody>
-        </table>
-        <p class="mensaje-info">{{ lista.length }} solicitud(es).</p>
-      }
+          </p>
+        } @else {
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Aula</th>
+                <th>Fecha</th>
+                <th>Horario</th>
+                <th>Solicitante</th>
+                <th>Motivo</th>
+                <th>Estado</th>
+                @if (esRevisor()) { <th>Acciones</th> }
+              </tr>
+            </thead>
+            <tbody>
+              @for (solicitud of visibles(); track solicitud.id) {
+                <tr>
+                  <td><code class="codigo">SOL-{{ solicitud.id }}</code></td>
+                  <td class="aula">{{ nombreAula(solicitud.classroomId) }}</td>
+                  <td>{{ fecha(solicitud.start) }}</td>
+                  <td>{{ horaCorta(solicitud.start) }} – {{ horaCorta(solicitud.end) }}</td>
+                  <td>Docente id {{ solicitud.requesterId }}</td>
+                  <td class="motivo">{{ solicitud.reason }}</td>
+                  <td><span class="estado {{ solicitud.status }}">{{ solicitud.status }}</span></td>
+                  @if (esRevisor()) {
+                    <td class="acciones">
+                      @if (solicitud.status === 'PENDIENTE') {
+                        <button
+                          type="button"
+                          class="accion si"
+                          title="Aprobar"
+                          aria-label="Aprobar la solicitud SOL-{{ solicitud.id }}"
+                          (click)="decidir(solicitud, 'APROBAR')"
+                        >✓</button>
+                        <button
+                          type="button"
+                          class="accion no"
+                          title="Rechazar"
+                          aria-label="Rechazar la solicitud SOL-{{ solicitud.id }}"
+                          (click)="decidir(solicitud, 'RECHAZAR')"
+                        >✕</button>
+                      } @else {
+                        <span class="resuelta">Resuelta</span>
+                      }
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+          <p class="mensaje-info">{{ visibles().length }} de {{ solicitudes()!.length }} solicitud(es) listadas.</p>
+        }
+      </div>
     </section>
   `
 })
@@ -148,44 +218,73 @@ export class SolicitudesPage implements OnInit {
   protected readonly mensajeRevision = signal<string | null>(null);
   protected readonly revisionExitosa = signal(false);
 
+  protected readonly pestañaActiva = signal<RequestStatus | 'TODAS'>('TODAS');
+  protected readonly textoBusqueda = signal('');
+
   protected readonly inicioPorDefecto = this.trasHoras(14);
   protected readonly finPorDefecto = this.trasHoras(16);
+
+  private catalogoAulas: Classroom[] = [];
 
   protected readonly esDocente = computed(() => this.authService.tieneAlgunRol(['DOCENTE']));
   protected readonly esRevisor = computed(() =>
     this.authService.tieneAlgunRol(['ADMINISTRATIVO', 'ADMINISTRADOR'])
   );
 
-  private catalogoAulas: Classroom[] = [];
+  /** Conteos reales por estado a partir de la única lista de la API. */
+  protected readonly pestanas = computed<PestanaEstado[]>(() => {
+    const solicitudes = this.solicitudes() ?? [];
+    const cuenta = (estado: RequestStatus) => solicitudes.filter(s => s.status === estado).length;
+    return [
+      { etiqueta: 'Todas', valor: 'TODAS', cuenta: solicitudes.length },
+      { etiqueta: 'Pendientes', valor: 'PENDIENTE', cuenta: cuenta('PENDIENTE') },
+      { etiqueta: 'Aprobadas', valor: 'APROBADA', cuenta: cuenta('APROBADA') },
+      { etiqueta: 'Rechazadas', valor: 'RECHAZADA', cuenta: cuenta('RECHAZADA') }
+    ];
+  });
+
+  /** Filtrado cliente por pestaña + texto (ID, aula, solicitante o motivo). */
+  protected readonly visibles = computed<ClassroomRequest[]>(() => {
+    const lista = this.solicitudes() ?? [];
+    const pestaña = this.pestañaActiva();
+    const texto = this.textoBusqueda().trim().toLowerCase();
+    return lista.filter(solicitud => {
+      if (pestaña !== 'TODAS' && solicitud.status !== pestaña) {
+        return false;
+      }
+      if (texto === '') {
+        return true;
+      }
+      const aguja = texto.replace(/^sol-/, '');
+      return (
+        String(solicitud.id).includes(aguja) ||
+        this.nombreAula(solicitud.classroomId).toLowerCase().includes(aguja) ||
+        `docente id ${solicitud.requesterId}`.includes(aguja) ||
+        solicitud.reason.toLowerCase().includes(aguja)
+      );
+    });
+  });
 
   ngOnInit(): void {
-    if (this.esDocente()) {
-      this.getAllClassrooms.execute({}).subscribe({
-        next: aulas => {
-          this.aulasParaReserva.set(aulas);
-          this.catalogoAulas = aulas;
-        },
-        error: () => (this.catalogoAulas = [])
-      });
-    }
+    this.getAllClassrooms.execute({}).subscribe({
+      next: aulas => {
+        this.aulasParaReserva.set(aulas);
+        this.catalogoAulas = aulas;
+      },
+      error: () => {
+        this.aulasParaReserva.set([]);
+        this.catalogoAulas = [];
+      }
+    });
     this.cargar('ALL');
   }
 
-  protected tituloListado(): string {
-    if (this.esDocente()) {
-      return 'Mis solicitudes';
-    }
-    return this.esRevisor() ? 'Bandeja de revisión' : 'Solicitudes';
+  protected elegirPestana(valor: RequestStatus | 'TODAS'): void {
+    this.pestañaActiva.set(valor);
   }
 
-  protected sesion() {
-    return this.authService.sesion();
-  }
-
-  protected actualizarEstado(evento: Event): void {
-    evento.preventDefault();
-    const estado = (document.querySelector('#filtroEstado') as HTMLSelectElement | null)?.value ?? 'ALL';
-    this.cargar(estado);
+  protected buscar(texto: string): void {
+    this.textoBusqueda.set(texto);
   }
 
   protected registrarReserva(evento: Event): void {
@@ -220,8 +319,10 @@ export class SolicitudesPage implements OnInit {
           this.registrando.set(false);
           this.registroExitoso.set(true);
           this.mensajeRegistro.set(
-            `Solicitud #${solicitud.id} registrada como ${solicitud.status}, queda a la espera de revisión.`
+            `Solicitud SOL-${solicitud.id} registrada como ${solicitud.status}, queda a la espera de revisión.`
           );
+          this.textoBusqueda.set('');
+          this.pestañaActiva.set('TODAS');
           this.cargar('ALL');
         },
         error: error => {
@@ -236,7 +337,8 @@ export class SolicitudesPage implements OnInit {
     this.reviewRequest.execute(solicitud.id, decision).subscribe({
       next: respuesta => {
         this.revisionExitosa.set(true);
-        this.mensajeRevision.set(`Solicitud #${respuesta.id}: ${respuesta.status}.`);
+        this.mensajeRevision.set(`Solicitud SOL-${respuesta.id}: ${respuesta.status}.`);
+        this.pestañaActiva.set('TODAS');
         this.cargar('ALL');
       },
       error: error => {
@@ -258,22 +360,18 @@ export class SolicitudesPage implements OnInit {
     return aula ? aula.name : `aula ${classroomId}`;
   }
 
-  protected intervalo(solicitud: ClassroomRequest): string {
-    return `${this.comoHora(solicitud.start)} → ${this.comoHora(solicitud.end)}`;
+  protected fecha(iso: string): string {
+    return new Date(iso).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
-  protected comoHora(iso: string): string {
-    return new Date(iso).toLocaleString();
+  protected horaCorta(iso: string): string {
+    return horaCorta(iso);
   }
 
-  protected revisadaEn(solicitud: ClassroomRequest): string {
-    return solicitud.reviewedAt === null ? '—' : this.comoHora(solicitud.reviewedAt);
-  }
-
-  private cargar(estado: string): void {
+  private cargar(estado: RequestStatusFilter): void {
     this.cargando.set(true);
     this.errorCarga.set(null);
-    this.getRequests.execute(estado as RequestStatusFilter).subscribe({
+    this.getRequests.execute(estado).subscribe({
       next: solicitudes => {
         this.solicitudes.set(solicitudes);
         this.cargando.set(false);
