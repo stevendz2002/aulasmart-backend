@@ -17,3 +17,14 @@ export const ACADEMIC_PERIOD: AcademicPeriodConfig = {
   startDate: '2026-08-10',
   totalWeeks: 16
 };
+
+/** Semana del período académico a partir de la fecha de inicio de clases. */
+export function semanaDelPeriodo(periodo: AcademicPeriodConfig, ahora: Date): number | null {
+  const inicio = new Date(`${periodo.startDate}T00:00:00`);
+  if (Number.isNaN(inicio.getTime())) {
+    return null;
+  }
+  const dias = Math.floor((ahora.getTime() - inicio.getTime()) / 86_400_000);
+  const semana = Math.floor(dias / 7) + 1;
+  return semana >= 1 && semana <= periodo.totalWeeks ? semana : null;
+}
