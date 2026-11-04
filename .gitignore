@@ -25,6 +25,8 @@ replay_pid*
 
 # Maven / Java
 target/
+# Artefactos de compilación del backend
+aulasmart-backend/META-INF/
 
 # Angular / Node
 node_modules/
