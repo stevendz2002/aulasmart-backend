@@ -31,7 +31,7 @@
 .input-icono { position: relative; display: flex; align-items: center; }
 .input-icono svg { position: absolute; right: 8px; width: 14px; height: 14px; color: var(--color-text-secondary); pointer-events: none; }
 .input-icono input { padding-right: 28px; }
-.input-icono.select select { appearance: none; padding-right: 28px; cursor: pointer; }
+.input-icono.select select { appearance: none; -webkit-appearance: none; padding-right: 28px; cursor: pointer; }
 
 .filtros__acciones { display: flex; align-items: center; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
 .filtros__acciones .boton { padding: 6px 12px; font-size: 0.8rem; }
@@ -54,7 +54,7 @@
 
 /* Grid de tarjetas densas */
 .grid-aulas { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
-.aula-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; transition: box-shadow 0.12s ease, border-color 0.12s ease; }
+.aula-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; min-height: 150px; transition: box-shadow 0.12s ease, border-color 0.12s ease; }
 .aula-card:hover { box-shadow: var(--shadow-sm); border-color: var(--color-primary-light); }
 .aula-card.libre { border-left: 3px solid var(--color-success); }
 .aula-card.ocupada { border-left: 3px solid var(--color-danger); opacity: 0.88; }
@@ -74,7 +74,7 @@
 .chip.estado-chip.libre { background: #DCFCE7; color: var(--color-success); }
 .chip.estado-chip.ocupada { background: #FEE2E2; color: var(--color-danger); }
 
-.aula-card__acciones { display: flex; gap: 5px; margin-top: 6px; }
+.aula-card__acciones { display: flex; gap: 5px; margin-top: auto; padding-top: 6px; }
 .aula-card__acciones .boton { padding: 4px 8px; font-size: 0.74rem; flex: 1 1 auto; }
 
 .liberacion { margin: 2px 0 0; font-size: 0.72rem; color: var(--color-text-secondary); font-style: italic; }
@@ -119,4 +119,7 @@
 .fila-tiempo input, .formulario label input, .formulario label select, .formulario label textarea { padding: 6px 8px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); font: inherit; font-size: 0.82rem; background: var(--color-background); color: var(--color-text); }
 .banner-info { display: flex; gap: 6px; align-items: flex-start; background: #FEF9C3; border: 1px solid #FDE68A; border-radius: var(--radius-sm); padding: 6px 8px; font-size: 0.75rem; color: #713F12; }
 .banner-info__icono { font-weight: 700; }
-.formulario label { display: flex; flex-direction: column; gap: 4px; font-size: 0.78rem; color: var(--color-text-secondary); margin-bottom: 8px; }
+
+.franjas-libres { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-bottom: 8px; }
+.franjas-libres__etiqueta { font-size: 0.75rem; color: var(--color-text-secondary); margin-right: 2px; }
+.franjas-libres .chip-franja { padding: 3px 8px; font-size: 0.72rem; }

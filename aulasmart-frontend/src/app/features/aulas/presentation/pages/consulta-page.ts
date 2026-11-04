@@ -187,7 +187,7 @@ const MOTIVOS_GENERICOS: readonly string[] = [
               }
               <div class="aula-card__acciones">
                 <button type="button" class="boton secundario" (click)="abrirDetalle(card)">Detalles</button>
-                <button type="button" class="boton boton-solicitar" [disabled]="card.status !== 'LIBRE'" (click)="abrirSolicitudDirecta(card)">
+                <button type="button" class="boton boton-solicitar" (click)="abrirSolicitudDirecta(card)">
                   Solicitar ↗
                 </button>
               </div>
@@ -256,7 +256,7 @@ const MOTIVOS_GENERICOS: readonly string[] = [
 
           <footer class="modal__acciones">
             <button type="button" class="boton secundario" (click)="cerrarDetalle()">Cerrar</button>
-            <button type="button" class="boton boton-solicitar" [disabled]="card.status !== 'LIBRE'" (click)="abrirSolicitud()">Solicitar aula ↗</button>
+            <button type="button" class="boton boton-solicitar" (click)="abrirSolicitud()">Solicitar aula ↗</button>
           </footer>
         </div>
       </div>
@@ -289,6 +289,17 @@ const MOTIVOS_GENERICOS: readonly string[] = [
                 <input type="time" [value]="finSolicitud()" (change)="finSolicitud.set($any($event.target).value)" required />
               </label>
             </div>
+
+            @if (franjasLibres().length > 0 && (solicitudAula()?.id ?? -1) !== -1) {
+              <div class="franjas-libres">
+                <span class="franjas-libres__etiqueta">Franjas libres hoy:</span>
+                @for (f of franjasLibres(); track f.start) {
+                  <button type="button" class="chip-franja" (click)="inicioSolicitud.set(f.start); finSolicitud.set(f.end)">
+                    {{ f.label }}
+                  </button>
+                }
+              </div>
+            }
 
             <label>
               Asistentes
@@ -482,6 +493,11 @@ export class ConsultaPage implements OnInit {
 
   protected readonly timeline = computed(() => this.detalleConstruido()?.timeline ?? []);
 
+  /** Franjas libres del día (para elegir un horario disponible al solicitar). */
+  protected readonly franjasLibres = computed(() =>
+    this.timeline().filter(t => t.free).map(t => ({ start: t.start, end: t.end, label: `${t.start} – ${t.end}` }))
+  );
+
   ngOnInit(): void {
     const nombre = (this.route.snapshot.queryParamMap.get('name') ?? '').trim();
     this.textoBusqueda.set(nombre);
@@ -551,13 +567,36 @@ export class ConsultaPage implements OnInit {
 
   protected abrirSolicitudDirecta(aula: ClassroomCard): void {
     const classroom = (this.catalogo() ?? []).find(c => c.id === aula.id);
-    if (classroom === undefined || aula.status !== 'LIBRE') {
+    if (classroom === undefined) {
       return;
     }
     this.solicitudAula.set(classroom);
+    this.detalle.set(classroom);
+    this.cargandoOcupacion.set(true);
+    this.ocupacion.set([]);
+    const hoy = new Date();
+    const inicio = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 0, 0);
+    const fin = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 23, 59);
+    this.getOccupation.execute(classroom.id, { start: inicio, end: fin }).subscribe({
+      next: ocupaciones => {
+        this.ocupacion.set(ocupaciones);
+        this.cargandoOcupacion.set(false);
+      },
+      error: () => {
+        this.ocupacion.set([]);
+        this.cargandoOcupacion.set(false);
+      }
+    });
     this.fechaSolicitud.set(this.fechaConsulta());
-    this.inicioSolicitud.set(this.horaInicio());
-    this.finSolicitud.set(this.horaFin());
+    // Si el aula esta ocupada en la franja consultada, sugerir la primera franja libre.
+    const libres = this.franjasLibres();
+    if (aula.status !== 'LIBRE' && libres.length > 0) {
+      this.inicioSolicitud.set(libres[0].start);
+      this.finSolicitud.set(libres[0].end);
+    } else {
+      this.inicioSolicitud.set(this.horaInicio());
+      this.finSolicitud.set(this.horaFin());
+    }
     this.asistentes.set(30);
     this.motivoSeleccionado.set(MOTIVOS_GENERICOS[0]);
     this.motivoOtro.set('');
@@ -573,8 +612,14 @@ export class ConsultaPage implements OnInit {
     }
     this.solicitudAula.set(aula);
     this.fechaSolicitud.set(this.fechaConsulta());
-    this.inicioSolicitud.set(this.horaInicio());
-    this.finSolicitud.set(this.horaFin());
+    const libres = this.franjasLibres();
+    if (libres.length > 0 && this.aulasConEstado().find(c => c.id === aula.id)?.status !== 'LIBRE') {
+      this.inicioSolicitud.set(libres[0].start);
+      this.finSolicitud.set(libres[0].end);
+    } else {
+      this.inicioSolicitud.set(this.horaInicio());
+      this.finSolicitud.set(this.horaFin());
+    }
     this.asistentes.set(30);
     this.motivoSeleccionado.set(MOTIVOS_GENERICOS[0]);
     this.motivoOtro.set('');
@@ -639,7 +684,7 @@ export class ConsultaPage implements OnInit {
         const detalle = typeof err.error?.message === 'string' ? err.error.message : null;
         this.errorSolicitud.set(
           err.status === 409
-            ? (detalle ?? 'La franja solicitada se solapa con una reserva aprobada.')
+            ? (detalle ?? 'La franja solicitada se solapa con una clase o reserva aprobada.')
             : err.status === 400
               ? (detalle ?? 'Datos inválidos: revisa fecha, horas y motivo.')
               : `No fue posible enviar la solicitud (HTTP ${err.status}).`
