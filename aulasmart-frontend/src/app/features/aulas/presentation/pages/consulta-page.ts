@@ -131,8 +131,7 @@ const MOTIVOS_GENERICOS: readonly string[] = [
           </p>
         } @else {
           @for (card of visibles(); track card.id) {
-            <article class="aula-card" [class.libre]="card.status === 'LIBRE'" [class.ocupada]="card.status === 'OCUPADA'"
-                     (click)="abrirDetalle(card)">
+            <article class="aula-card" [class.libre]="card.status === 'LIBRE'" [class.ocupada]="card.status === 'OCUPADA'">
               <header class="aula-card__cabecera">
                 <h3>{{ card.name }}</h3>
                 <span class="chip estado-chip" [class.libre]="card.status === 'LIBRE'" [class.ocupada]="card.status === 'OCUPADA'">
@@ -144,6 +143,12 @@ const MOTIVOS_GENERICOS: readonly string[] = [
                 <span class="aula-card__departamento">{{ card.department }}</span>
                 <span class="aula-card__capacidad">{{ card.capacity }} sillas</span>
               </footer>
+              <div class="aula-card__acciones">
+                <button type="button" class="boton secundario" (click)="abrirDetalle(card)">Detalles</button>
+                <button type="button" class="boton" [disabled]="card.status !== 'LIBRE'" (click)="abrirSolicitudDirecta(card)">
+                  Solicitar aula
+                </button>
+              </div>
             </article>
           }
         }
@@ -209,7 +214,7 @@ const MOTIVOS_GENERICOS: readonly string[] = [
 
           <footer class="modal__acciones">
             <button type="button" class="boton secundario" (click)="cerrarDetalle()">Cerrar</button>
-            <button type="button" class="boton" (click)="abrirSolicitud()">Solicitar aula</button>
+            <button type="button" class="boton" [disabled]="detalleConstruido()?.status !== 'LIBRE'" (click)="abrirSolicitud()">Solicitar aula</button>
           </footer>
         </div>
       </div>
@@ -221,8 +226,8 @@ const MOTIVOS_GENERICOS: readonly string[] = [
         <div class="modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="solicitud-titulo">
           <header class="modal__cabecera">
             <div>
-              <h3 id="solicitud-titulo">Solicitar aula {{ detalle()?.name }}</h3>
-              <p class="modal__subtitulo">Salón · Capacidad {{ detalle()?.capacity }}</p>
+              <h3 id="solicitud-titulo">Solicitar aula {{ solicitudAula()?.name }}</h3>
+              <p class="modal__subtitulo">Salón · Capacidad {{ solicitudAula()?.capacity }}</p>
             </div>
             <button type="button" class="modal__cerrar" (click)="cerrarSolicitud()" aria-label="Cerrar">×</button>
           </header>
@@ -320,6 +325,7 @@ export class ConsultaPage implements OnInit {
 
   // Modal 2: formulario de solicitud
   protected readonly modalSolicitudAbierto = signal(false);
+  protected readonly solicitudAula = signal<Classroom | null>(null);
   protected readonly fechaSolicitud = signal<string>(this.fechaDeManana());
   protected readonly inicioSolicitud = signal<string>('08:00');
   protected readonly finSolicitud = signal<string>('10:00');
@@ -481,6 +487,25 @@ export class ConsultaPage implements OnInit {
     if (aula === null) {
       return;
     }
+    this.solicitudAula.set(aula);
+    const franja = this.franjas.find(f => f.id === this.franjaSeleccionada());
+    this.fechaSolicitud.set(this.fechaConsulta());
+    this.inicioSolicitud.set(franja?.start ?? '08:00');
+    this.finSolicitud.set(franja?.end ?? '10:00');
+    this.asistentes.set(30);
+    this.motivoSeleccionado.set(MOTIVOS_GENERICOS[0]);
+    this.motivoOtro.set('');
+    this.errorSolicitud.set(null);
+    this.exitoSolicitud.set(null);
+    this.modalSolicitudAbierto.set(true);
+  }
+
+  protected abrirSolicitudDirecta(aula: ClassroomCard): void {
+    const classroom = (this.catalogo() ?? []).find(c => c.id === aula.id);
+    if (classroom === undefined || aula.status !== 'LIBRE') {
+      return;
+    }
+    this.solicitudAula.set(classroom);
     const franja = this.franjas.find(f => f.id === this.franjaSeleccionada());
     this.fechaSolicitud.set(this.fechaConsulta());
     this.inicioSolicitud.set(franja?.start ?? '08:00');
@@ -495,11 +520,12 @@ export class ConsultaPage implements OnInit {
 
   protected cerrarSolicitud(): void {
     this.modalSolicitudAbierto.set(false);
+    this.solicitudAula.set(null);
   }
 
   protected enviarSolicitud(evento: Event): void {
     evento.preventDefault();
-    const aula = this.detalle();
+    const aula = this.solicitudAula();
     if (aula === null) {
       return;
     }
@@ -535,6 +561,13 @@ export class ConsultaPage implements OnInit {
       next: () => {
         this.enviandoSolicitud.set(false);
         this.exitoSolicitud.set('Solicitud enviada. Será revisada por el área administrativa.');
+        setTimeout(() => {
+          this.modalSolicitudAbierto.set(false);
+          this.detalle.set(null);
+          this.ocupacion.set([]);
+          this.solicitudAula.set(null);
+          this.exitoSolicitud.set(null);
+        }, 1500);
       },
       error: (err: HttpErrorResponse) => {
         this.enviandoSolicitud.set(false);

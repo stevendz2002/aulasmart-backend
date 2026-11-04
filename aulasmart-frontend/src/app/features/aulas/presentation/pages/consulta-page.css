@@ -264,6 +264,18 @@
   color: var(--color-text-secondary);
 }
 
+.aula-card__acciones {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.aula-card__acciones .boton {
+  padding: 5px 10px;
+  font-size: 0.78rem;
+  flex: 1 1 auto;
+}
+
 .aula-card__capacidad {
   font-weight: 600;
   color: var(--color-text);
