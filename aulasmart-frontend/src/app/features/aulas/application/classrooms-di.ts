@@ -4,6 +4,7 @@ import { ClassroomRepository } from '../domain/repositories/classroom-repository
 import { SigaSyncRepository } from '../domain/repositories/siga-sync-repository';
 import { GetAllClassroomsUseCase } from './use-cases/get-all-classrooms.use-case';
 import { GetAvailableClassroomsUseCase } from './use-cases/get-available-classrooms.use-case';
+import { GetClassroomOccupationUseCase } from './use-cases/get-classroom-occupation.use-case';
 import { TriggerSigaSyncUseCase } from './use-cases/trigger-siga-sync.use-case';
 
 /** Tokens de DI del feature aulas: la aplicación expone sus casos de uso
@@ -17,6 +18,10 @@ export const GET_ALL_CLASSROOMS_USE_CASE = new InjectionToken<GetAllClassroomsUs
 
 export const GET_AVAILABLE_CLASSROOMS_USE_CASE = new InjectionToken<GetAvailableClassroomsUseCase>(
   'GET_AVAILABLE_CLASSROOMS_USE_CASE'
+);
+
+export const GET_CLASSROOM_OCCUPATION_USE_CASE = new InjectionToken<GetClassroomOccupationUseCase>(
+  'GET_CLASSROOM_OCCUPATION_USE_CASE'
 );
 
 export const TRIGGER_SIGA_SYNC_USE_CASE = new InjectionToken<TriggerSigaSyncUseCase>(

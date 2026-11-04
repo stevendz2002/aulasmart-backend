@@ -23,3 +23,9 @@ export interface AvailabilityDto {
   verificadoEn: string;
   aulas: ClassroomDto[];
 }
+
+export interface OccupationDto {
+  inicio: string;
+  fin: string;
+  detalles: string | null;
+}

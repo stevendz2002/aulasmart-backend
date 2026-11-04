@@ -1,11 +1,7 @@
-import { ClassroomDto, AvailabilityDto } from '../dto/classroom-dto';
+import { ClassroomDto, AvailabilityDto, OccupationDto } from '../dto/classroom-dto';
 import { Availability, Classroom } from '../../domain/entities/classroom';
+import { ClassroomOccupation } from '../../domain/entities/occupation';
 
-/**
- * Adapter (patrón Adapter): traduce los DTO del backend, en español tal como
- * los expone la API, a las entidades de dominio en inglés. Aísla el dominio y
- * la presentación de cambios en la forma externa de los datos.
- */
 export class ClassroomMapper {
   static toClassroom(dto: ClassroomDto): Classroom {
     return {
@@ -27,6 +23,14 @@ export class ClassroomMapper {
     return {
       range: { start: dto.inicio, end: dto.fin, verifiedAt: dto.verificadoEn },
       classrooms: dto.aulas.map(ClassroomMapper.toClassroom)
+    };
+  }
+
+  static toOccupation(dto: OccupationDto): ClassroomOccupation {
+    return {
+      start: dto.inicio,
+      end: dto.fin,
+      details: dto.detalles
     };
   }
 }

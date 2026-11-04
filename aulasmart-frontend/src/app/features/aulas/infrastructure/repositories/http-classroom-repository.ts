@@ -4,9 +4,10 @@ import { Observable, map } from 'rxjs';
 
 import { apiUrl } from '../../../../core/api-url';
 import { ClassroomMapper } from '../mappers/classroom-mapper';
-import { AvailabilityDto, ClassroomDto } from '../dto/classroom-dto';
+import { AvailabilityDto, ClassroomDto, OccupationDto } from '../dto/classroom-dto';
 import { ClassroomRepository } from '../../domain/repositories/classroom-repository';
-import { Availability, Classroom, ClassroomFilter } from '../../domain/entities/classroom';
+import { Classroom, Availability, ClassroomFilter } from '../../domain/entities/classroom';
+import { ClassroomOccupation } from '../../domain/entities/occupation';
 
 /**
  * Implementación HTTP del contrato del dominio. Es el único punto del feature
@@ -31,6 +32,15 @@ export class HttpClassroomRepository implements ClassroomRepository {
     return this.http
       .get<AvailabilityDto>(`${apiUrl}/aulas/disponibles`, { params })
       .pipe(map(dto => ClassroomMapper.toAvailability(dto)));
+  }
+
+  getOccupation(classroomId: number, range: { start: Date; end: Date }): Observable<ClassroomOccupation[]> {
+    const params = new HttpParams()
+      .set('inicio', range.start.toISOString())
+      .set('fin', range.end.toISOString());
+    return this.http
+      .get<OccupationDto[]>(`${apiUrl}/aulas/${classroomId}/ocupacion`, { params })
+      .pipe(map(dtos => dtos.map(ClassroomMapper.toOccupation)));
   }
 
   /** Traducción filtro de dominio → parámetros de la API (contrato real). */

@@ -2,12 +2,18 @@ import { Component, OnInit, ChangeDetectionStrategy, WritableSignal, computed, i
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 
-import { GET_ALL_CLASSROOMS_USE_CASE, GET_AVAILABLE_CLASSROOMS_USE_CASE } from '../../application/classrooms-di';
+import { GET_ALL_CLASSROOMS_USE_CASE, GET_AVAILABLE_CLASSROOMS_USE_CASE, GET_CLASSROOM_OCCUPATION_USE_CASE } from '../../application/classrooms-di';
 import { GetAllClassroomsUseCase } from '../../application/use-cases/get-all-classrooms.use-case';
 import { GetAvailableClassroomsUseCase } from '../../application/use-cases/get-available-classrooms.use-case';
+import { GetClassroomOccupationUseCase } from '../../application/use-cases/get-classroom-occupation.use-case';
+import { CREATE_CLASSROOM_REQUEST_USE_CASE } from '../../../solicitudes/application/classroom-requests-di';
+import { CreateClassroomRequestUseCase } from '../../../solicitudes/application/use-cases/create-classroom-request.use-case';
 import { Classroom, Availability, ClassroomFilter } from '../../domain/entities/classroom';
+import { ClassroomOccupation } from '../../domain/entities/occupation';
 import { DAY_TIME_SLOTS, DEFAULT_TIME_SLOT_ID, TimeSlot } from '../../domain/entities/time-slot';
 import { ClassroomCard, ClassroomCardBuilder } from '../models/classroom-card';
+import { ClassroomDetail, ClassroomDetailBuilder } from '../models/classroom-detail';
+import { CreateClassroomRequestCommand } from '../../../solicitudes/domain/entities/classroom-request';
 
 type PestanaEstadoValor = 'TODAS' | 'LIBRES' | 'OCUPADAS';
 
@@ -17,12 +23,17 @@ interface PestanaEstado {
   cuenta: number | null;
 }
 
-/**
- * Consulta de disponibilidad rediseñada: panel de franja con chips horarios,
- * grid de tarjetas por aula (patrón Builder para la vista) y filtros
- * descriptivos. La ocupación real proviene de SIGA (clases) + reservas
- * APROBADAS de AulaSmart.
- */
+/** Motivos genéricos ofrecidos al docente; "Otros" habilita texto libre. */
+const MOTIVOS_GENERICOS: readonly string[] = [
+  'Clase de recuperación',
+  'Monitoría',
+  'Defensa de proyecto',
+  'Examen / evaluación',
+  'Taller práctico',
+  'Seminario / conferencia',
+  'Otros'
+];
+
 @Component({
   selector: 'app-consulta-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -120,7 +131,8 @@ interface PestanaEstado {
           </p>
         } @else {
           @for (card of visibles(); track card.id) {
-            <article class="aula-card" [class.libre]="card.status === 'LIBRE'" [class.ocupada]="card.status === 'OCUPADA'">
+            <article class="aula-card" [class.libre]="card.status === 'LIBRE'" [class.ocupada]="card.status === 'OCUPADA'"
+                     (click)="abrirDetalle(card)">
               <header class="aula-card__cabecera">
                 <h3>{{ card.name }}</h3>
                 <span class="chip estado-chip" [class.libre]="card.status === 'LIBRE'" [class.ocupada]="card.status === 'OCUPADA'">
@@ -137,14 +149,155 @@ interface PestanaEstado {
         }
       </div>
     </section>
+
+    <!-- Modal 1: Ficha de detalles del aula -->
+    @if (detalleConstruido(); as card) {
+      <div class="modal-overlay" (click)="cerrarDetalle()">
+        <div class="modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="detalle-titulo">
+          <header class="modal__cabecera">
+            <div>
+              <h3 id="detalle-titulo">{{ card.name }}</h3>
+              <span class="chip estado-chip" [class.libre]="card.status === 'LIBRE'" [class.ocupada]="card.status === 'OCUPADA'">
+                {{ card.statusLabel }}
+              </span>
+              <p class="modal__subtitulo">{{ card.subtitle }}</p>
+            </div>
+            <button type="button" class="modal__cerrar" (click)="cerrarDetalle()" aria-label="Cerrar">×</button>
+          </header>
+
+          <div class="modal__metricas">
+            <div class="metrica">
+              <span class="metrica__icono">👥</span>
+              <span class="metrica__valor">{{ card.capacity }} personas</span>
+            </div>
+            <div class="metrica">
+              <span class="metrica__icono">📍</span>
+              <span class="metrica__valor">{{ card.building }}</span>
+            </div>
+            <div class="metrica">
+              <span class="metrica__icono">🕐</span>
+              <span class="metrica__valor">{{ card.freeNowLabel }}</span>
+            </div>
+          </div>
+
+          <section class="modal__seccion">
+            <h4>CARACTERÍSTICAS</h4>
+            <div class="chips">
+              @for (c of card.characteristics; track c) {
+                <span class="chip caracteristica">{{ c }}</span>
+              }
+            </div>
+          </section>
+
+          <section class="modal__seccion">
+            <h4>HORARIO DE HOY</h4>
+            @if (cargandoOcupacion()) {
+              <p class="mensaje-info">Consultando horario…</p>
+            } @else if (timeline().length === 0) {
+              <p class="mensaje-info">Sin franjas registradas para hoy.</p>
+            } @else {
+              <ul class="timeline">
+                @for (fila of timeline(); track fila.start + fila.end) {
+                  <li class="timeline__fila" [class.libre]="fila.free">
+                    <span class="timeline__hora">{{ fila.start }} – {{ fila.end }}</span>
+                    <span class="timeline__detalle" [class.libre]="fila.free">{{ fila.label }}</span>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+
+          <footer class="modal__acciones">
+            <button type="button" class="boton secundario" (click)="cerrarDetalle()">Cerrar</button>
+            <button type="button" class="boton" (click)="abrirSolicitud()">Solicitar aula</button>
+          </footer>
+        </div>
+      </div>
+    }
+
+    <!-- Modal 2: Formulario de solicitud -->
+    @if (modalSolicitudAbierto()) {
+      <div class="modal-overlay" (click)="cerrarSolicitud()">
+        <div class="modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="solicitud-titulo">
+          <header class="modal__cabecera">
+            <div>
+              <h3 id="solicitud-titulo">Solicitar aula {{ detalle()?.name }}</h3>
+              <p class="modal__subtitulo">Salón · Capacidad {{ detalle()?.capacity }}</p>
+            </div>
+            <button type="button" class="modal__cerrar" (click)="cerrarSolicitud()" aria-label="Cerrar">×</button>
+          </header>
+
+          <form class="formulario" (submit)="enviarSolicitud($event)">
+            <div class="fila-tiempo">
+              <label>
+                Fecha
+                <input type="date" [value]="fechaSolicitud()" (change)="fechaSolicitud.set($any($event.target).value)" required />
+              </label>
+              <label>
+                Inicio
+                <input type="time" [value]="inicioSolicitud()" (change)="inicioSolicitud.set($any($event.target).value)" required />
+              </label>
+              <label>
+                Fin
+                <input type="time" [value]="finSolicitud()" (change)="finSolicitud.set($any($event.target).value)" required />
+              </label>
+            </div>
+
+            <label>
+              Asistentes
+              <input type="number" min="1" [value]="asistentes()" (input)="asistentes.set($any($event.target).valueAsNumber)" />
+            </label>
+
+            <label>
+              Motivo
+              <select [value]="motivoSeleccionado()" (change)="motivoSeleccionado.set($any($event.target).value)">
+                @for (m of motivosGenericos; track m) {
+                  <option [value]="m">{{ m }}</option>
+                }
+              </select>
+            </label>
+
+            @if (motivoSeleccionado() === 'Otros') {
+              <label>
+                Describe el motivo
+                <textarea rows="3" maxlength="300" placeholder="Ej. Clase de recuperación de Programación II"
+                          [value]="motivoOtro()" (input)="motivoOtro.set($any($event.target).value)" required></textarea>
+              </label>
+            }
+
+            <div class="banner-info">
+              <span class="banner-info__icono">ℹ</span>
+              <span>La solicitud no implica asignación inmediata. Será revisada por el área administrativa.</span>
+            </div>
+
+            @if (errorSolicitud(); as mensaje) {
+              <p class="mensaje-error">{{ mensaje }}</p>
+            }
+            @if (exitoSolicitud(); as mensaje) {
+              <p class="mensaje-exito">{{ mensaje }}</p>
+            }
+
+            <footer class="modal__acciones">
+              <button type="button" class="boton secundario" (click)="cerrarSolicitud()">Cancelar</button>
+              <button type="submit" class="boton" [disabled]="enviandoSolicitud()">
+                {{ enviandoSolicitud() ? 'Enviando…' : 'Enviar solicitud' }}
+              </button>
+            </footer>
+          </form>
+        </div>
+      </div>
+    }
   `
 })
 export class ConsultaPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly getAllClassrooms = inject<GetAllClassroomsUseCase>(GET_ALL_CLASSROOMS_USE_CASE);
   private readonly getAvailableClassrooms = inject<GetAvailableClassroomsUseCase>(GET_AVAILABLE_CLASSROOMS_USE_CASE);
+  private readonly getOccupation = inject<GetClassroomOccupationUseCase>(GET_CLASSROOM_OCCUPATION_USE_CASE);
+  private readonly createRequest = inject<CreateClassroomRequestUseCase>(CREATE_CLASSROOM_REQUEST_USE_CASE);
 
   protected readonly franjas = DAY_TIME_SLOTS;
+  protected readonly motivosGenericos = MOTIVOS_GENERICOS;
   protected readonly fechaConsulta = signal<string>(this.fechaDeManana());
   protected readonly franjaSeleccionada = signal<string | null>(DEFAULT_TIME_SLOT_ID);
   protected readonly capacidad = signal<string>('');
@@ -160,16 +313,30 @@ export class ConsultaPage implements OnInit {
   protected readonly cargandoDisponibilidad = signal(false);
   protected readonly errorDisponibilidad = signal<string | null>(null);
 
-  /** Alias del catálogo usado por las vistas derivadas. */
+  // Modal 1: ficha de detalles del aula
+  protected readonly detalle = signal<Classroom | null>(null);
+  protected readonly cargandoOcupacion = signal(false);
+  protected readonly ocupacion = signal<ClassroomOccupation[]>([]);
+
+  // Modal 2: formulario de solicitud
+  protected readonly modalSolicitudAbierto = signal(false);
+  protected readonly fechaSolicitud = signal<string>(this.fechaDeManana());
+  protected readonly inicioSolicitud = signal<string>('08:00');
+  protected readonly finSolicitud = signal<string>('10:00');
+  protected readonly asistentes = signal<number>(30);
+  protected readonly motivoSeleccionado = signal<string>(MOTIVOS_GENERICOS[0]);
+  protected readonly motivoOtro = signal<string>('');
+  protected readonly enviandoSolicitud = signal(false);
+  protected readonly exitoSolicitud = signal<string | null>(null);
+  protected readonly errorSolicitud = signal<string | null>(null);
+
   private readonly catalogoBase = computed<Classroom[] | null>(() => this.catalogo());
 
-  /** Ids libres según la última franja consultada (dato real de la API). */
   private readonly libresEnFranja = computed<Set<number> | null>(() => {
     const resultado = this.disponibilidad();
     return resultado === null ? null : new Set(resultado.classrooms.map(aula => aula.id));
   });
 
-  /** Tarjetas construidas con el patrón Builder (aula + estado de la franja). */
   private readonly aulasConEstado = computed<ClassroomCard[]>(() => {
     const catalogo = this.catalogoBase() ?? [];
     const libres = this.libresEnFranja();
@@ -197,7 +364,6 @@ export class ConsultaPage implements OnInit {
     ];
   });
 
-  /** Filtrado cliente por pestaña y texto (nombre, edificio, tipo o dependencia). */
   protected readonly visibles = computed<ClassroomCard[]>(() => {
     const pestana = this.pestanaActiva();
     const texto = this.textoBusqueda().trim().toLowerCase();
@@ -219,6 +385,21 @@ export class ConsultaPage implements OnInit {
       );
     });
   });
+
+  /** Detalle construido con el patrón Builder (aula + estado + ocupación). */
+  protected readonly detalleConstruido = computed<ClassroomDetail | null>(() => {
+    const aula = this.detalle();
+    if (aula === null) {
+      return null;
+    }
+    const libres = this.libresEnFranja();
+    const estado: 'LIBRE' | 'OCUPADA' | 'DESCONOCIDO' =
+      libres === null ? 'DESCONOCIDO' : libres.has(aula.id) ? 'LIBRE' : 'OCUPADA';
+    return ClassroomDetailBuilder.of(aula, estado, this.ocupacion());
+  });
+
+  /** Línea de tiempo derivada del detalle (gaps libres incluidos). */
+  protected readonly timeline = computed(() => this.detalleConstruido()?.timeline ?? []);
 
   ngOnInit(): void {
     const nombre = (this.route.snapshot.queryParamMap.get('name') ?? '').trim();
@@ -253,7 +434,7 @@ export class ConsultaPage implements OnInit {
 
   protected consultar(): void {
     const franja = this.franjas.find(f => f.id === this.franjaSeleccionada());
-    if (franja === null || franja === undefined) {
+    if (franja === undefined) {
       this.errorDisponibilidad.set('Selecciona una franja horaria.');
       return;
     }
@@ -265,6 +446,108 @@ export class ConsultaPage implements OnInit {
 
     const capacidad = Number.parseInt(this.capacidad(), 10);
     this.obtenerDisponibilidad(inicio, fin, capacidad);
+  }
+
+  protected abrirDetalle(aula: ClassroomCard): void {
+    const classroom = (this.catalogo() ?? []).find(c => c.id === aula.id);
+    if (classroom === undefined) {
+      return;
+    }
+    this.detalle.set(classroom);
+    this.cargandoOcupacion.set(true);
+    this.ocupacion.set([]);
+    const hoy = new Date();
+    const inicio = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 0, 0);
+    const fin = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 23, 59);
+    this.getOccupation.execute(classroom.id, { start: inicio, end: fin }).subscribe({
+      next: ocupaciones => {
+        this.ocupacion.set(ocupaciones);
+        this.cargandoOcupacion.set(false);
+      },
+      error: () => {
+        this.ocupacion.set([]);
+        this.cargandoOcupacion.set(false);
+      }
+    });
+  }
+
+  protected cerrarDetalle(): void {
+    this.detalle.set(null);
+    this.ocupacion.set([]);
+  }
+
+  protected abrirSolicitud(): void {
+    const aula = this.detalle();
+    if (aula === null) {
+      return;
+    }
+    const franja = this.franjas.find(f => f.id === this.franjaSeleccionada());
+    this.fechaSolicitud.set(this.fechaConsulta());
+    this.inicioSolicitud.set(franja?.start ?? '08:00');
+    this.finSolicitud.set(franja?.end ?? '10:00');
+    this.asistentes.set(30);
+    this.motivoSeleccionado.set(MOTIVOS_GENERICOS[0]);
+    this.motivoOtro.set('');
+    this.errorSolicitud.set(null);
+    this.exitoSolicitud.set(null);
+    this.modalSolicitudAbierto.set(true);
+  }
+
+  protected cerrarSolicitud(): void {
+    this.modalSolicitudAbierto.set(false);
+  }
+
+  protected enviarSolicitud(evento: Event): void {
+    evento.preventDefault();
+    const aula = this.detalle();
+    if (aula === null) {
+      return;
+    }
+    const motivo = this.motivoSeleccionado() === 'Otros'
+      ? this.motivoOtro().trim()
+      : this.motivoSeleccionado();
+    if (motivo === '') {
+      this.errorSolicitud.set('Describe el motivo de la solicitud.');
+      return;
+    }
+
+    const [anio, mes, dia] = this.fechaSolicitud().split('-').map(Number);
+    const [hI, mI] = this.inicioSolicitud().split(':').map(Number);
+    const [hF, mF] = this.finSolicitud().split(':').map(Number);
+    const inicio = new Date(anio, mes - 1, dia, hI, mI);
+    const fin = new Date(anio, mes - 1, dia, hF, mF);
+    if (!(fin.getTime() > inicio.getTime())) {
+      this.errorSolicitud.set('La hora de fin debe ser posterior a la de inicio.');
+      return;
+    }
+
+    const command: CreateClassroomRequestCommand = {
+      classroomId: aula.id,
+      start: inicio,
+      end: fin,
+      reason: motivo
+    };
+
+    this.enviandoSolicitud.set(true);
+    this.errorSolicitud.set(null);
+    this.exitoSolicitud.set(null);
+    this.createRequest.execute(command).subscribe({
+      next: () => {
+        this.enviandoSolicitud.set(false);
+        this.exitoSolicitud.set('Solicitud enviada. Será revisada por el área administrativa.');
+      },
+      error: (err: HttpErrorResponse) => {
+        this.enviandoSolicitud.set(false);
+        const detalle = typeof err.error?.message === 'string' ? err.error.message : null;
+        this.errorSolicitud.set(
+          err.status === 409
+            ? (detalle ?? 'La franja solicitada se solapa con una reserva aprobada.')
+            : err.status === 400
+              ? (detalle ?? 'Datos inválidos: revisa fecha, horas y motivo.')
+              : `No fue posible enviar la solicitud (HTTP ${err.status}).`
+        );
+      }
+    });
   }
 
   protected fechaCorta(iso: string): string {
@@ -289,12 +572,6 @@ export class ConsultaPage implements OnInit {
     });
   }
 
-  /** Consulta automática de la franja por defecto al abrir la página. */
-  private consultarFranjaTotal(): void {
-    // La consulta inicial usa la franja por defecto; se dispara desde ngOnInit.
-  }
-
-  /** Con datos de franja, la pestana por omisión vuelve a «Todas». */
   private ajustarPestanaSegunDisponibilidad(): void {
     this.pestanaActiva.set('TODAS');
   }
