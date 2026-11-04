@@ -1,70 +1,53 @@
-import { Component, OnInit, WritableSignal, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, WritableSignal, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
 import { GET_ALL_CLASSROOMS_USE_CASE, GET_AVAILABLE_CLASSROOMS_USE_CASE } from '../../application/classrooms-di';
 import { GetAllClassroomsUseCase } from '../../application/use-cases/get-all-classrooms.use-case';
 import { GetAvailableClassroomsUseCase } from '../../application/use-cases/get-available-classrooms.use-case';
 import { Classroom, Availability, ClassroomFilter } from '../../domain/entities/classroom';
 
+type EstadoFranja = 'LIBRE' | 'OCUPADA' | 'DESCONOCIDO';
+
+interface AulaVista {
+  aula: Classroom;
+  estado: EstadoFranja;
+}
+
+interface PestanaEstado {
+  etiqueta: string;
+  valor: 'TODAS' | 'LIBRES' | 'OCUPADAS';
+  cuenta: number | null;
+}
+
+/**
+ * Consulta de aulas (diseño aprobado): formulario de franja contra el
+ * endpoint real de disponibilidad, pestañas Todas / Libres / Ocupadas con
+ * conteos reales, buscador del lado del cliente y chips de estado derivados
+ * de la respuesta de la API (nunca datos simulados). El catálogo llega
+ * sincronizado desde SIGA.
+ */
 @Component({
   selector: 'app-consulta-page',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [],
+  styleUrl: './consulta-page.css',
   template: `
-    <section class="seccion">
-      <h2>Consulta de aulas</h2>
-      <p class="ayuda">Encuentra un aula libre para la franja que necesitas. Catálogo sincronizado desde SIGA.</p>
+    <header class="cabecera">
+      <div>
+        <h2>Consulta de aulas</h2>
+        <p class="ayuda">
+          Explora el catálogo sincronizado desde SIGA y verifica qué aulas están libres
+          en la franja de tu clase. Solo cuentan las solicitudes APROBADAS.
+        </p>
+      </div>
+    </header>
 
-      <form class="formulario" (submit)="consultarCatalogo($event)">
-        <label>
-          Nombre contiene
-          <input id="buscarNombre" type="text" placeholder="salón, laboratorio…" />
-        </label>
-        <label>
-          Capacidad mínima
-          <input id="capacidadCatalogo" type="number" min="0" placeholder="0" />
-        </label>
-        <button class="boton" type="submit" [disabled]="cargandoCatalogo()">
-          {{ cargandoCatalogo() ? 'Consultando…' : 'Consultar' }}
-        </button>
-      </form>
+    @if (errorCatalogo(); as mensaje) {
+      <p class="mensaje-error">{{ mensaje }}</p>
+    }
 
-      @if (errorCatalogo()) {
-        <p class="mensaje-error">{{ errorCatalogo() }}</p>
-      }
-
-      @if (aulas(); as lista) {
-        <table>
-          <thead>
-            <tr>
-              <th>Aula</th>
-              <th>Edificio</th>
-              <th>Tipo</th>
-              <th>Dependencia</th>
-              <th class="numero">Capacidad</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (aula of lista; track aula.id) {
-              <tr>
-                <td>{{ aula.name }}</td>
-                <td>{{ aula.building.name }}</td>
-                <td>{{ aula.type.name }}</td>
-                <td>{{ aula.department.name }}</td>
-                <td class="numero">{{ aula.capacity }}</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-        <p class="mensaje-info">{{ lista.length }} aula(s) listadas.</p>
-      }
-    </section>
-
-    <section class="seccion">
-      <h2>Disponibilidad</h2>
-      <p class="ayuda">
-        Intervalo <code>[inicio, fin)</code>: las reservas que solo se tocan en el borde no chocan.
-        Solo cuentan las solicitudes APROBADAS.
-      </p>
-
-      <form class="formulario" (submit)="consultarDisponibilidad($event)">
+    <section class="tarjeta">
+      <form class="franja" (submit)="consultarDisponibilidad($event)">
         <label>
           Inicio
           <input id="inicioDisponibilidad" type="datetime-local" required [value]="inicioPorDefecto" />
@@ -78,59 +61,111 @@ import { Classroom, Availability, ClassroomFilter } from '../../domain/entities/
           <input id="capacidadDisponibilidad" type="number" min="0" placeholder="0" />
         </label>
         <button class="boton" type="submit" [disabled]="cargandoDisponibilidad()">
-          {{ cargandoDisponibilidad() ? 'Consultando…' : 'Buscar disponibles' }}
+          {{ cargandoDisponibilidad() ? 'Consultando…' : 'Consultar disponibilidad' }}
         </button>
       </form>
 
-      @if (errorDisponibilidad()) {
-        <p class="mensaje-error">{{ errorDisponibilidad() }}</p>
-      }
-
       @if (disponibilidad(); as resultado) {
-        <table>
-          <thead>
-            <tr>
-              <th>Aula</th>
-              <th>Edificio</th>
-              <th class="numero">Capacidad</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (aula of resultado.classrooms; track aula.id) {
-              <tr>
-                <td>{{ aula.name }}</td>
-                <td>{{ aula.building.name }}</td>
-                <td class="numero">{{ aula.capacity }}</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-        <p class="mensaje-info">
-          {{ resultado.classrooms.length }} aula(s) libres en el intervalo · verificado a las
-          {{ comoHora(resultado.range.verifiedAt) }}.
+        <p class="nota-franja">
+          Franja [{{ fechaCorta(resultado.range.start) }} {{ comoHora(resultado.range.start) }} –
+          {{ comoHora(resultado.range.end) }}) verificada a las {{ comoHora(resultado.range.verifiedAt) }}:
+          {{ resultado.classrooms.length }} aula(s) libres.
         </p>
       }
+
+      @if (errorDisponibilidad(); as mensaje) {
+        <p class="mensaje-error">{{ mensaje }}</p>
+      }
+
+      <div class="controles">
+        <div class="pestanas" role="tablist" aria-label="Filtrar por disponibilidad en la franja">
+          @for (pestaña of pestanas(); track pestaña.valor) {
+            <button
+              type="button"
+              role="tab"
+              [class.activa]="pestañaActiva() === pestaña.valor"
+              [attr.aria-selected]="pestañaActiva() === pestaña.valor"
+              (click)="elegirPestana(pestaña.valor)"
+            >
+              {{ pestaña.etiqueta }} <span class="cuenta">{{ pestaña.cuenta ?? '—' }}</span>
+            </button>
+          }
+        </div>
+
+        <label class="busqueda">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM16.2 16.2 21 21" />
+          </svg>
+          <input
+            #entradaBusqueda
+            type="search"
+            placeholder="Buscar por nombre, edificio o tipo…"
+            aria-label="Buscar aulas"
+            [value]="textoBusqueda()"
+            (input)="buscar(entradaBusqueda.value)"
+          />
+        </label>
+      </div>
+
+      <div class="tabla-envoltorio">
+        @if (catalogo() === null || cargandoCatalogo() || cargandoDisponibilidad()) {
+          <p class="mensaje-info">Consultando catálogo…</p>
+        } @else if (visibles().length === 0) {
+          <p class="mensaje-info">
+            @if ((catalogo()?.length ?? 0) === 0) {
+              El catálogo no tiene aulas todavía: el personal administrativo debe lanzar la sincronización con SIGA.
+            } @else if (!hayaDisponibilidad()) {
+              Ninguna aula coincide con la búsqueda. Consulta también la disponibilidad de la franja.
+            } @else {
+              Ninguna aula coincide con el filtro actual.
+            }
+          </p>
+        } @else {
+          <table>
+            <thead>
+              <tr>
+                <th>Aula</th>
+                <th>Edificio</th>
+                <th>Tipo</th>
+                <th>Dependencia</th>
+                <th class="numero">Capacidad</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (vista of visibles(); track vista.aula.id) {
+                <tr>
+                  <td class="aula">{{ vista.aula.name }}</td>
+                  <td>{{ vista.aula.building.name }}</td>
+                  <td>{{ vista.aula.type.name }}</td>
+                  <td>{{ vista.aula.department.name }}</td>
+                  <td class="numero">{{ vista.aula.capacity }}</td>
+                  <td>
+                    <span [class]="estadoChip(vista.estado)">
+                      {{ etiquetaEstado(vista.estado) }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          <p class="mensaje-info">{{ visibles().length }} de {{ catalogo()?.length ?? 0 }} aula(s) listadas · franja [inicio, fin).</p>
+        }
+      </div>
     </section>
   `
 })
 export class ConsultaPage implements OnInit {
+  private readonly route = inject(ActivatedRoute);
   private readonly getAllClassrooms = inject<GetAllClassroomsUseCase>(GET_ALL_CLASSROOMS_USE_CASE);
   private readonly getAvailableClassrooms = inject<GetAvailableClassroomsUseCase>(
     GET_AVAILABLE_CLASSROOMS_USE_CASE
   );
 
-  private readonly catalogo = signal<Classroom[] | null>(null);
-  private readonly nombreBuscado = signal('');
+  protected readonly textoBusqueda = signal('');
+  protected readonly pestañaActiva = signal<PestanaEstado['valor']>('TODAS');
 
-  protected readonly aulas = computed<Classroom[] | null>(() => {
-    const todas = this.catalogo();
-    if (todas === null) {
-      return null;
-    }
-    const nombre = this.nombreBuscado().toLowerCase();
-    return nombre === '' ? todas : todas.filter(aula => aula.name.toLowerCase().includes(nombre));
-  });
-
+  protected readonly catalogo = signal<Classroom[] | null>(null);
   protected readonly cargandoCatalogo = signal(false);
   protected readonly errorCatalogo = signal<string | null>(null);
 
@@ -141,16 +176,101 @@ export class ConsultaPage implements OnInit {
   protected readonly inicioPorDefecto = this.trasHoras(14);
   protected readonly finPorDefecto = this.trasHoras(16);
 
+  /** Alias del catálogo usado por las vistas derivadas. */
+  private readonly catalogoBase = computed<Classroom[] | null>(() => this.catalogo());
+
+  /** Ids libres según la última franja consultada (dato real de la API). */
+  private readonly libresEnFranja = computed<Set<number> | null>(() => {
+    const resultado = this.disponibilidad();
+    return resultado === null ? null : new Set(resultado.classrooms.map(aula => aula.id));
+  });
+
+  private readonly aulasConEstado = computed<AulaVista[]>(() => {
+    const catalogo = this.catalogoBase() ?? [];
+    const libres = this.libresEnFranja();
+    return catalogo.map(aula => ({
+      aula,
+      estado: libres === null ? 'DESCONOCIDO' : libres.has(aula.id) ? 'LIBRE' : 'OCUPADA'
+    }));
+  });
+
+  protected readonly pestanas = computed<PestanaEstado[]>(() => {
+    const filas = this.aulasConEstado();
+    const todas = filas.length;
+    if (this.libresEnFranja() === null) {
+      return [
+        { etiqueta: 'Todas', valor: 'TODAS', cuenta: todas },
+        { etiqueta: 'Libres', valor: 'LIBRES', cuenta: null },
+        { etiqueta: 'Ocupadas', valor: 'OCUPADAS', cuenta: null }
+      ];
+    }
+    return [
+      { etiqueta: 'Todas', valor: 'TODAS', cuenta: todas },
+      { etiqueta: 'Libres', valor: 'LIBRES', cuenta: filas.filter(f => f.estado === 'LIBRE').length },
+      { etiqueta: 'Ocupadas', valor: 'OCUPADAS', cuenta: filas.filter(f => f.estado === 'OCUPADA').length }
+    ];
+  });
+
+  /** Filtrado cliente por pestaña y texto (nombre, edificio, tipo o dependencia). */
+  protected readonly visibles = computed<AulaVista[]>(() => {
+    const pestaña = this.pestañaActiva();
+    const texto = this.textoBusqueda().trim().toLowerCase();
+    return this.aulasConEstado().filter(vista => {
+      if (pestaña === 'LIBRES' && vista.estado !== 'LIBRE') {
+        return false;
+      }
+      if (pestaña === 'OCUPADAS' && vista.estado !== 'OCUPADAS') {
+        return false;
+      }
+      if (texto === '') {
+        return true;
+      }
+      const aula = vista.aula;
+      return (
+        aula.name.toLowerCase().includes(texto) ||
+        aula.building.name.toLowerCase().includes(texto) ||
+        aula.type.name.toLowerCase().includes(texto) ||
+        aula.department.name.toLowerCase().includes(texto)
+      );
+    });
+  });
+
   ngOnInit(): void {
+    const nombre = (this.route.snapshot.queryParamMap.get('name') ?? '').trim();
+    this.textoBusqueda.set(nombre);
     this.cargarCatalogo({});
+    this.consultarFranjaTotal();
   }
 
-  protected consultarCatalogo(evento: Event): void {
-    evento.preventDefault();
-    this.nombreBuscado.set((this.valor('#buscarNombre') ?? '').trim());
+  protected elegirPestana(valor: PestanaEstado['valor']): void {
+    this.pestañaActiva.set(valor);
+  }
 
-    const capacidad = Number.parseInt(this.valor('#capacidadCatalogo') ?? '', 10);
-    this.cargarCatalogo({ minCapacity: Number.isFinite(capacidad) && capacidad > 0 ? capacidad : undefined });
+  protected buscar(texto: string): void {
+    this.textoBusqueda.set(texto);
+  }
+
+  protected hayaDisponibilidad(): boolean {
+    return this.libresEnFranja() !== null;
+  }
+
+  protected estadoChip(estado: EstadoFranja): string {
+    return `estado ${estado.toLowerCase()}`;
+  }
+
+  protected etiquetaEstado(estado: EstadoFranja): string {
+    if (estado === 'LIBRE') {
+      return 'Libre';
+    }
+    return estado === 'OCUPADA' ? 'Ocupada en la franja' : '—';
+  }
+
+  protected fechaCorta(iso: string): string {
+    return new Date(iso).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
+  }
+
+  protected comoHora(iso: string): string {
+    return new Date(iso).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
   }
 
   protected consultarDisponibilidad(evento: Event): void {
@@ -163,23 +283,35 @@ export class ConsultaPage implements OnInit {
     }
 
     const capacidad = Number.parseInt(this.valor('#capacidadDisponibilidad') ?? '', 10);
-    this.cargandoDisponibilidad.set(true);
-    this.errorDisponibilidad.set(null);
-    this.getAvailableClassrooms
-      .execute(new Date(inicio), new Date(fin), {
-        minCapacity: Number.isFinite(capacidad) && capacidad > 0 ? capacidad : undefined
-      })
-      .subscribe({
-        next: disponibilidad => {
-          this.disponibilidad.set(disponibilidad);
-          this.cargandoDisponibilidad.set(false);
-        },
-        error: error => this.fallo(error, this.errorDisponibilidad, this.cargandoDisponibilidad)
-      });
+    this.obtenerDisponibilidad(new Date(inicio), new Date(fin), capacidad);
   }
 
-  protected comoHora(iso: string): string {
-    return new Date(iso).toLocaleTimeString();
+  /** Consulta automática de la franja por defecto al abrir la página. */
+  private consultarFranjaTotal(): void {
+    this.obtenerDisponibilidad(
+      new Date(`${this.inicioPorDefecto}:00`),
+      new Date(`${this.finPorDefecto}:00`),
+      0
+    );
+  }
+
+  private obtenerDisponibilidad(inicio: Date, fin: Date, capacidad: number): void {
+    const filtro: ClassroomFilter = { minCapacity: Number.isFinite(capacidad) && capacidad > 0 ? capacidad : undefined };
+    this.cargandoDisponibilidad.set(true);
+    this.errorDisponibilidad.set(null);
+    this.getAvailableClassrooms.execute(inicio, fin, filtro).subscribe({
+      next: disponibilidad => {
+        this.disponibilidad.set(disponibilidad);
+        this.cargandoDisponibilidad.set(false);
+        this.ajustarPestanaSegunDisponibilidad();
+      },
+      error: error => this.fallo(error, this.errorDisponibilidad, this.cargandoDisponibilidad)
+    });
+  }
+
+  /** Con datos de franja, la pestaña por omisión vuelve a «Todas». */
+  private ajustarPestanaSegunDisponibilidad(): void {
+    this.pestañaActiva.set('TODAS');
   }
 
   private cargarCatalogo(filter: ClassroomFilter): void {
