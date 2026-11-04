@@ -16,6 +16,7 @@ export interface ClassroomCard {
   readonly capacity: number;
   readonly status: ClassroomAvailabilityStatus;
   readonly statusLabel: string;
+  readonly characteristics: readonly string[];
 }
 
 /**
@@ -54,7 +55,8 @@ export class ClassroomCardBuilder {
       department: classroom.department.name,
       capacity: classroom.capacity,
       status: this.status,
-      statusLabel: this.labelFor(this.status)
+      statusLabel: this.labelFor(this.status),
+      characteristics: [this.classroom.type.name, this.classroom.department.name]
     };
   }
 

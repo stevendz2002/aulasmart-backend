@@ -10,7 +10,6 @@ import { CREATE_CLASSROOM_REQUEST_USE_CASE } from '../../../solicitudes/applicat
 import { CreateClassroomRequestUseCase } from '../../../solicitudes/application/use-cases/create-classroom-request.use-case';
 import { Classroom, Availability, ClassroomFilter } from '../../domain/entities/classroom';
 import { ClassroomOccupation } from '../../domain/entities/occupation';
-import { DAY_TIME_SLOTS, DEFAULT_TIME_SLOT_ID, TimeSlot } from '../../domain/entities/time-slot';
 import { ClassroomCard, ClassroomCardBuilder } from '../models/classroom-card';
 import { ClassroomDetail, ClassroomDetailBuilder } from '../models/classroom-detail';
 import { CreateClassroomRequestCommand } from '../../../solicitudes/domain/entities/classroom-request';
@@ -23,7 +22,6 @@ interface PestanaEstado {
   cuenta: number | null;
 }
 
-/** Motivos genéricos ofrecidos al docente; "Otros" habilita texto libre. */
 const MOTIVOS_GENERICOS: readonly string[] = [
   'Clase de recuperación',
   'Monitoría',
@@ -48,31 +46,67 @@ const MOTIVOS_GENERICOS: readonly string[] = [
       </p>
     </section>
 
-    <section class="tarjeta consulta">
-      <div class="consulta__franja">
-        <label class="campo-fecha">
+    <!-- Barra de filtros: 6 campos en grid horizontal -->
+    <section class="tarjeta filtros">
+      <div class="filtros__grid">
+        <label class="campo">
           Fecha
-          <input id="fechaConsulta" type="date" [value]="fechaConsulta()"
-                 (change)="cambiarFecha($any($event.target).value)" />
+          <span class="input-icono">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>
+            <input type="date" [value]="fechaConsulta()" (change)="fechaConsulta.set($any($event.target).value)" />
+          </span>
         </label>
 
-        <div class="chips-franja" role="group" aria-label="Franjas horarias">
-          @for (franja of franjas; track franja.id) {
-            <button type="button" class="chip-franja"
-                    [class.activa]="franjaSeleccionada() === franja.id"
-                    (click)="seleccionarFranja(franja)">
-              {{ franja.label }}
-            </button>
-          }
-        </div>
-
-        <label class="campo-capacidad">
-          Capacidad mínima (opcional)
-          <input id="capacidadDisponibilidad" type="number" min="1"
-                 [value]="capacidad()" (input)="capacidad.set($any($event.target).value)" />
+        <label class="campo">
+          Hora inicio
+          <span class="input-icono">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            <input type="time" [value]="horaInicio()" (change)="horaInicio.set($any($event.target).value)" />
+          </span>
         </label>
 
-        <button type="button" class="boton" (click)="consultar()" [disabled]="cargandoDisponibilidad() || franjaSeleccionada() === null">
+        <label class="campo">
+          Hora fin
+          <span class="input-icono">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            <input type="time" [value]="horaFin()" (change)="horaFin.set($any($event.target).value)" />
+          </span>
+        </label>
+
+        <label class="campo">
+          Bloque
+          <span class="input-icono select">
+            <select [value]="bloqueSeleccionado()" (change)="bloqueSeleccionado.set($any($event.target).value)">
+              <option value="">Todos</option>
+              @for (b of bloquesDisponibles(); track b) {
+                <option [value]="b">{{ b }}</option>
+              }
+            </select>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </span>
+        </label>
+
+        <label class="campo">
+          Capacidad mínima
+          <input type="number" min="1" placeholder="Ej. 30" [value]="capacidad()" (input)="capacidad.set($any($event.target).value)" />
+        </label>
+
+        <label class="campo">
+          Tipo de aula
+          <span class="input-icono select">
+            <select [value]="tipoAulaSeleccionado()" (change)="tipoAulaSeleccionado.set($any($event.target).value)">
+              <option value="">Todos</option>
+              @for (t of tiposDisponibles(); track t) {
+                <option [value]="t">{{ t }}</option>
+              }
+            </select>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </span>
+        </label>
+      </div>
+
+      <div class="filtros__acciones">
+        <button type="button" class="boton" (click)="consultar()" [disabled]="cargandoDisponibilidad()">
           {{ cargandoDisponibilidad() ? 'Consultando…' : 'Consultar disponibilidad' }}
         </button>
       </div>
@@ -139,14 +173,22 @@ const MOTIVOS_GENERICOS: readonly string[] = [
                 </span>
               </header>
               <p class="aula-card__ubicacion">{{ card.building }} · {{ card.type }}</p>
-              <footer class="aula-card__pie">
-                <span class="aula-card__departamento">{{ card.department }}</span>
-                <span class="aula-card__capacidad">{{ card.capacity }} sillas</span>
-              </footer>
+              <div class="aula-card__meta">
+                <span class="meta-item"><span class="meta-icono">👥</span>{{ card.capacity }}</span>
+                <span class="meta-item"><span class="meta-icono">📍</span>{{ card.building }}</span>
+              </div>
+              <div class="chips">
+                @for (c of card.characteristics; track c) {
+                  <span class="chip caracteristica">{{ c }}</span>
+                }
+              </div>
+              @if (card.status === 'OCUPADA' && liberacion(card.id); as hora) {
+                <p class="liberacion">Se libera a las {{ hora }}</p>
+              }
               <div class="aula-card__acciones">
                 <button type="button" class="boton secundario" (click)="abrirDetalle(card)">Detalles</button>
-                <button type="button" class="boton" [disabled]="card.status !== 'LIBRE'" (click)="abrirSolicitudDirecta(card)">
-                  Solicitar aula
+                <button type="button" class="boton boton-solicitar" [disabled]="card.status !== 'LIBRE'" (click)="abrirSolicitudDirecta(card)">
+                  Solicitar ↗
                 </button>
               </div>
             </article>
@@ -214,7 +256,7 @@ const MOTIVOS_GENERICOS: readonly string[] = [
 
           <footer class="modal__acciones">
             <button type="button" class="boton secundario" (click)="cerrarDetalle()">Cerrar</button>
-            <button type="button" class="boton" [disabled]="detalleConstruido()?.status !== 'LIBRE'" (click)="abrirSolicitud()">Solicitar aula</button>
+            <button type="button" class="boton boton-solicitar" [disabled]="card.status !== 'LIBRE'" (click)="abrirSolicitud()">Solicitar aula ↗</button>
           </footer>
         </div>
       </div>
@@ -301,11 +343,15 @@ export class ConsultaPage implements OnInit {
   private readonly getOccupation = inject<GetClassroomOccupationUseCase>(GET_CLASSROOM_OCCUPATION_USE_CASE);
   private readonly createRequest = inject<CreateClassroomRequestUseCase>(CREATE_CLASSROOM_REQUEST_USE_CASE);
 
-  protected readonly franjas = DAY_TIME_SLOTS;
   protected readonly motivosGenericos = MOTIVOS_GENERICOS;
+
+  // Filtros
   protected readonly fechaConsulta = signal<string>(this.fechaDeManana());
-  protected readonly franjaSeleccionada = signal<string | null>(DEFAULT_TIME_SLOT_ID);
+  protected readonly horaInicio = signal<string>('08:00');
+  protected readonly horaFin = signal<string>('10:00');
+  protected readonly bloqueSeleccionado = signal<string>('');
   protected readonly capacidad = signal<string>('');
+  protected readonly tipoAulaSeleccionado = signal<string>('');
 
   protected readonly textoBusqueda = signal('');
   protected readonly pestanaActiva = signal<PestanaEstadoValor>('TODAS');
@@ -318,12 +364,17 @@ export class ConsultaPage implements OnInit {
   protected readonly cargandoDisponibilidad = signal(false);
   protected readonly errorDisponibilidad = signal<string | null>(null);
 
-  // Modal 1: ficha de detalles del aula
+  // Modal 1
   protected readonly detalle = signal<Classroom | null>(null);
   protected readonly cargandoOcupacion = signal(false);
   protected readonly ocupacion = signal<ClassroomOccupation[]>([]);
+  protected readonly liberacionPorAula = signal<Map<number, string>>(new Map());
 
-  // Modal 2: formulario de solicitud
+  protected liberacion(id: number): string | null {
+    return this.liberacionPorAula().get(id) ?? null;
+  }
+
+  // Modal 2
   protected readonly modalSolicitudAbierto = signal(false);
   protected readonly solicitudAula = signal<Classroom | null>(null);
   protected readonly fechaSolicitud = signal<string>(this.fechaDeManana());
@@ -338,6 +389,26 @@ export class ConsultaPage implements OnInit {
 
   private readonly catalogoBase = computed<Classroom[] | null>(() => this.catalogo());
 
+  private readonly bloquesSet = computed<Set<string>>(() => {
+    const set = new Set<string>();
+    for (const a of this.catalogoBase() ?? []) {
+      set.add(a.building.name);
+    }
+    return set;
+  });
+
+  protected readonly bloquesDisponibles = computed<string[]>(() => [...this.bloquesSet()].sort());
+
+  private readonly tiposSet = computed<Set<string>>(() => {
+    const set = new Set<string>();
+    for (const a of this.catalogoBase() ?? []) {
+      set.add(a.type.name);
+    }
+    return set;
+  });
+
+  protected readonly tiposDisponibles = computed<string[]>(() => [...this.tiposSet()].sort());
+
   private readonly libresEnFranja = computed<Set<number> | null>(() => {
     const resultado = this.disponibilidad();
     return resultado === null ? null : new Set(resultado.classrooms.map(aula => aula.id));
@@ -346,11 +417,17 @@ export class ConsultaPage implements OnInit {
   private readonly aulasConEstado = computed<ClassroomCard[]>(() => {
     const catalogo = this.catalogoBase() ?? [];
     const libres = this.libresEnFranja();
-    return catalogo.map(aula => {
-      const estado: 'LIBRE' | 'OCUPADA' | 'DESCONOCIDO' =
-        libres === null ? 'DESCONOCIDO' : libres.has(aula.id) ? 'LIBRE' : 'OCUPADA';
-      return ClassroomCardBuilder.of(aula, estado);
-    });
+    // filtrar por bloque y tipo seleccionados
+    const bloque = this.bloqueSeleccionado();
+    const tipo = this.tipoAulaSeleccionado();
+    return catalogo
+      .filter(a => bloque === '' || a.building.name === bloque)
+      .filter(a => tipo === '' || a.type.name === tipo)
+      .map(aula => {
+        const estado: 'LIBRE' | 'OCUPADA' | 'DESCONOCIDO' =
+          libres === null ? 'DESCONOCIDO' : libres.has(aula.id) ? 'LIBRE' : 'OCUPADA';
+        return ClassroomCardBuilder.of(aula, estado);
+      });
   });
 
   protected readonly pestanas = computed<PestanaEstado[]>(() => {
@@ -392,7 +469,6 @@ export class ConsultaPage implements OnInit {
     });
   });
 
-  /** Detalle construido con el patrón Builder (aula + estado + ocupación). */
   protected readonly detalleConstruido = computed<ClassroomDetail | null>(() => {
     const aula = this.detalle();
     if (aula === null) {
@@ -404,7 +480,6 @@ export class ConsultaPage implements OnInit {
     return ClassroomDetailBuilder.of(aula, estado, this.ocupacion());
   });
 
-  /** Línea de tiempo derivada del detalle (gaps libres incluidos). */
   protected readonly timeline = computed(() => this.detalleConstruido()?.timeline ?? []);
 
   ngOnInit(): void {
@@ -426,27 +501,10 @@ export class ConsultaPage implements OnInit {
     return this.libresEnFranja() !== null;
   }
 
-  protected cambiarFecha(valor: string): void {
-    this.fechaConsulta.set(valor);
-    if (this.franjaSeleccionada() !== null) {
-      this.consultar();
-    }
-  }
-
-  protected seleccionarFranja(franja: TimeSlot): void {
-    this.franjaSeleccionada.set(franja.id);
-    this.consultar();
-  }
-
   protected consultar(): void {
-    const franja = this.franjas.find(f => f.id === this.franjaSeleccionada());
-    if (franja === undefined) {
-      this.errorDisponibilidad.set('Selecciona una franja horaria.');
-      return;
-    }
     const [anio, mes, dia] = this.fechaConsulta().split('-').map(Number);
-    const [hI, mI] = franja.start.split(':').map(Number);
-    const [hF, mF] = franja.end.split(':').map(Number);
+    const [hI, mI] = this.horaInicio().split(':').map(Number);
+    const [hF, mF] = this.horaFin().split(':').map(Number);
     const inicio = new Date(anio, mes - 1, dia, hI, mI);
     const fin = new Date(anio, mes - 1, dia, hF, mF);
 
@@ -469,6 +527,15 @@ export class ConsultaPage implements OnInit {
       next: ocupaciones => {
         this.ocupacion.set(ocupaciones);
         this.cargandoOcupacion.set(false);
+        // Cache de hora de liberación para la tarjeta (primera franja que cubre la consulta).
+        const liberacion = this.calcularLiberacion(ocupaciones, this.fechaConsulta(), this.horaInicio(), this.horaFin());
+        if (liberacion !== null) {
+          this.liberacionPorAula.update(m => {
+            const siguiente = new Map(m);
+            siguiente.set(classroom.id, liberacion);
+            return siguiente;
+          });
+        }
       },
       error: () => {
         this.ocupacion.set([]);
@@ -482,16 +549,15 @@ export class ConsultaPage implements OnInit {
     this.ocupacion.set([]);
   }
 
-  protected abrirSolicitud(): void {
-    const aula = this.detalle();
-    if (aula === null) {
+  protected abrirSolicitudDirecta(aula: ClassroomCard): void {
+    const classroom = (this.catalogo() ?? []).find(c => c.id === aula.id);
+    if (classroom === undefined || aula.status !== 'LIBRE') {
       return;
     }
-    this.solicitudAula.set(aula);
-    const franja = this.franjas.find(f => f.id === this.franjaSeleccionada());
+    this.solicitudAula.set(classroom);
     this.fechaSolicitud.set(this.fechaConsulta());
-    this.inicioSolicitud.set(franja?.start ?? '08:00');
-    this.finSolicitud.set(franja?.end ?? '10:00');
+    this.inicioSolicitud.set(this.horaInicio());
+    this.finSolicitud.set(this.horaFin());
     this.asistentes.set(30);
     this.motivoSeleccionado.set(MOTIVOS_GENERICOS[0]);
     this.motivoOtro.set('');
@@ -500,16 +566,15 @@ export class ConsultaPage implements OnInit {
     this.modalSolicitudAbierto.set(true);
   }
 
-  protected abrirSolicitudDirecta(aula: ClassroomCard): void {
-    const classroom = (this.catalogo() ?? []).find(c => c.id === aula.id);
-    if (classroom === undefined || aula.status !== 'LIBRE') {
+  protected abrirSolicitud(): void {
+    const aula = this.detalle();
+    if (aula === null) {
       return;
     }
-    this.solicitudAula.set(classroom);
-    const franja = this.franjas.find(f => f.id === this.franjaSeleccionada());
+    this.solicitudAula.set(aula);
     this.fechaSolicitud.set(this.fechaConsulta());
-    this.inicioSolicitud.set(franja?.start ?? '08:00');
-    this.finSolicitud.set(franja?.end ?? '10:00');
+    this.inicioSolicitud.set(this.horaInicio());
+    this.finSolicitud.set(this.horaFin());
     this.asistentes.set(30);
     this.motivoSeleccionado.set(MOTIVOS_GENERICOS[0]);
     this.motivoOtro.set('');
@@ -581,6 +646,24 @@ export class ConsultaPage implements OnInit {
         );
       }
     });
+  }
+
+  private calcularLiberacion(ocupaciones: ClassroomOccupation[], fecha: string, horaInicio: string, horaFin: string): string | null {
+    const [anio, mes, dia] = fecha.split('-').map(Number);
+    const [hI, mI] = horaInicio.split(':').map(Number);
+    const [hF, mF] = horaFin.split(':').map(Number);
+    const consultaInicio = new Date(anio, mes - 1, dia, hI, mI).getTime();
+    const consultaFin = new Date(anio, mes - 1, dia, hF, mF).getTime();
+    const solapada = ocupaciones.find(o => {
+      const i = new Date(o.start).getTime();
+      const f = new Date(o.end).getTime();
+      return i < consultaFin && f > consultaInicio;
+    });
+    if (solapada === undefined) {
+      return null;
+    }
+    const fin = new Date(solapada.end);
+    return `${String(fin.getHours()).padStart(2, '0')}:${String(fin.getMinutes()).padStart(2, '0')}`;
   }
 
   protected fechaCorta(iso: string): string {
