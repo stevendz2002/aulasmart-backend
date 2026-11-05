@@ -44,27 +44,41 @@ Ruta | Método | Descripción
 
 ## Puesta en marcha
 
+### Opción 1: Todo en Docker (Recomendado)
+
+Con el archivo `.env` provisto ubicado en la raíz del proyecto, levantar toda la suite (PostgreSQL, Backend Spring Boot y Frontend Angular):
+
 ```bash
-# 1. Claves locales (el archivo .env se ignora en Git)
-cp .env.example .env            # define POSTGRES_PASSWORD y DB_PASSWORD
+docker compose up -d --build
+```
 
-# 2. Base de datos
-docker compose up -d            # contenedor aulasmart-postgres-test (PostgreSQL 17.4, puerto 5433)
+- **Frontend:** [http://localhost:4200](http://localhost:4200)
+- **Backend API:** [http://localhost:8080/api](http://localhost:8080/api) (Salud: [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health))
+- **Base de datos:** PostgreSQL en el puerto `5433` (red interna `db:5432`). Las migraciones Flyway se aplican automáticamente al iniciar.
 
-# 3. Backend (Flyway aplica las migraciones V1→V4 al arrancar)
+Para detener todos los servicios:
+```bash
+docker compose down
+```
+
+---
+
+### Opción 2: Desarrollo local (terminal por componente)
+
+```bash
+# 1. Base de datos
+docker compose up -d db
+
+# 2. Backend (Flyway aplica las migraciones V1→V6 al arrancar)
 cd aulasmart-backend
-./mvnw -B -ntp spring-boot:run  # http://localhost:8080
+./mvnw spring-boot:run  # http://localhost:8080
 
-# 4. SPA
+# 3. SPA Angular
 cd ../aulasmart-frontend
 npm install && npm start        # http://localhost:4200
 
-# 5. (Opcional) Datos de prueba y validaciones, en base nueva
-docker compose exec db psql -U aulasmart -d aulasmart_test -v ON_ERROR_STOP=1 -f /database/seeds/001_datos_prueba.sql
-docker compose exec db psql -U aulasmart -d aulasmart_test -f /database/validation/001_validaciones.sql
-
-# 6. Pruebas automatizadas
-cd aulasmart-backend && ./mvnw -B test
+# 4. Pruebas automatizadas
+cd ../aulasmart-backend && ./mvnw test
 cd ../aulasmart-frontend && npm test -- --watch=false
 ```
 
