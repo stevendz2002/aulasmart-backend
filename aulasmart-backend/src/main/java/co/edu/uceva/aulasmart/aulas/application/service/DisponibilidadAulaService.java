@@ -20,26 +20,32 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Disponibilidad de reservas. Solo afirma disponibilidad con el catálogo de
+ * SIGA vigente y con la ocupación académica vigente, y excluye las aulas
+ * ocupadas por la unión de: reservas APROBADAS de AulaSmart y eventos reales
+ * del calendario público de SIGA (`horario_academico`).
+ */
 @Service
 public class DisponibilidadAulaService {
     private final AulaConsultaPort aulaConsultaPort;
-    private final HorarioAcademicoPort horarioAcademicoPort;
     private final SolicitudAprobadaPort solicitudAprobadaPort;
+    private final HorarioAcademicoPort horarioAcademicoPort;
     private final SincronizacionSigaPort sincronizacionSigaPort;
     private final Clock clock;
     private final Duration maxAntiguedad;
 
     public DisponibilidadAulaService(
             AulaConsultaPort aulaConsultaPort,
-            HorarioAcademicoPort horarioAcademicoPort,
             SolicitudAprobadaPort solicitudAprobadaPort,
+            HorarioAcademicoPort horarioAcademicoPort,
             SincronizacionSigaPort sincronizacionSigaPort,
             Clock clock,
             @Value("${aulasmart.disponibilidad.max-antiguedad:PT24H}") Duration maxAntiguedad
     ) {
         this.aulaConsultaPort = aulaConsultaPort;
-        this.horarioAcademicoPort = horarioAcademicoPort;
         this.solicitudAprobadaPort = solicitudAprobadaPort;
+        this.horarioAcademicoPort = horarioAcademicoPort;
         this.sincronizacionSigaPort = sincronizacionSigaPort;
         this.clock = clock;
         this.maxAntiguedad = maxAntiguedad;
@@ -49,13 +55,15 @@ public class DisponibilidadAulaService {
     public Disponibilidad consultar(AulaFiltro filtro, Intervalo intervalo) {
         Instant verificadoEn = clock.instant();
         Instant limiteActualizacion = verificadoEn.minus(maxAntiguedad);
-        if (!sincronizacionSigaPort.datosCompletosYVigentes(intervalo, limiteActualizacion)) {
+        if (!sincronizacionSigaPort.catalogoAulasVigente(limiteActualizacion)
+                || !sincronizacionSigaPort.eventosVigente(limiteActualizacion)) {
             throw new DisponibilidadNoVerificableException();
         }
 
-        Set<Long> ocupadas = new HashSet<>(horarioAcademicoPort.buscarAulasOcupadas(intervalo));
-        ocupadas.addAll(solicitudAprobadaPort.buscarAulasConSolicitudesAprobadas(intervalo));
-
+        Set<Long> ocupadas = new HashSet<>(
+                solicitudAprobadaPort.buscarAulasConSolicitudesAprobadas(intervalo)
+        );
+        ocupadas.addAll(horarioAcademicoPort.buscarAulasConEventos(intervalo));
         List<Aula> disponibles = aulaConsultaPort.buscarActivas(filtro).stream()
                 .filter(aula -> !ocupadas.contains(aula.id()))
                 .toList();

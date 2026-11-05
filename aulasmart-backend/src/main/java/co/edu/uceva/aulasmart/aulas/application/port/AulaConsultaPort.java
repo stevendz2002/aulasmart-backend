@@ -10,4 +10,7 @@ public interface AulaConsultaPort {
     List<Aula> buscarActivas(AulaFiltro filtro);
 
     Optional<Aula> buscarActivaPorId(Long idAula);
+
+    /** Códigos SIGA de las aulas activas del catálogo local, sin repetidos. */
+    List<Long> buscarCodigosSigaDeAulasActivas();
 }

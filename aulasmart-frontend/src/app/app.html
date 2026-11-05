@@ -1,0 +1,17 @@
+@if (enIngreso()) {
+  <main class="sin-shell">
+    <router-outlet />
+  </main>
+} @else {
+  <div class="disposicion">
+    <app-sidebar />
+
+    <div class="cuerpo">
+      <app-header />
+
+      <main>
+        <router-outlet />
+      </main>
+    </div>
+  </div>
+}

@@ -1,0 +1,245 @@
+.barra {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 20px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.alternar {
+  border: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.alternar:hover {
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+.alternar svg {
+  width: 19px;
+  height: 19px;
+}
+
+/* Buscador de aulas sobre el catálogo real. */
+.buscador {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(420px, 44vw);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: var(--color-background);
+  color: var(--color-text-secondary);
+}
+
+.buscador svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.buscador input {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--color-text);
+  outline: none;
+  min-width: 0;
+}
+
+.buscador input::placeholder {
+  color: var(--color-muted);
+}
+
+.buscador .atajo {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: 0.68rem;
+  color: var(--color-text-secondary);
+  padding: 1px 7px;
+  white-space: nowrap;
+}
+
+.menu-resultados {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  z-index: 40;
+  max-height: 320px;
+  overflow: auto;
+}
+
+.menu-resultados .fila {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1px;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.menu-resultados .fila:hover {
+  background: var(--color-background);
+}
+
+.menu-resultados .fila strong {
+  font-size: 0.9rem;
+}
+
+.menu-resultados .fila:not(.apagada) span:last-child,
+.menu-resultados .fila span {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+}
+
+.menu-resultados .apagada {
+  cursor: default;
+  color: var(--color-muted);
+}
+
+/* Identidad de la sesión (iniciales derivadas del correo real + rol real). */
+.identidad {
+  margin-left: auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.persona {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+}
+
+.persona:hover {
+  background: var(--color-background);
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.datos {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.datos .nombre {
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.datos .rol {
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.persona > svg {
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-secondary);
+}
+
+.menu-sesion {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  min-width: 230px;
+  z-index: 40;
+}
+
+.menu-sesion .fila {
+  display: block;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-sesion .fila:hover {
+  background: var(--color-background);
+}
+
+.menu-sesion .apagada {
+  cursor: default;
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+}
+
+.menu-sesion .fila:not(.apagada) {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.ingresar {
+  margin-left: auto;
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
