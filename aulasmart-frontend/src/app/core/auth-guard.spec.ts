@@ -27,20 +27,35 @@ describe('requiereRoles', () => {
     expect(resultado.toString()).toBe('/login');
   });
 
-  it('con sesion pero sin el rol pedido redirige a /aulas', () => {
-    authService.sesion.set({ correo: 'docente@prueba.aulasmart.local', roles: ['DOCENTE'], claveCodificada: 'x' });
-    const resultado = evaluar(requiereRoles('ADMINISTRATIVO', 'ADMINISTRADOR'));
-    expect(resultado instanceof UrlTree ? resultado.toString() : resultado).toBe('/aulas');
+  it('con sesion pero sin el rol pedido redirige al dashboard', () => {
+    authService.sesion.set({
+      correo: 'docente@prueba.aulasmart.local',
+      nombre: null,
+      roles: ['DOCENTE'],
+      claveCodificada: 'x'
+    });
+    const resultado = evaluar(requiereRoles('ADMINISTRADOR'));
+    expect(resultado instanceof UrlTree ? resultado.toString() : resultado).toBe('/');
   });
 
   it('con sesion y alguno de los roles requeridos permite el acceso', () => {
-    authService.sesion.set({ correo: 'docente@prueba.aulasmart.local', roles: ['DOCENTE'], claveCodificada: 'x' });
-    const resultado = evaluar(requiereRoles('DOCENTE', 'ADMINISTRATIVO'));
+    authService.sesion.set({
+      correo: 'docente@prueba.aulasmart.local',
+      nombre: 'PRUEBA Docente',
+      roles: ['DOCENTE'],
+      claveCodificada: 'x'
+    });
+    const resultado = evaluar(requiereRoles('DOCENTE', 'ADMINISTRADOR'));
     expect(resultado).toBe(true);
   });
 
   it('sin roles requeridos cualquier sesion activa pasa', () => {
-    authService.sesion.set({ correo: 'estudiante@prueba.aulasmart.local', roles: ['ESTUDIANTE'], claveCodificada: 'x' });
+    authService.sesion.set({
+      correo: 'estudiante@prueba.aulasmart.local',
+      nombre: null,
+      roles: ['ESTUDIANTE'],
+      claveCodificada: 'x'
+    });
     const resultado = evaluar(requiereRoles());
     expect(resultado).toBe(true);
   });

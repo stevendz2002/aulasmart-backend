@@ -13,8 +13,8 @@ import java.util.Locale;
 /**
  * Disparador manual de sincronizaciones, restringido por rol. La ejecución
  * programada usa el mismo servicio, de modo que ambos caminos comparten las
- * mismas reglas y registros de control. La plataforma es una web de reservas
- * de aulas: el único recurso sincronizable es AULAS.
+ * mismas reglas y registros de control. Recursos sincronizables: AULAS
+ * (catálogo) y EVENTOS (ocupación por clases del calendario público).
  */
 @RestController
 @RequestMapping("/api/sincronizaciones")
@@ -32,8 +32,10 @@ public class SincronizacionController {
     ) {
         List<String> recursos = switch (recurso.toUpperCase(Locale.ROOT)) {
             case "AULAS" -> List.of("AULAS");
+            case "EVENTOS" -> List.of("EVENTOS");
             default -> throw new IllegalArgumentException(
-                    "Recurso de sincronización desconocido: `" + recurso + "`. Valor de sincronización válido: AULAS.");
+                    "Recurso de sincronización desconocido: `" + recurso
+                            + "`. Valores de sincronización válidos: AULAS, EVENTOS.");
         };
         return servicio.sincronizar(recursos).stream()
                 .map(SincronizacionResponse::desde)

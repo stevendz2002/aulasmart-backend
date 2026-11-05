@@ -3,11 +3,13 @@ package co.edu.uceva.aulasmart.aulas.application.port;
 import java.time.Instant;
 
 /**
- * Condición de la puerta de calidad de la disponibilidad: el catálogo de
- * aulas sincronizado desde SIGA no debe ser más viejo que la antigüedad
- * máxima configurada. Las ocupaciones provienen exclusivamente de las
- * reservas aprobadas dentro de AulaSmart.
+ * Condición de la puerta de calidad de la disponibilidad: los recursos
+ * sincronizados desde SIGA (catálogo de aulas y eventos de ocupación) no
+ * deben ser más viejos que la antigüedad máxima configurada. Las ocupaciones
+ * provienen de los eventos SIGA unidos con las reservas aprobadas.
  */
 public interface SincronizacionSigaPort {
     boolean catalogoAulasVigente(Instant limiteActualizacion);
+
+    boolean eventosVigente(Instant limiteActualizacion);
 }

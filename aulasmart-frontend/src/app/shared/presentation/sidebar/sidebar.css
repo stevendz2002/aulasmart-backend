@@ -1,0 +1,185 @@
+.sidebar {
+  width: 248px;
+  flex: 0 0 auto;
+  height: 100vh;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 16px 14px;
+  box-sizing: border-box;
+  transition: width 0.15s ease;
+  overflow-y: auto;
+}
+
+.sidebar.colapsada {
+  width: 72px;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 4px;
+}
+
+.logotipo {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-dark);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logotipo svg {
+  width: 22px;
+  height: 22px;
+}
+
+.nombres {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.nombres .titulo {
+  font-weight: 700;
+  font-size: 1.02rem;
+  color: var(--color-text);
+}
+
+.nombres .subtitulo {
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.titulo-grupo {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  padding: 0 10px;
+  margin-bottom: 4px;
+  white-space: nowrap;
+}
+
+.grupo a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  padding: 9px 10px;
+  border-radius: var(--radius-md);
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 0.92rem;
+}
+
+.grupo a svg {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 auto;
+}
+
+.grupo a:hover {
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+.grupo a.activo {
+  background: var(--color-background);
+  color: var(--color-text);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--color-border);
+}
+
+.grupo a .etiqueta {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.insignia {
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  min-width: 20px;
+  padding: 1px 6px;
+  text-align: center;
+}
+
+.colapsada .titulo-grupo,
+.colapsada .nombres {
+  display: none;
+}
+
+.colapsada .grupo a {
+  justify-content: center;
+  padding: 9px 0;
+}
+
+.colapsada .grupo a .etiqueta,
+.colapsada .grupo a .insignia {
+  display: none;
+}
+
+.colapsada .marca {
+  justify-content: center;
+}
+
+/* Tarjeta del período académico (config centralizado, spec §14). */
+.periodo {
+  margin-top: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--color-background);
+  white-space: nowrap;
+}
+
+.periodo .titulo {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.periodo .detalle {
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+}
+
+.avance {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.avance .relleno {
+  display: block;
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 999px;
+}
+
+.colapsada .periodo .titulo {
+  display: none;
+}

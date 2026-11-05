@@ -22,25 +22,36 @@ describe('AuthService', () => {
     sessionStorage.clear();
   });
 
-  it('login adjunta la credencial Basic y publica la sesion', () => {
-    let sesionRecibida: { correo: string; roles: string[]; claveCodificada: string } | null = null;
+  it('login adjunta la credencial Basic y publica la sesion con el nombre real', () => {
+    let sesionRecibida: { correo: string; nombre: string | null; roles: string[]; claveCodificada: string } | null =
+      null;
     service.login('docente@prueba.aulasmart.local', 'password').subscribe(s => (sesionRecibida = s));
 
     const req = peticiones.expectOne('http://localhost:8080/api/usuarios/whoami');
     expect(req.request.headers.get('Authorization')).toBe(
       'Basic ' + btoa('docente@prueba.aulasmart.local:password')
     );
-    req.flush({ correo: 'docente@prueba.aulasmart.local', roles: ['DOCENTE'] });
+    req.flush({ correo: 'docente@prueba.aulasmart.local', nombre: 'PRUEBA Docente', roles: ['DOCENTE'] });
 
     expect(sesionRecibida!.correo).toBe('docente@prueba.aulasmart.local');
+    expect(sesionRecibida!.nombre).toBe('PRUEBA Docente');
     expect(service.sesion()?.roles).toEqual(['DOCENTE']);
     expect(sessionStorage.getItem('aulasmart.sesion')).toContain('docente@prueba.aulasmart.local');
+  });
+
+  it('login tolera un whoami sin nombre resuelto', () => {
+    service.login('docente@prueba.aulasmart.local', 'password').subscribe();
+    peticiones
+      .expectOne('http://localhost:8080/api/usuarios/whoami')
+      .flush({ correo: 'docente@prueba.aulasmart.local', nombre: null, roles: ['DOCENTE'] });
+
+    expect(service.sesion()?.nombre).toBeNull();
   });
 
   it('logout limpia la sesion y el almacen local', () => {
     service.login('docente@prueba.aulasmart.local', 'password').subscribe();
     peticiones.expectOne('http://localhost:8080/api/usuarios/whoami')
-      .flush({ correo: 'docente@prueba.aulasmart.local', roles: ['DOCENTE'] });
+      .flush({ correo: 'docente@prueba.aulasmart.local', nombre: 'PRUEBA Docente', roles: ['DOCENTE'] });
 
     service.logout();
 

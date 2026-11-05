@@ -11,18 +11,26 @@ import java.util.Set;
 /**
  * Coordinador de corridas de sincronización. Un método `synchronized` evita
  * que una corrida manual y la programada se solapen en la misma instancia del
- * monolito. La plataforma es una web de reservas de aulas: el único recurso
- * sincronizable es el catálogo de aulas.
+ * monolito. Los recursos sincronizables son el catálogo de aulas y los
+ * eventos de ocupación del calendario público de SIGA.
  */
 @Service
 public class SincronizacionSigaService {
 
-    private static final Set<String> RECURSOS_VALIDOS = Set.of(SincronizadorDeAulasService.RECURSO);
+    private static final Set<String> RECURSOS_VALIDOS = Set.of(
+            SincronizadorDeAulasService.RECURSO,
+            SincronizadorDeEventosService.RECURSO
+    );
 
     private final SincronizadorDeAulasService sincronizadorDeAulas;
+    private final SincronizadorDeEventosService sincronizadorDeEventos;
 
-    public SincronizacionSigaService(SincronizadorDeAulasService sincronizadorDeAulas) {
+    public SincronizacionSigaService(
+            SincronizadorDeAulasService sincronizadorDeAulas,
+            SincronizadorDeEventosService sincronizadorDeEventos
+    ) {
         this.sincronizadorDeAulas = sincronizadorDeAulas;
+        this.sincronizadorDeEventos = sincronizadorDeEventos;
     }
 
     public List<ResultadoSincronizacion> sincronizar(List<String> recursos) {
@@ -37,11 +45,11 @@ public class SincronizacionSigaService {
         String recursoNormalizado = recurso.toUpperCase(Locale.ROOT);
         if (!RECURSOS_VALIDOS.contains(recursoNormalizado)) {
             throw new IllegalArgumentException("Recurso de sincronización desconocido: `" + recurso
-                    + "`. Valor de sincronización válido: AULAS.");
+                    + "`. Valores de sincronización válidos: AULAS, EVENTOS.");
         }
         if (SincronizadorDeAulasService.RECURSO.equals(recursoNormalizado)) {
             return sincronizadorDeAulas.sincronizar();
         }
-        throw new IllegalArgumentException("Recurso de sincronización desconocido: `" + recurso + "`.");
+        return sincronizadorDeEventos.sincronizar();
     }
 }

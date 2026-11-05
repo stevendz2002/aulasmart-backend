@@ -1,22 +1,29 @@
-import { Component, inject } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, computed, inject } from '@angular/core';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { filter, map } from 'rxjs';
 
-import { AuthService } from './core/auth-service';
+import { Sidebar } from './shared/presentation/sidebar/sidebar';
+import { Header } from './shared/presentation/header/header';
 
+/** Shell de la SPA: menú lateral + topbar + contenido (sin chrome en el ingreso). */
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, Sidebar, Header],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
 export class App {
   private readonly router = inject(Router);
-  protected readonly authService = inject(AuthService);
-  protected readonly marca = 'AulaSmart';
-  protected readonly anio = new Date().getFullYear();
 
-  protected cerrarSesion(): void {
-    this.authService.logout();
-    void this.router.navigateByUrl('/login');
-  }
+  private readonly rutaActual = toSignal(
+    this.router.events.pipe(
+      filter((evento): evento is NavigationEnd => evento instanceof NavigationEnd),
+      map(evento => evento.urlAfterRedirects)
+    ),
+    { initialValue: this.router.url }
+  );
+
+  /** La pantalla de ingreso se muestra completa, sin menú ni topbar. */
+  protected readonly enIngreso = computed(() => this.rutaActual().split('?')[0].startsWith('/login'));
 }

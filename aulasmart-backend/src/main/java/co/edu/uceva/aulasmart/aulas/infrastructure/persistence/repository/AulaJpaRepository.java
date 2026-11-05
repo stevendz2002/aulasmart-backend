@@ -31,4 +31,8 @@ public interface AulaJpaRepository extends JpaRepository<AulaEntity, Long> {
     Optional<AulaEntity> findByIdAndActivaTrue(Long id);
 
     Optional<AulaEntity> findByCodigoSiga(Long codigoSiga);
+
+    /** Códigos SIGA (columna `codigo_siga`) de las aulas activas, sin repetidos. */
+    @Query("SELECT DISTINCT a.codigoSiga FROM AulaEntity a WHERE a.activa = true AND a.codigoSiga IS NOT NULL")
+    List<Long> buscarCodigosSigaDeAulasActivas();
 }

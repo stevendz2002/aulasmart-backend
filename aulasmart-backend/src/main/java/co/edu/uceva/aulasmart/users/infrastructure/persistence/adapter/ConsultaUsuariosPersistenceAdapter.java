@@ -26,6 +26,7 @@ public class ConsultaUsuariosPersistenceAdapter implements ConsultaUsuariosPort 
                 .filter(UsuarioEntity::isActivo)
                 .map(usuario -> new UsuarioAutenticado(
                         usuario.getId(),
+                        usuario.getNombre(),
                         usuario.getRoles().stream()
                                 .map(RolEntity::getNombre)
                                 .collect(Collectors.toUnmodifiableSet())

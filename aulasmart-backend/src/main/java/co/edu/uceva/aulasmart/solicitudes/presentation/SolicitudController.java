@@ -52,7 +52,7 @@ public class SolicitudController {
             @RequestBody SolicitudRequest request,
             Authentication authentication
     ) {
-        var usuario = requireDocente(principalDeSolicitudes.resolver(authentication));
+        var usuario = requireCreador(principalDeSolicitudes.resolver(authentication));
         var solicitud = registrarSolicitudService.registrar(
                 usuario.id(),
                 request.aulaId(),
@@ -86,9 +86,9 @@ public class SolicitudController {
     }
 
     /** Salvavidas del contrato de roles, además de la configuración de seguridad. */
-    private PrincipalDeSolicitudes.UsuarioActivo requireDocente(PrincipalDeSolicitudes.UsuarioActivo usuario) {
-        if (!usuario.esDocente()) {
-            throw new AccessDeniedException("Solo un docente registra solicitudes de reserva.");
+    private PrincipalDeSolicitudes.UsuarioActivo requireCreador(PrincipalDeSolicitudes.UsuarioActivo usuario) {
+        if (!usuario.esDocente() && !usuario.esRevisor()) {
+            throw new AccessDeniedException("Solo un docente o un revisor registra solicitudes de reserva.");
         }
         return usuario;
     }

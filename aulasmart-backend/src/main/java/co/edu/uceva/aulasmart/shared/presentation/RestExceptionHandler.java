@@ -6,6 +6,10 @@ import co.edu.uceva.aulasmart.aulas.domain.exception.IntervaloInvalidoException;
 import co.edu.uceva.aulasmart.solicitudes.domain.exception.ReservaSolapadaException;
 import co.edu.uceva.aulasmart.solicitudes.domain.exception.SolicitudNoEncontradaException;
 import co.edu.uceva.aulasmart.solicitudes.domain.exception.SolicitudYaRevisadaException;
+import co.edu.uceva.aulasmart.users.domain.exception.CorreoYaRegistradoException;
+import co.edu.uceva.aulasmart.users.domain.exception.RegistroInvalidoException;
+import co.edu.uceva.aulasmart.users.domain.exception.RolInvalidoException;
+import co.edu.uceva.aulasmart.users.domain.exception.UsuarioNoEncontradoException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +52,30 @@ public class RestExceptionHandler {
             HttpServletRequest request
     ) {
         return respuesta(HttpStatus.CONFLICT, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(CorreoYaRegistradoException.class)
+    ResponseEntity<ApiError> manejarCorreoRegistrado(
+            CorreoYaRegistradoException exception,
+            HttpServletRequest request
+    ) {
+        return respuesta(HttpStatus.CONFLICT, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler({RegistroInvalidoException.class, RolInvalidoException.class})
+    ResponseEntity<ApiError> manejarRegistroInvalido(
+            RuntimeException exception,
+            HttpServletRequest request
+    ) {
+        return respuesta(HttpStatus.BAD_REQUEST, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(UsuarioNoEncontradoException.class)
+    ResponseEntity<ApiError> manejarUsuarioNoEncontrado(
+            UsuarioNoEncontradoException exception,
+            HttpServletRequest request
+    ) {
+        return respuesta(HttpStatus.NOT_FOUND, exception.getMessage(), request);
     }
 
     @ExceptionHandler(DisponibilidadNoVerificableException.class)
