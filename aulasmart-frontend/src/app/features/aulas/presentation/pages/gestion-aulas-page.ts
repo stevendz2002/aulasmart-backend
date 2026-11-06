@@ -1,16 +1,12 @@
 import { Component, OnInit, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 
-import { GET_ALL_CLASSROOMS_USE_CASE, TRIGGER_SIGA_SYNC_USE_CASE } from '../../application/classrooms-di';
+import { GET_ALL_CLASSROOMS_USE_CASE } from '../../application/classrooms-di';
 import { GetAllClassroomsUseCase } from '../../application/use-cases/get-all-classrooms.use-case';
-import { TriggerSigaSyncUseCase } from '../../application/use-cases/trigger-siga-sync.use-case';
 import { Classroom } from '../../domain/entities/classroom';
-import { SigaSyncRun } from '../../domain/entities/siga-sync-run';
 
 /**
  * Vista de gestión del catálogo de aulas, exclusiva de
- * ADMINISTRATIVO / ADMINISTRADOR. El CRUD de aulas depende de endpoints de
- * escritura que el backend aún no publica (solo lectura); la sincronización
- * SIGA sí es un endpoint real y se ofrece a este mismo rol.
+ * ADMINISTRATIVO / ADMINISTRADOR. Catálogo sincronizado automáticamente desde SIGA UCEVA.
  */
 @Component({
   selector: 'app-gestion-aulas-page',
@@ -19,35 +15,13 @@ import { SigaSyncRun } from '../../domain/entities/siga-sync-run';
     <section class="seccion">
       <h2>Gestión de aulas</h2>
       <p class="ayuda">
-        Catálogo sincronizado desde SIGA. Vista de solo lectura.
+        Catálogo sincronizado automáticamente desde SIGA UCEVA. Vista de solo lectura.
         <button type="button" class="boton secundario" (click)="recargar()" [disabled]="cargando()">
           {{ cargando() ? 'Consultando…' : 'Actualizar' }}
         </button>
-        <button type="button" class="boton" (click)="sincronizar('AULAS')" [disabled]="sincronizando()">
-          {{ sincronizando() ? 'Sincronizando…' : 'Sincronizar catálogo' }}
-        </button>
-        <button type="button" class="boton" (click)="sincronizar('EVENTOS')" [disabled]="sincronizando()">
-          Sincronizar eventos
-        </button>
-      </p>
-
-      <p class="mensaje-info">
-        «Sincronizar catálogo» refresca las aulas; «Sincronizar eventos» descarga la ocupación real
-        por clases del calendario público de SIGA (próximos 7 días) para que la consulta de
-        disponibilidad excluya también esos salones ocupados.
       </p>
 
       @if (error(); as mensaje) {
-        <p class="mensaje-error">{{ mensaje }}</p>
-      }
-
-      @if (ultimaSincronizacion(); as corrida) {
-        <p class="mensaje-exito">
-          Sincronización {{ corrida.status.toLowerCase() }} de {{ corrida.resource }}:
-          {{ corrida.recordsProcessed }} registro(s) en {{ (corrida.durationMilliseconds / 1000).toFixed(1) }} s.
-        </p>
-      }
-      @if (errorSincronizacion(); as mensaje) {
         <p class="mensaje-error">{{ mensaje }}</p>
       }
 
@@ -83,15 +57,10 @@ import { SigaSyncRun } from '../../domain/entities/siga-sync-run';
 })
 export class GestionAulasPage implements OnInit {
   private readonly getAllClassrooms = inject<GetAllClassroomsUseCase>(GET_ALL_CLASSROOMS_USE_CASE);
-  private readonly triggerSigaSync = inject<TriggerSigaSyncUseCase>(TRIGGER_SIGA_SYNC_USE_CASE);
 
   protected readonly aulas = signal<Classroom[] | null>(null);
   protected readonly cargando = signal(false);
   protected readonly error = signal<string | null>(null);
-
-  protected readonly sincronizando = signal(false);
-  protected readonly ultimaSincronizacion = signal<SigaSyncRun | null>(null);
-  protected readonly errorSincronizacion = signal<string | null>(null);
 
   ngOnInit(): void {
     this.recargar();
@@ -108,27 +77,6 @@ export class GestionAulasPage implements OnInit {
       error: error => {
         this.cargando.set(false);
         this.error.set(`No fue posible consultar el catálogo (HTTP ${error.status ?? '—'}).`);
-      }
-    });
-  }
-
-  protected sincronizar(recurso: 'AULAS' | 'EVENTOS'): void {
-    this.sincronizando.set(true);
-    this.errorSincronizacion.set(null);
-    this.ultimaSincronizacion.set(null);
-    this.triggerSigaSync.execute(recurso).subscribe({
-      next: corridas => {
-        this.sincronizando.set(false);
-        this.ultimaSincronizacion.set(corridas[0] ?? null);
-        this.recargar();
-      },
-      error: error => {
-        this.sincronizando.set(false);
-        this.errorSincronizacion.set(
-          error.status === 403
-            ? 'Tu rol no permite lanzar la sincronización.'
-            : `No fue posible lanzar la sincronización (HTTP ${error.status ?? '—'}).`
-        );
       }
     });
   }
