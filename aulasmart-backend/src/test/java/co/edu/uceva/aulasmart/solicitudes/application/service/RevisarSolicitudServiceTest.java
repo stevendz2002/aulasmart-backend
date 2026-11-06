@@ -1,6 +1,9 @@
 package co.edu.uceva.aulasmart.solicitudes.application.service;
 
+import co.edu.uceva.aulasmart.aulas.application.port.AulaConsultaPort;
+import co.edu.uceva.aulasmart.aulas.application.port.HorarioAcademicoPort;
 import co.edu.uceva.aulasmart.aulas.application.port.SolicitudAprobadaPort;
+import co.edu.uceva.aulasmart.aulas.application.port.VerificacionEventosSigaPort;
 import co.edu.uceva.aulasmart.aulas.domain.model.Intervalo;
 import co.edu.uceva.aulasmart.solicitudes.application.port.SolicitudReservaPort;
 import co.edu.uceva.aulasmart.solicitudes.domain.exception.ReservaSolapadaException;
@@ -43,6 +46,12 @@ class RevisarSolicitudServiceTest {
     private SolicitudReservaPort solicitudReservaPort;
     @Mock
     private SolicitudAprobadaPort solicitudAprobadaPort;
+    @Mock
+    private HorarioAcademicoPort horarioAcademicoPort;
+    @Mock
+    private AulaConsultaPort aulaConsultaPort;
+    @Mock
+    private VerificacionEventosSigaPort verificacionEventosSigaPort;
 
     private RevisarSolicitudService service;
 
@@ -51,6 +60,9 @@ class RevisarSolicitudServiceTest {
         service = new RevisarSolicitudService(
                 solicitudReservaPort,
                 solicitudAprobadaPort,
+                horarioAcademicoPort,
+                aulaConsultaPort,
+                verificacionEventosSigaPort,
                 Clock.fixed(AHORA, ZoneOffset.UTC)
         );
     }
@@ -118,6 +130,24 @@ class RevisarSolicitudServiceTest {
     void noApruebaSiExisteReservaAprobadaSolapada() {
         when(solicitudReservaPort.buscarPorId(SOLICITUD)).thenReturn(Optional.of(pendiente()));
         when(solicitudAprobadaPort.buscarAulasConSolicitudesAprobadas(INTERVALO)).thenReturn(Set.of(AULA));
+
+        var exception = assertThrows(ReservaSolapadaException.class, () ->
+                service.revisar(SOLICITUD, REVISOR, "APROBAR"));
+
+        assertEquals("El aula " + AULA + " ya tiene una reserva aprobada que se solapa con el intervalo solicitado.",
+                exception.getMessage());
+        verify(solicitudReservaPort, never()).guardar(any());
+    }
+
+    @Test
+    void noApruebaSiExisteEventoEnSigaJustInTime() {
+        when(solicitudReservaPort.buscarPorId(SOLICITUD)).thenReturn(Optional.of(pendiente()));
+        when(solicitudAprobadaPort.buscarAulasConSolicitudesAprobadas(INTERVALO)).thenReturn(Set.of());
+        when(horarioAcademicoPort.buscarAulasConEventos(INTERVALO)).thenReturn(Set.of());
+        var catalogo = new co.edu.uceva.aulasmart.aulas.domain.model.CatalogoAula(1L, -1L, "PRUEBA");
+        var aulaConSiga = new co.edu.uceva.aulasmart.aulas.domain.model.Aula(AULA, 12345L, "PRUEBA Aula 102", catalogo, 30, catalogo, catalogo, true);
+        when(aulaConsultaPort.buscarActivaPorId(AULA)).thenReturn(Optional.of(aulaConSiga));
+        when(verificacionEventosSigaPort.aulaTieneEventosEnSiga(12345L, INTERVALO)).thenReturn(true);
 
         var exception = assertThrows(ReservaSolapadaException.class, () ->
                 service.revisar(SOLICITUD, REVISOR, "APROBAR"));
