@@ -28,6 +28,7 @@ public class TareaSincronizacionProgramada {
     public void sincronizarCadaDia() {
         try {
             servicio.ejecutar("AULAS");
+            servicio.ejecutar("EVENTOS");
         } catch (Exception e) {
             REGISTRO.error("La sincronización programada terminó con error.", e);
         }
