@@ -3,6 +3,7 @@ package co.edu.uceva.aulasmart.solicitudes.application.service;
 import co.edu.uceva.aulasmart.aulas.application.port.AulaConsultaPort;
 import co.edu.uceva.aulasmart.aulas.application.port.HorarioAcademicoPort;
 import co.edu.uceva.aulasmart.aulas.application.port.SolicitudAprobadaPort;
+import co.edu.uceva.aulasmart.aulas.application.port.VerificacionEventosSigaPort;
 import co.edu.uceva.aulasmart.aulas.domain.exception.AulaNoEncontradaException;
 import co.edu.uceva.aulasmart.aulas.domain.model.Intervalo;
 import co.edu.uceva.aulasmart.solicitudes.application.port.SolicitudReservaPort;
@@ -27,6 +28,7 @@ public class RegistrarSolicitudService {
     private final AulaConsultaPort aulaConsultaPort;
     private final SolicitudAprobadaPort solicitudAprobadaPort;
     private final HorarioAcademicoPort horarioAcademicoPort;
+    private final VerificacionEventosSigaPort verificacionEventosSigaPort;
     private final Clock clock;
 
     public RegistrarSolicitudService(
@@ -34,12 +36,14 @@ public class RegistrarSolicitudService {
             AulaConsultaPort aulaConsultaPort,
             SolicitudAprobadaPort solicitudAprobadaPort,
             HorarioAcademicoPort horarioAcademicoPort,
+            VerificacionEventosSigaPort verificacionEventosSigaPort,
             Clock clock
     ) {
         this.solicitudReservaPort = solicitudReservaPort;
         this.aulaConsultaPort = aulaConsultaPort;
         this.solicitudAprobadaPort = solicitudAprobadaPort;
         this.horarioAcademicoPort = horarioAcademicoPort;
+        this.verificacionEventosSigaPort = verificacionEventosSigaPort;
         this.clock = clock;
     }
 
@@ -58,12 +62,15 @@ public class RegistrarSolicitudService {
         }
         var intervalo = new Intervalo(inicio, fin);
 
-        aulaConsultaPort.buscarActivaPorId(aulaId)
+        var aula = aulaConsultaPort.buscarActivaPorId(aulaId)
                 .orElseThrow(() -> new AulaNoEncontradaException(aulaId));
         if (solicitudAprobadaPort.buscarAulasConSolicitudesAprobadas(intervalo).contains(aulaId)) {
             throw new ReservaSolapadaException(aulaId);
         }
         if (horarioAcademicoPort.buscarAulasConEventos(intervalo).contains(aulaId)) {
+            throw new ReservaSolapadaException(aulaId);
+        }
+        if (verificacionEventosSigaPort.aulaTieneEventosEnSiga(aula.codigoSiga(), intervalo)) {
             throw new ReservaSolapadaException(aulaId);
         }
 

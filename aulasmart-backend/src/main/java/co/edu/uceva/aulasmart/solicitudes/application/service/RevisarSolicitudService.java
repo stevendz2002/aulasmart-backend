@@ -1,6 +1,9 @@
 package co.edu.uceva.aulasmart.solicitudes.application.service;
 
+import co.edu.uceva.aulasmart.aulas.application.port.AulaConsultaPort;
+import co.edu.uceva.aulasmart.aulas.application.port.HorarioAcademicoPort;
 import co.edu.uceva.aulasmart.aulas.application.port.SolicitudAprobadaPort;
+import co.edu.uceva.aulasmart.aulas.application.port.VerificacionEventosSigaPort;
 import co.edu.uceva.aulasmart.solicitudes.application.port.SolicitudReservaPort;
 import co.edu.uceva.aulasmart.solicitudes.domain.exception.ReservaSolapadaException;
 import co.edu.uceva.aulasmart.solicitudes.domain.exception.SolicitudNoEncontradaException;
@@ -26,15 +29,24 @@ public class RevisarSolicitudService {
 
     private final SolicitudReservaPort solicitudReservaPort;
     private final SolicitudAprobadaPort solicitudAprobadaPort;
+    private final HorarioAcademicoPort horarioAcademicoPort;
+    private final AulaConsultaPort aulaConsultaPort;
+    private final VerificacionEventosSigaPort verificacionEventosSigaPort;
     private final Clock clock;
 
     public RevisarSolicitudService(
             SolicitudReservaPort solicitudReservaPort,
             SolicitudAprobadaPort solicitudAprobadaPort,
+            HorarioAcademicoPort horarioAcademicoPort,
+            AulaConsultaPort aulaConsultaPort,
+            VerificacionEventosSigaPort verificacionEventosSigaPort,
             Clock clock
     ) {
         this.solicitudReservaPort = solicitudReservaPort;
         this.solicitudAprobadaPort = solicitudAprobadaPort;
+        this.horarioAcademicoPort = horarioAcademicoPort;
+        this.aulaConsultaPort = aulaConsultaPort;
+        this.verificacionEventosSigaPort = verificacionEventosSigaPort;
         this.clock = clock;
     }
 
@@ -55,10 +67,19 @@ public class RevisarSolicitudService {
         if (!solicitud.estaPendiente()) {
             throw new SolicitudYaRevisadaException(idSolicitud, solicitud.estado());
         }
-        if (SolicitudReserva.APROBADA.equals(estadoDestino)
-                && solicitudAprobadaPort.buscarAulasConSolicitudesAprobadas(solicitud.intervalo())
-                        .contains(solicitud.aulaId())) {
-            throw new ReservaSolapadaException(solicitud.aulaId());
+        if (SolicitudReserva.APROBADA.equals(estadoDestino)) {
+            if (solicitudAprobadaPort.buscarAulasConSolicitudesAprobadas(solicitud.intervalo())
+                    .contains(solicitud.aulaId())) {
+                throw new ReservaSolapadaException(solicitud.aulaId());
+            }
+            if (horarioAcademicoPort.buscarAulasConEventos(solicitud.intervalo())
+                    .contains(solicitud.aulaId())) {
+                throw new ReservaSolapadaException(solicitud.aulaId());
+            }
+            var aulaOpt = aulaConsultaPort.buscarActivaPorId(solicitud.aulaId());
+            if (aulaOpt.isPresent() && verificacionEventosSigaPort.aulaTieneEventosEnSiga(aulaOpt.get().codigoSiga(), solicitud.intervalo())) {
+                throw new ReservaSolapadaException(solicitud.aulaId());
+            }
         }
 
         return solicitudReservaPort.guardar(new SolicitudReserva(
