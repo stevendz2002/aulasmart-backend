@@ -1,15 +1,20 @@
 package co.edu.uceva.aulasmart.aulas.infrastructure.persistence.adapter;
-import co.edu.uceva.aulasmart.aulas.infrastructure.persistence.repository.SincronizacionSigaJpaRepository;
-import co.edu.uceva.aulasmart.aulas.infrastructure.persistence.entity.SincronizacionSigaEntity;
 
 import co.edu.uceva.aulasmart.aulas.application.port.RegistroSincronizacionPort;
+import co.edu.uceva.aulasmart.aulas.infrastructure.persistence.entity.SincronizacionSigaEntity;
+import co.edu.uceva.aulasmart.aulas.infrastructure.persistence.repository.SincronizacionSigaJpaRepository;
+import java.time.Clock;
+import java.time.Instant;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Clock;
-
 @Component
 public class RegistroSincronizacionPersistenceAdapter implements RegistroSincronizacionPort {
+    @Override
+    @Transactional
+    public void registrarCobertura(Long id, Instant inicio, Instant fin) {
+        repository.findById(id).orElseThrow().registrarCobertura(inicio, fin);
+    }
 
     private final SincronizacionSigaJpaRepository repository;
     private final Clock clock;

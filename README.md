@@ -4,9 +4,14 @@ AulaSmart es un sistema web académico de **reservas de aulas** para la Unidad C
 
 > Estado actual: backend monolito modular **implementado y verificado** (pruebas Maven en verde y validaciones SQL automatizadas contra la base) y SPA Angular **implementada** (dashboard, consulta de disponibilidad, solicitudes, gestión de aulas, usuarios y sesión).
 
+## Continuidad del desarrollo
+
+Consultar [AGENTS.md](AGENTS.md) y [documentación técnica](docs/README.md) al iniciar una fase.
+Estado de la auditoría y validaciones: [fase 0](docs/fase-0.md).
+
 ## Arquitectura
 
-Backend único tipo **monolito modular** con Spring Boot 3.x (Java 25) organizado con Clean Architecture (`domain · application · infrastructure · presentation`), una única base PostgreSQL y una sola canalización de despliegue. La SPA Angular replica la misma separación por feature (`domain · application · infrastructure · presentation`).
+Backend único tipo **monolito modular** con Spring Boot 3.x (Java 17) organizado con Clean Architecture (`domain · application · infrastructure · presentation`), una única base PostgreSQL y una sola canalización de despliegue. La SPA Angular replica la misma separación por feature (`domain · application · infrastructure · presentation`).
 
 | Módulo | Responsabilidad | Estado |
 |---|---|---|
@@ -22,9 +27,9 @@ La decisión monolito modular frente a microservicios se revisará solo con evid
 
 ## Stack y roles
 
-- **Java 25 / Spring Boot 3.5.7**: Web MVC, Security (autenticación Basic y autorización por rol), Validation, Data JPA (Hibernate), Actuator.
-- **Angular 20** (SPA, señales y standalone components; `npm start` en `http://localhost:4200`).
-- **PostgreSQL 17.4** en Docker Compose (puerto 5433, base `aulasmart_test`), migraciones Flyway V1→V4.
+- **Java 17 / Spring Boot 3.5.7**: Web MVC, Security (autenticación Basic y autorización por rol), Validation, Data JPA (Hibernate), Actuator.
+- **Angular 21.2** (SPA, señales y standalone components; `npm start` en `http://localhost:4200`).
+- **PostgreSQL 17.4** en Docker Compose (puerto 5433, base `aulasmart_test`), migraciones Flyway V1→V8.
 - **Roles**: `ESTUDIANTE`, `DOCENTE`, `ADMINISTRATIVO`, `ADMINISTRADOR`. El docente crea solicitudes; el administrativo revisa; **solo el administrador crea cuentas** (el administrativo no ve la gestión de usuarios).
 
 La integridad de las reservas no depende de la aplicación sola: intervalos `TIMESTAMPTZ`, restricciones CHECK de fechas/estados/auditoría y una **restricción de exclusión (EXCLUDE)** que impide en la base dos reservas APROBADAS solapadas en la misma aula.
@@ -46,7 +51,7 @@ Ruta | Método | Descripción
 
 ### Opción 1: Todo en Docker (Recomendado)
 
-Con el archivo `.env` provisto ubicado en la raíz del proyecto, levantar toda la suite (PostgreSQL, Backend Spring Boot y Frontend Angular):
+Copiar `.env.example` a `.env`, configurar las claves locales (la de PostgreSQL y la del backend deben coincidir) y levantar toda la suite (PostgreSQL, Backend Spring Boot y Frontend Angular):
 
 ```bash
 docker compose up -d --build
@@ -69,7 +74,7 @@ docker compose down
 # 1. Base de datos
 docker compose up -d db
 
-# 2. Backend (Flyway aplica las migraciones V1→V6 al arrancar)
+# 2. Backend (Flyway aplica las migraciones V1→V8 al arrancar)
 cd aulasmart-backend
 ./mvnw spring-boot:run  # http://localhost:8080
 
@@ -82,7 +87,7 @@ cd ../aulasmart-backend && ./mvnw test
 cd ../aulasmart-frontend && npm test -- --watch=false
 ```
 
-Cuentas sintéticas de prueba (viven en la semilla, credenciales no institucionales): `docente@prueba.aulasmart.local` (DOCENTE), `revisor@prueba.aulasmart.local` (ADMINISTRATIVO) y `admin@prueba.aulasmart.local` (ADMINISTRADOR); todas con clave `password`. La sincronización de eventos descarga la ocupación por clases del calendario público de SIGA (`publicomanejoespacios`) para la ventana configurable `aulasmart.siga.eventos.dias-ventana` (7 días por omisión).
+Cuentas sintéticas de prueba (deshabilitadas para autenticación por defecto; solo para desarrollo local habilitar `AULASMART_ALLOW_TEST_ACCOUNTS=true` en `.env` y reiniciar backend; credenciales no institucionales): `docente@prueba.aulasmart.local` (DOCENTE), `revisor@prueba.aulasmart.local` (ADMINISTRATIVO) y `admin@prueba.aulasmart.local` (ADMINISTRADOR); todas con clave `password`. La sincronización de eventos descarga la ocupación por clases del calendario público de SIGA (`publicomanejoespacios`) para la ventana configurable `aulasmart.siga.eventos.dias-ventana` (7 días por omisión).
 
 Estructura de la base: `usuario`, `rol`, `usuario_rol`; catálogos sincronizados de SIGA `edificio`, `tipo_aula`, `dependencia` (con `codigo_siga` única); núcleo de reservas `aula` y `solicitud_aula`; ocupación académica `horario_academico` (fuente SIGA); y la entidad de control `sincronizacion_siga` (recursos AULAS y EVENTOS).
 
@@ -90,4 +95,6 @@ Estructura de la base: `usuario`, `rol`, `usuario_rol`; catálogos sincronizados
 
 Jhon Edward Steven Loaiza Díaz · Ingeniería de Sistemas · Unidad Central del Valle del Cauca (UCEVA), Tuluá.
 
-La documentación académica del proyecto se gestiona localmente y se excluye del repositorio (ver `/.gitignore`).
+La documentación académica del proyecto se gestiona localmente y se excluye del repositorio. Los documentos técnicos de continuidad listados en `docs/README.md` sí están habilitados para versionarse (ver `/.gitignore`).
+
+Tras aplicar V8, sincronizar AULAS y luego EVENTOS: las corridas antiguas no tienen cobertura verificable. La sesión Basic permanece solo en memoria; recargar la página requiere iniciar sesión otra vez. JWT queda para la fase 4.

@@ -4,13 +4,12 @@ import co.edu.uceva.aulasmart.aulas.application.port.CatalogoSigaPort;
 import co.edu.uceva.aulasmart.aulas.application.port.RegistroSincronizacionPort;
 import co.edu.uceva.aulasmart.aulas.domain.model.AulaExterna;
 import co.edu.uceva.aulasmart.integrations.siga.application.model.ResultadoSincronizacion;
-import co.edu.uceva.aulasmart.integrations.siga.infrastructure.http.SigaRestClient;
-import org.springframework.stereotype.Service;
-
+import co.edu.uceva.aulasmart.integrations.siga.application.port.ConsultaSigaPort;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import org.springframework.stereotype.Service;
 
 /**
  * Corrida de sincronización del catálogo de aulas: consulta SIGA, valida la
@@ -25,13 +24,13 @@ public class SincronizadorDeAulasService {
     private static final String ESTADO_FALLIDA = "FALLIDA";
     private static final int LONGITUD_MAXIMA_DETALLE = 500;
 
-    private final SigaRestClient cliente;
+    private final ConsultaSigaPort cliente;
     private final CatalogoSigaPort catalogoSigaPort;
     private final RegistroSincronizacionPort registroSincronizacionPort;
     private final Clock clock;
 
     public SincronizadorDeAulasService(
-            SigaRestClient cliente,
+            ConsultaSigaPort cliente,
             CatalogoSigaPort catalogoSigaPort,
             RegistroSincronizacionPort registroSincronizacionPort,
             Clock clock

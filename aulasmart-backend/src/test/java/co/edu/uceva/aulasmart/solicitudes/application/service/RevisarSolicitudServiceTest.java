@@ -4,23 +4,26 @@ import co.edu.uceva.aulasmart.aulas.application.port.AulaConsultaPort;
 import co.edu.uceva.aulasmart.aulas.application.port.HorarioAcademicoPort;
 import co.edu.uceva.aulasmart.aulas.application.port.SolicitudAprobadaPort;
 import co.edu.uceva.aulasmart.aulas.application.port.VerificacionEventosSigaPort;
+import co.edu.uceva.aulasmart.aulas.domain.exception.AulaNoEncontradaException;
+import co.edu.uceva.aulasmart.aulas.domain.exception.DisponibilidadNoVerificableException;
+import co.edu.uceva.aulasmart.aulas.domain.model.Aula;
+import co.edu.uceva.aulasmart.aulas.domain.model.CatalogoAula;
 import co.edu.uceva.aulasmart.aulas.domain.model.Intervalo;
 import co.edu.uceva.aulasmart.solicitudes.application.port.SolicitudReservaPort;
 import co.edu.uceva.aulasmart.solicitudes.domain.exception.ReservaSolapadaException;
 import co.edu.uceva.aulasmart.solicitudes.domain.exception.SolicitudNoEncontradaException;
 import co.edu.uceva.aulasmart.solicitudes.domain.exception.SolicitudYaRevisadaException;
 import co.edu.uceva.aulasmart.solicitudes.domain.model.SolicitudReserva;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -69,6 +72,7 @@ class RevisarSolicitudServiceTest {
 
     @Test
     void apruebaSolicitudPendienteDejandoAuditoria() {
+        when(aulaConsultaPort.buscarActivaPorId(AULA)).thenReturn(Optional.of(aulaActiva()));
         when(solicitudReservaPort.buscarPorId(SOLICITUD)).thenReturn(Optional.of(pendiente()));
         when(solicitudAprobadaPort.buscarAulasConSolicitudesAprobadas(INTERVALO)).thenReturn(Set.of());
         when(solicitudReservaPort.guardar(any())).thenAnswer(invocacion -> invocacion.getArgument(0));
@@ -155,6 +159,35 @@ class RevisarSolicitudServiceTest {
         assertEquals("El aula " + AULA + " ya tiene una reserva aprobada que se solapa con el intervalo solicitado.",
                 exception.getMessage());
         verify(solicitudReservaPort, never()).guardar(any());
+    }
+
+    @Test
+    void noApruebaAulaInactivaOInexistente() {
+        when(solicitudReservaPort.buscarPorId(SOLICITUD)).thenReturn(Optional.of(pendiente()));
+        when(aulaConsultaPort.buscarActivaPorId(AULA)).thenReturn(Optional.empty());
+
+        assertThrows(AulaNoEncontradaException.class, () -> service.revisar(SOLICITUD, REVISOR, "APROBAR"));
+
+        verify(solicitudReservaPort, never()).guardar(any());
+        verifyNoInteractions(verificacionEventosSigaPort);
+    }
+
+    @Test
+    void noGuardaAprobacionSiNoPuedeVerificarSiga() {
+        when(solicitudReservaPort.buscarPorId(SOLICITUD)).thenReturn(Optional.of(pendiente()));
+        when(aulaConsultaPort.buscarActivaPorId(AULA)).thenReturn(Optional.of(aulaActiva()));
+        when(verificacionEventosSigaPort.aulaTieneEventosEnSiga(12345L, INTERVALO))
+                .thenThrow(new DisponibilidadNoVerificableException());
+
+        assertThrows(DisponibilidadNoVerificableException.class,
+                () -> service.revisar(SOLICITUD, REVISOR, "APROBAR"));
+
+        verify(solicitudReservaPort, never()).guardar(any());
+    }
+
+    private Aula aulaActiva() {
+        var catalogo = new CatalogoAula(1L, 1L, "PRUEBA");
+        return new Aula(AULA, 12345L, "Aula", catalogo, 30, catalogo, catalogo, true);
     }
 
     private SolicitudReserva pendiente() {

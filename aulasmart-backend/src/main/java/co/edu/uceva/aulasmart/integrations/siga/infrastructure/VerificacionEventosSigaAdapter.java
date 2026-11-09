@@ -1,23 +1,23 @@
 package co.edu.uceva.aulasmart.integrations.siga.infrastructure;
 
 import co.edu.uceva.aulasmart.aulas.application.port.VerificacionEventosSigaPort;
+import co.edu.uceva.aulasmart.aulas.domain.exception.DisponibilidadNoVerificableException;
 import co.edu.uceva.aulasmart.aulas.domain.model.EventoExterno;
 import co.edu.uceva.aulasmart.aulas.domain.model.Intervalo;
 import co.edu.uceva.aulasmart.integrations.siga.infrastructure.http.SigaRestClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 /**
  * Adaptador de verificación Just-In-Time contra SIGA.
  * Al solicitar una reserva, efectúa una consulta puntual y ligera al endpoint
  * público de SIGA para el aula específica. Si el aula está ocupada por una clase,
- * se detecta inmediatamente. Si SIGA presenta una falla transitoria de red,
- * se hace fallback a la base de datos local para no interrumpir el servicio.
+ * se detecta inmediatamente. Si SIGA falla, se interrumpe la operación porque
+ * la base local no garantiza por sí sola la disponibilidad del intervalo.
  */
 @Component
 public class VerificacionEventosSigaAdapter implements VerificacionEventosSigaPort {
@@ -33,7 +33,10 @@ public class VerificacionEventosSigaAdapter implements VerificacionEventosSigaPo
 
     @Override
     public boolean aulaTieneEventosEnSiga(Long codigoSigaAula, Intervalo intervalo) {
-        if (codigoSigaAula == null || codigoSigaAula <= 0) {
+        if (codigoSigaAula == null || codigoSigaAula == 0) {
+            throw new DisponibilidadNoVerificableException();
+        }
+        if (codigoSigaAula < 0) {
             // Aulas sintéticas de pruebas locales (código negativo) sin reflejo en SIGA
             return false;
         }
@@ -43,7 +46,10 @@ public class VerificacionEventosSigaAdapter implements VerificacionEventosSigaPo
             LocalDate fechaFin = LocalDate.ofInstant(intervalo.fin(), ZONA_COLOMBIA);
 
             List<EventoExterno> eventos = cliente.listarEventos(codigoSigaAula, fechaInicio, fechaFin);
-            if (eventos == null || eventos.isEmpty()) {
+            if (eventos == null) {
+                throw new DisponibilidadNoVerificableException();
+            }
+            if (eventos.isEmpty()) {
                 return false;
             }
 
@@ -57,9 +63,9 @@ public class VerificacionEventosSigaAdapter implements VerificacionEventosSigaPo
             }
             return false;
         } catch (Exception e) {
-            REGISTRO.warn("Fallo transitorio en la verificación JIT con SIGA para el aula {}: {}. Aplicando fallback con base local.",
+            REGISTRO.warn("No se pudo verificar la disponibilidad en SIGA para el aula {}: {}.",
                     codigoSigaAula, e.getMessage());
-            return false;
+            throw new DisponibilidadNoVerificableException();
         }
     }
 }

@@ -32,6 +32,7 @@ services:
       DB_USERNAME: ${POSTGRES_USER:-aulasmart}
       DB_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en el archivo .env}
       SERVER_PORT: ${SERVER_PORT:-8080}
+      AULASMART_ALLOW_TEST_ACCOUNTS: ${AULASMART_ALLOW_TEST_ACCOUNTS:-false}
       AULASMART_CORS_ORIGINS: ${AULASMART_CORS_ORIGINS:-http://localhost:4200,http://localhost}
     ports:
       - "${SERVER_PORT:-8080}:8080"

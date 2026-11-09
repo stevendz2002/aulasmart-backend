@@ -1,7 +1,6 @@
 package co.edu.uceva.aulasmart.users.infrastructure.security;
 
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -64,7 +63,7 @@ public class SecurityConfiguration {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuracion = new CorsConfiguration();
         configuracion.setAllowedOrigins(origenesCorsPermitidos);
-        configuracion.setAllowedMethods(List.of("GET", "POST", "OPTIONS"));
+        configuracion.setAllowedMethods(List.of("GET", "POST", "PATCH", "OPTIONS"));
         configuracion.setAllowedHeaders(List.of(CorsConfiguration.ALL));
         configuracion.setAllowCredentials(true);
         configuracion.setMaxAge(3600L);

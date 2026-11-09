@@ -5,10 +5,7 @@ import co.edu.uceva.aulasmart.aulas.application.port.HorarioAcademicoPort;
 import co.edu.uceva.aulasmart.aulas.application.port.RegistroSincronizacionPort;
 import co.edu.uceva.aulasmart.aulas.domain.model.EventoExterno;
 import co.edu.uceva.aulasmart.integrations.siga.application.model.ResultadoSincronizacion;
-import co.edu.uceva.aulasmart.integrations.siga.infrastructure.http.SigaRestClient;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
+import co.edu.uceva.aulasmart.integrations.siga.application.port.ConsultaSigaPort;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -16,6 +13,8 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 /**
  * Corrida de sincronización de eventos: recorre las aulas del catálogo local,
@@ -37,7 +36,7 @@ public class SincronizadorDeEventosService {
     private static final String ESTADO_FALLIDA = "FALLIDA";
     private static final int LONGITUD_MAXIMA_DETALLE = 500;
 
-    private final SigaRestClient cliente;
+    private final ConsultaSigaPort cliente;
     private final AulaConsultaPort aulaConsultaPort;
     private final HorarioAcademicoPort horarioAcademicoPort;
     private final RegistroSincronizacionPort registroSincronizacionPort;
@@ -45,7 +44,7 @@ public class SincronizadorDeEventosService {
     private final int diasVentana;
 
     public SincronizadorDeEventosService(
-            SigaRestClient cliente,
+            ConsultaSigaPort cliente,
             AulaConsultaPort aulaConsultaPort,
             HorarioAcademicoPort horarioAcademicoPort,
             RegistroSincronizacionPort registroSincronizacionPort,
@@ -68,6 +67,7 @@ public class SincronizadorDeEventosService {
         Long idRegistro = registroSincronizacionPort.registrarInicio(RECURSO);
         try {
             Ventana ventana = instantesVentana();
+            registroSincronizacionPort.registrarCobertura(idRegistro, ventana.inicio(), ventana.fin());
             List<EventoExterno> eventos = consultarEventos(ventana);
             int aplicadas = horarioAcademicoPort.aplicarEventosExternos(
                     eventos,

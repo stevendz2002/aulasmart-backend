@@ -237,11 +237,13 @@ const MOTIVOS_GENERICOS: readonly string[] = [
           </section>
 
           <section class="modal__seccion">
-            <h4>HORARIO DE HOY</h4>
+            <h4>HORARIO DE LA FECHA CONSULTADA</h4>
             @if (cargandoOcupacion()) {
               <p class="mensaje-info">Consultando horario…</p>
+            } @else if (errorOcupacion()) {
+              <p class="mensaje-info" role="alert">{{ errorOcupacion() }}</p>
             } @else if (timeline().length === 0) {
-              <p class="mensaje-info">Sin franjas registradas para hoy.</p>
+              <p class="mensaje-info">Sin franjas para mostrar.</p>
             } @else {
               <ul class="timeline">
                 @for (fila of timeline(); track fila.start + fila.end) {
@@ -278,7 +280,7 @@ const MOTIVOS_GENERICOS: readonly string[] = [
             <div class="fila-tiempo">
               <label>
                 Fecha
-                <input type="date" [value]="fechaSolicitud()" (change)="fechaSolicitud.set($any($event.target).value)" required />
+                <input type="date" [value]="fechaSolicitud()" (change)="cambiarFechaSolicitud($any($event.target).value)" required />
               </label>
               <label>
                 Inicio
@@ -290,6 +292,9 @@ const MOTIVOS_GENERICOS: readonly string[] = [
               </label>
             </div>
 
+            @if (errorOcupacion()) {
+              <p role="alert">{{ errorOcupacion() }}</p>
+            }
             @if (franjasLibres().length > 0 && (solicitudAula()?.id ?? -1) !== -1) {
               <div class="franjas-libres">
                 <span class="franjas-libres__etiqueta">Franjas libres hoy:</span>
@@ -378,6 +383,9 @@ export class ConsultaPage implements OnInit {
   // Modal 1
   protected readonly detalle = signal<Classroom | null>(null);
   protected readonly cargandoOcupacion = signal(false);
+  protected readonly errorOcupacion = signal<string | null>(null);
+  private consultaOcupacionId = 0;
+  private consultaDisponibilidadId = 0;
   protected readonly ocupacion = signal<ClassroomOccupation[]>([]);
   protected readonly liberacionPorAula = signal<Map<number, string>>(new Map());
 
@@ -488,10 +496,12 @@ export class ConsultaPage implements OnInit {
     const libres = this.libresEnFranja();
     const estado: 'LIBRE' | 'OCUPADA' | 'DESCONOCIDO' =
       libres === null ? 'DESCONOCIDO' : libres.has(aula.id) ? 'LIBRE' : 'OCUPADA';
-    return ClassroomDetailBuilder.of(aula, estado, this.ocupacion());
+    return ClassroomDetailBuilder.of(aula, estado, this.ocupacion(),
+      this.modalSolicitudAbierto() ? this.fechaSolicitud() : this.fechaConsulta());
   });
 
-  protected readonly timeline = computed(() => this.detalleConstruido()?.timeline ?? []);
+  protected readonly timeline = computed(() =>
+    this.cargandoOcupacion() || this.errorOcupacion() ? [] : this.detalleConstruido()?.timeline ?? []);
 
   /** Franjas libres del día (para elegir un horario disponible al solicitar). */
   protected readonly franjasLibres = computed(() =>
@@ -518,11 +528,8 @@ export class ConsultaPage implements OnInit {
   }
 
   protected consultar(): void {
-    const [anio, mes, dia] = this.fechaConsulta().split('-').map(Number);
-    const [hI, mI] = this.horaInicio().split(':').map(Number);
-    const [hF, mF] = this.horaFin().split(':').map(Number);
-    const inicio = new Date(anio, mes - 1, dia, hI, mI);
-    const fin = new Date(anio, mes - 1, dia, hF, mF);
+    const inicio = new Date(this.fechaConsulta() + 'T' + this.horaInicio() + ':00-05:00');
+    const fin = new Date(this.fechaConsulta() + 'T' + this.horaFin() + ':00-05:00');
 
     const capacidad = Number.parseInt(this.capacidad(), 10);
     this.obtenerDisponibilidad(inicio, fin, capacidad);
@@ -534,33 +541,40 @@ export class ConsultaPage implements OnInit {
       return;
     }
     this.detalle.set(classroom);
+    this.cargarOcupacion(classroom, this.fechaConsulta());
+  }
+
+  private cargarOcupacion(aula: Classroom, fecha: string): void {
+    const consultaId = ++this.consultaOcupacionId;
     this.cargandoOcupacion.set(true);
+    this.errorOcupacion.set(null);
     this.ocupacion.set([]);
-    const hoy = new Date();
-    const inicio = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 0, 0);
-    const fin = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 23, 59);
-    this.getOccupation.execute(classroom.id, { start: inicio, end: fin }).subscribe({
+    const inicio = new Date(fecha + 'T00:00:00-05:00');
+    const fin = new Date(inicio.getTime() + 86400000);
+    this.getOccupation.execute(aula.id, { start: inicio, end: fin }).subscribe({
       next: ocupaciones => {
+        if (consultaId !== this.consultaOcupacionId) return;
         this.ocupacion.set(ocupaciones);
+        const liberacion = this.calcularLiberacion(ocupaciones, fecha, this.horaInicio(), this.horaFin());
+        if (liberacion) this.liberacionPorAula.update(m => new Map(m).set(aula.id, liberacion));
         this.cargandoOcupacion.set(false);
-        // Cache de hora de liberación para la tarjeta (primera franja que cubre la consulta).
-        const liberacion = this.calcularLiberacion(ocupaciones, this.fechaConsulta(), this.horaInicio(), this.horaFin());
-        if (liberacion !== null) {
-          this.liberacionPorAula.update(m => {
-            const siguiente = new Map(m);
-            siguiente.set(classroom.id, liberacion);
-            return siguiente;
-          });
-        }
       },
       error: () => {
-        this.ocupacion.set([]);
+        if (consultaId !== this.consultaOcupacionId) return;
+        this.errorOcupacion.set('No se puede verificar el horario de esta fecha. Intenta nuevamente más tarde.');
         this.cargandoOcupacion.set(false);
       }
     });
   }
 
+  protected cambiarFechaSolicitud(fecha: string): void {
+    this.fechaSolicitud.set(fecha);
+    const aula = this.solicitudAula();
+    if (aula) this.cargarOcupacion(aula, fecha);
+  }
+
   protected cerrarDetalle(): void {
+    this.consultaOcupacionId++;
     this.detalle.set(null);
     this.ocupacion.set([]);
   }
@@ -572,21 +586,7 @@ export class ConsultaPage implements OnInit {
     }
     this.solicitudAula.set(classroom);
     this.detalle.set(classroom);
-    this.cargandoOcupacion.set(true);
-    this.ocupacion.set([]);
-    const hoy = new Date();
-    const inicio = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 0, 0);
-    const fin = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 23, 59);
-    this.getOccupation.execute(classroom.id, { start: inicio, end: fin }).subscribe({
-      next: ocupaciones => {
-        this.ocupacion.set(ocupaciones);
-        this.cargandoOcupacion.set(false);
-      },
-      error: () => {
-        this.ocupacion.set([]);
-        this.cargandoOcupacion.set(false);
-      }
-    });
+    this.cargarOcupacion(classroom, this.fechaConsulta());
     this.fechaSolicitud.set(this.fechaConsulta());
     // Si el aula esta ocupada en la franja consultada, sugerir la primera franja libre.
     const libres = this.franjasLibres();
@@ -647,11 +647,8 @@ export class ConsultaPage implements OnInit {
       return;
     }
 
-    const [anio, mes, dia] = this.fechaSolicitud().split('-').map(Number);
-    const [hI, mI] = this.inicioSolicitud().split(':').map(Number);
-    const [hF, mF] = this.finSolicitud().split(':').map(Number);
-    const inicio = new Date(anio, mes - 1, dia, hI, mI);
-    const fin = new Date(anio, mes - 1, dia, hF, mF);
+    const inicio = new Date(this.fechaSolicitud() + 'T' + this.inicioSolicitud() + ':00-05:00');
+    const fin = new Date(this.fechaSolicitud() + 'T' + this.finSolicitud() + ':00-05:00');
     if (!(fin.getTime() > inicio.getTime())) {
       this.errorSolicitud.set('La hora de fin debe ser posterior a la de inicio.');
       return;
@@ -683,7 +680,9 @@ export class ConsultaPage implements OnInit {
         this.enviandoSolicitud.set(false);
         const detalle = typeof err.error?.message === 'string' ? err.error.message : null;
         this.errorSolicitud.set(
-          err.status === 409
+          err.status === 503
+            ? 'No podemos verificar la disponibilidad del aula en este momento. Intenta enviar la solicitud más tarde.'
+            : err.status === 409
             ? (detalle ?? 'La franja solicitada se solapa con una clase o reserva aprobada.')
             : err.status === 400
               ? (detalle ?? 'Datos inválidos: revisa fecha, horas y motivo.')
@@ -694,11 +693,8 @@ export class ConsultaPage implements OnInit {
   }
 
   private calcularLiberacion(ocupaciones: ClassroomOccupation[], fecha: string, horaInicio: string, horaFin: string): string | null {
-    const [anio, mes, dia] = fecha.split('-').map(Number);
-    const [hI, mI] = horaInicio.split(':').map(Number);
-    const [hF, mF] = horaFin.split(':').map(Number);
-    const consultaInicio = new Date(anio, mes - 1, dia, hI, mI).getTime();
-    const consultaFin = new Date(anio, mes - 1, dia, hF, mF).getTime();
+    const consultaInicio = new Date(fecha + 'T' + horaInicio + ':00-05:00').getTime();
+    const consultaFin = new Date(fecha + 'T' + horaFin + ':00-05:00').getTime();
     const solapada = ocupaciones.find(o => {
       const i = new Date(o.start).getTime();
       const f = new Date(o.end).getTime();
@@ -708,7 +704,7 @@ export class ConsultaPage implements OnInit {
       return null;
     }
     const fin = new Date(solapada.end);
-    return `${String(fin.getHours()).padStart(2, '0')}:${String(fin.getMinutes()).padStart(2, '0')}`;
+    return fin.toLocaleTimeString('es-CO', { timeZone: 'America/Bogota', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
   }
 
   protected fechaCorta(iso: string): string {
@@ -721,15 +717,22 @@ export class ConsultaPage implements OnInit {
 
   private obtenerDisponibilidad(inicio: Date, fin: Date, capacidad: number): void {
     const filtro: ClassroomFilter = { minCapacity: Number.isFinite(capacidad) && capacidad > 0 ? capacidad : undefined };
+    const consultaId = ++this.consultaDisponibilidadId;
+    this.disponibilidad.set(null);
+    this.liberacionPorAula.set(new Map());
     this.cargandoDisponibilidad.set(true);
     this.errorDisponibilidad.set(null);
     this.getAvailableClassrooms.execute(inicio, fin, filtro).subscribe({
       next: disponibilidad => {
+        if (consultaId !== this.consultaDisponibilidadId) return;
         this.disponibilidad.set(disponibilidad);
         this.cargandoDisponibilidad.set(false);
         this.ajustarPestanaSegunDisponibilidad();
       },
-      error: error => this.fallo(error, this.errorDisponibilidad, this.cargandoDisponibilidad)
+      error: error => {
+        if (consultaId !== this.consultaDisponibilidadId) return;
+        this.fallo(error, this.errorDisponibilidad, this.cargandoDisponibilidad);
+      }
     });
   }
 
@@ -754,7 +757,7 @@ export class ConsultaPage implements OnInit {
     if (error.status === 503) {
       mensaje.set(
         'No se puede confirmar la disponibilidad: el catálogo o los eventos de SIGA están ' +
-        'desactualizados. Solicita al personal administrativo lanzar la sincronización e intenta de nuevo.'
+        'desactualizados o no cubren la fecha elegida. Consulta otra fecha o solicita una sincronización.'
       );
     } else if (error.status === 401) {
       mensaje.set('Tu sesión expiró. Vuelve a iniciar sesión.');

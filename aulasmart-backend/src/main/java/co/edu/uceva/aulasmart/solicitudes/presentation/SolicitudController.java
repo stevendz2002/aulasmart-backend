@@ -2,11 +2,12 @@ package co.edu.uceva.aulasmart.solicitudes.presentation;
 
 import co.edu.uceva.aulasmart.solicitudes.application.service.ConsultarSolicitudesService;
 import co.edu.uceva.aulasmart.solicitudes.application.service.PrincipalDeSolicitudes;
-import co.edu.uceva.aulasmart.solicitudes.application.service.RevisarSolicitudService;
 import co.edu.uceva.aulasmart.solicitudes.application.service.RegistrarSolicitudService;
+import co.edu.uceva.aulasmart.solicitudes.application.service.RevisarSolicitudService;
 import co.edu.uceva.aulasmart.solicitudes.presentation.dto.RevisionRequest;
 import co.edu.uceva.aulasmart.solicitudes.presentation.dto.SolicitudRequest;
 import co.edu.uceva.aulasmart.solicitudes.presentation.dto.SolicitudResponse;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -18,8 +19,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 /**
  * Solicitudes de reserva de aulas. Solo un DOCENTE registra solicitudes y
@@ -52,7 +51,7 @@ public class SolicitudController {
             @RequestBody SolicitudRequest request,
             Authentication authentication
     ) {
-        var usuario = requireCreador(principalDeSolicitudes.resolver(authentication));
+        var usuario = requireCreador(principalDeSolicitudes.resolver(authentication.getName()));
         var solicitud = registrarSolicitudService.registrar(
                 usuario.id(),
                 request.aulaId(),
@@ -68,7 +67,7 @@ public class SolicitudController {
             @RequestParam(required = false) String estado,
             Authentication authentication
     ) {
-        var usuario = requireRevisorODocente(principalDeSolicitudes.resolver(authentication));
+        var usuario = requireRevisorODocente(principalDeSolicitudes.resolver(authentication.getName()));
         return consultarSolicitudesService.consultar(usuario, estado).stream()
                 .map(SolicitudResponse::desde)
                 .toList();
@@ -80,7 +79,7 @@ public class SolicitudController {
             @RequestBody RevisionRequest request,
             Authentication authentication
     ) {
-        var usuario = requireRevisor(principalDeSolicitudes.resolver(authentication));
+        var usuario = requireRevisor(principalDeSolicitudes.resolver(authentication.getName()));
         var solicitud = revisarSolicitudService.revisar(idSolicitud, usuario.id(), request.decision());
         return SolicitudResponse.desde(solicitud);
     }

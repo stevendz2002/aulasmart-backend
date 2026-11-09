@@ -2,13 +2,13 @@ package co.edu.uceva.aulasmart.integrations.siga.infrastructure.http;
 
 import co.edu.uceva.aulasmart.aulas.domain.model.AulaExterna;
 import co.edu.uceva.aulasmart.aulas.domain.model.EventoExterno;
+import co.edu.uceva.aulasmart.integrations.siga.application.port.ConsultaSigaPort;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDate;
+import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import java.time.LocalDate;
-import java.util.List;
 
 /**
  * Consultas HTTP a los endpoints públicos de SIGA verificados en
@@ -19,7 +19,7 @@ import java.util.List;
  * {@link SigaRespuestaInvalidaException}.
  */
 @Component
-public class SigaRestClient {
+public class SigaRestClient implements ConsultaSigaPort {
 
     private static final String RUTA_AULAS = "/publicomanejoespacios/listarAulasPublico";
     private static final String RUTA_EVENTOS = "/publicomanejoespacios/listarEventAulaPublico";

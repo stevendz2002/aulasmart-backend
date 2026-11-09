@@ -1,5 +1,6 @@
 package co.edu.uceva.aulasmart.aulas.application.port;
 
+import co.edu.uceva.aulasmart.aulas.domain.model.Intervalo;
 import java.time.Instant;
 
 /**
@@ -9,6 +10,7 @@ import java.time.Instant;
  * provienen de los eventos SIGA unidos con las reservas aprobadas.
  */
 public interface SincronizacionSigaPort {
+    boolean eventosCubren(Instant limiteActualizacion, Intervalo intervalo);
     boolean catalogoAulasVigente(Instant limiteActualizacion);
 
     boolean eventosVigente(Instant limiteActualizacion);

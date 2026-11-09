@@ -384,6 +384,9 @@ export class SolicitudesPage implements OnInit {
   }
 
   private mensajeDe(error: { status?: number; error?: { message?: string } | null }, porDefecto: string): string {
+    if (error.status === 503) {
+      return 'No podemos verificar la disponibilidad en este momento. Intenta la operación más tarde.';
+    }
     if (error.status === 401) {
       return 'Tu sesión expiró. Vuelve a iniciar sesión.';
     }

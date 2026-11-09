@@ -11,17 +11,35 @@ import co.edu.uceva.aulasmart.users.domain.exception.RegistroInvalidoException;
 import co.edu.uceva.aulasmart.users.domain.exception.RolInvalidoException;
 import co.edu.uceva.aulasmart.users.domain.exception.UsuarioNoEncontradoException;
 import jakarta.servlet.http.HttpServletRequest;
+import java.sql.SQLException;
+import java.time.Instant;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import java.time.Instant;
-
 @RestControllerAdvice
 public class RestExceptionHandler {
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    ResponseEntity<ApiError> manejarRevisionConcurrente(RuntimeException exception, HttpServletRequest request) {
+        return respuesta(HttpStatus.CONFLICT, "La solicitud cambió mientras la revisabas. Actualiza la lista antes de continuar.", request);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    ResponseEntity<ApiError> manejarIntegridad(DataIntegrityViolationException exception, HttpServletRequest request) {
+        Throwable causa = exception;
+        while (causa != null) {
+            if (causa instanceof SQLException sql && "23P01".equals(sql.getSQLState())) {
+                return respuesta(HttpStatus.CONFLICT, "El aula ya tiene una solicitud aprobada en ese horario.", request);
+            }
+            causa = causa.getCause();
+        }
+        return respuesta(HttpStatus.CONFLICT, "La operación entra en conflicto con los datos existentes.", request);
+    }
     @ExceptionHandler(AulaNoEncontradaException.class)
     ResponseEntity<ApiError> manejarNoEncontrada(
             AulaNoEncontradaException exception,

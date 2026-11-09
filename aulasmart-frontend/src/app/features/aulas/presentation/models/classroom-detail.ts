@@ -35,6 +35,12 @@ export class ClassroomDetailBuilder {
   private classroom?: Classroom;
   private status: ClassroomAvailabilityStatus = 'DESCONOCIDO';
   private occupations: ClassroomOccupation[] = [];
+  private date?: string;
+
+  forDate(date?: string): this {
+    this.date = date;
+    return this;
+  }
 
   forClassroom(classroom: Classroom): this {
     this.classroom = classroom;
@@ -64,20 +70,23 @@ export class ClassroomDetailBuilder {
       statusLabel: this.status === 'LIBRE' ? 'Disponible' : this.status === 'OCUPADA' ? 'Ocupada' : 'Sin verificar',
       capacity: classroom.capacity,
       building: classroom.building.name,
-      freeNowLabel: this.status === 'LIBRE' ? 'Libre ahora' : 'Ocupada en la franja',
+      freeNowLabel: this.status === 'LIBRE' ? 'Disponible en la franja' : this.status === 'OCUPADA' ? 'Ocupada en la franja' : 'Sin verificar',
       characteristics: [classroom.type.name, classroom.department.name],
       timeline: this.buildTimeline(this.occupations)
     };
   }
 
-  static of(classroom: Classroom, status: ClassroomAvailabilityStatus, occupations: ClassroomOccupation[]): ClassroomDetail {
-    return new ClassroomDetailBuilder().forClassroom(classroom).withStatus(status).withOccupations(occupations).build();
+  static of(classroom: Classroom, status: ClassroomAvailabilityStatus, occupations: ClassroomOccupation[], date?: string): ClassroomDetail {
+    return new ClassroomDetailBuilder().forClassroom(classroom).withStatus(status).withOccupations(occupations).forDate(date).build();
   }
 
   private buildTimeline(occupations: ClassroomOccupation[]): TimelineEntry[] {
     const DAY_START = 7 * 60;
     const DAY_END = 22 * 60;
     const toMinutes = (iso: string): number => {
+      if (this.date) {
+        return (new Date(iso).getTime() - new Date(this.date + 'T00:00:00-05:00').getTime()) / 60000;
+      }
       const d = new Date(iso);
       return d.getHours() * 60 + d.getMinutes();
     };

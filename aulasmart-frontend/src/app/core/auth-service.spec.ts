@@ -36,7 +36,7 @@ describe('AuthService', () => {
     expect(sesionRecibida!.correo).toBe('docente@prueba.aulasmart.local');
     expect(sesionRecibida!.nombre).toBe('PRUEBA Docente');
     expect(service.sesion()?.roles).toEqual(['DOCENTE']);
-    expect(sessionStorage.getItem('aulasmart.sesion')).toContain('docente@prueba.aulasmart.local');
+    expect(sessionStorage.getItem('aulasmart.sesion')).toBeNull();
   });
 
   it('login tolera un whoami sin nombre resuelto', () => {
@@ -56,6 +56,13 @@ describe('AuthService', () => {
     service.logout();
 
     expect(service.sesion()).toBeNull();
+    expect(sessionStorage.getItem('aulasmart.sesion')).toBeNull();
+  });
+
+  it('descarta credenciales antiguas y exige iniciar sesión tras recargar', () => {
+    sessionStorage.setItem('aulasmart.sesion', '{"claveCodificada":"credencial-antigua"}');
+    const nueva = TestBed.runInInjectionContext(() => new AuthService());
+    expect(nueva.sesion()).toBeNull();
     expect(sessionStorage.getItem('aulasmart.sesion')).toBeNull();
   });
 });

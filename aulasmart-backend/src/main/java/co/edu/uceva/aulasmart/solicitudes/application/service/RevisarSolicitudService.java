@@ -4,16 +4,16 @@ import co.edu.uceva.aulasmart.aulas.application.port.AulaConsultaPort;
 import co.edu.uceva.aulasmart.aulas.application.port.HorarioAcademicoPort;
 import co.edu.uceva.aulasmart.aulas.application.port.SolicitudAprobadaPort;
 import co.edu.uceva.aulasmart.aulas.application.port.VerificacionEventosSigaPort;
+import co.edu.uceva.aulasmart.aulas.domain.exception.AulaNoEncontradaException;
 import co.edu.uceva.aulasmart.solicitudes.application.port.SolicitudReservaPort;
 import co.edu.uceva.aulasmart.solicitudes.domain.exception.ReservaSolapadaException;
 import co.edu.uceva.aulasmart.solicitudes.domain.exception.SolicitudNoEncontradaException;
 import co.edu.uceva.aulasmart.solicitudes.domain.exception.SolicitudYaRevisadaException;
 import co.edu.uceva.aulasmart.solicitudes.domain.model.SolicitudReserva;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Clock;
 import java.util.Locale;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Revisión de solicitudes por un revisor (ADMINISTRATIVO o ADMINISTRADOR):
@@ -76,8 +76,9 @@ public class RevisarSolicitudService {
                     .contains(solicitud.aulaId())) {
                 throw new ReservaSolapadaException(solicitud.aulaId());
             }
-            var aulaOpt = aulaConsultaPort.buscarActivaPorId(solicitud.aulaId());
-            if (aulaOpt.isPresent() && verificacionEventosSigaPort.aulaTieneEventosEnSiga(aulaOpt.get().codigoSiga(), solicitud.intervalo())) {
+            var aula = aulaConsultaPort.buscarActivaPorId(solicitud.aulaId())
+                    .orElseThrow(() -> new AulaNoEncontradaException(solicitud.aulaId()));
+            if (verificacionEventosSigaPort.aulaTieneEventosEnSiga(aula.codigoSiga(), solicitud.intervalo())) {
                 throw new ReservaSolapadaException(solicitud.aulaId());
             }
         }

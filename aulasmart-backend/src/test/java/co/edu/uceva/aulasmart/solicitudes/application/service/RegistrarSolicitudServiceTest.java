@@ -5,23 +5,23 @@ import co.edu.uceva.aulasmart.aulas.application.port.HorarioAcademicoPort;
 import co.edu.uceva.aulasmart.aulas.application.port.SolicitudAprobadaPort;
 import co.edu.uceva.aulasmart.aulas.application.port.VerificacionEventosSigaPort;
 import co.edu.uceva.aulasmart.aulas.domain.exception.AulaNoEncontradaException;
+import co.edu.uceva.aulasmart.aulas.domain.exception.DisponibilidadNoVerificableException;
 import co.edu.uceva.aulasmart.aulas.domain.model.Aula;
 import co.edu.uceva.aulasmart.aulas.domain.model.CatalogoAula;
 import co.edu.uceva.aulasmart.aulas.domain.model.Intervalo;
 import co.edu.uceva.aulasmart.solicitudes.application.port.SolicitudReservaPort;
 import co.edu.uceva.aulasmart.solicitudes.domain.exception.ReservaSolapadaException;
 import co.edu.uceva.aulasmart.solicitudes.domain.model.SolicitudReserva;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -151,6 +151,18 @@ class RegistrarSolicitudServiceTest {
 
         assertEquals("El aula " + AULA + " ya tiene una reserva aprobada que se solapa con el intervalo solicitado.",
                 exception.getMessage());
+        verifyNoInteractions(solicitudReservaPort);
+    }
+
+    @Test
+    void noRegistraSiNoPuedeVerificarSiga() {
+        when(aulaConsultaPort.buscarActivaPorId(AULA)).thenReturn(Optional.of(aula()));
+        when(verificacionEventosSigaPort.aulaTieneEventosEnSiga(aula().codigoSiga(), INTERVALO))
+                .thenThrow(new DisponibilidadNoVerificableException());
+
+        assertThrows(DisponibilidadNoVerificableException.class,
+                () -> service.registrar(DOCENTE, AULA, INTERVALO.inicio(), INTERVALO.fin(), "Clase"));
+
         verifyNoInteractions(solicitudReservaPort);
     }
 

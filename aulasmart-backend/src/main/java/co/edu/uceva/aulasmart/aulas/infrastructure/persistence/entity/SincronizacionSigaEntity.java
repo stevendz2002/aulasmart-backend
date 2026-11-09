@@ -6,12 +6,26 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
 import java.time.Instant;
 
 @Entity
 @Table(name = "sincronizacion_siga")
 public class SincronizacionSigaEntity {
+    @Column(name = "cobertura_inicio")
+    private Instant coberturaInicio;
+    @Column(name = "cobertura_fin")
+    private Instant coberturaFin;
+
+    public void registrarCobertura(Instant inicio, Instant fin) {
+        coberturaInicio = inicio;
+        coberturaFin = fin;
+    }
+
+    public boolean cubre(Instant inicio, Instant fin, Instant limite) {
+        return finalizadaEn != null && !finalizadaEn.isBefore(limite)
+                && coberturaInicio != null && coberturaFin != null
+                && !inicio.isBefore(coberturaInicio) && !fin.isAfter(coberturaFin);
+    }
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_sincronizacion")

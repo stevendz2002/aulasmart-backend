@@ -9,18 +9,17 @@ import co.edu.uceva.aulasmart.aulas.domain.model.Aula;
 import co.edu.uceva.aulasmart.aulas.domain.model.AulaFiltro;
 import co.edu.uceva.aulasmart.aulas.domain.model.CatalogoAula;
 import co.edu.uceva.aulasmart.aulas.domain.model.Intervalo;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -68,7 +67,7 @@ class DisponibilidadAulaServiceTest {
         var aulaTres = aula(3L, "PRUEBA Aula 3");
         var aulaCuatro = aula(4L, "PRUEBA Aula 4");
         when(sincronizacionSigaPort.catalogoAulasVigente(LIMITE)).thenReturn(true);
-        when(sincronizacionSigaPort.eventosVigente(LIMITE)).thenReturn(true);
+        when(sincronizacionSigaPort.eventosCubren(LIMITE, INTERVALO)).thenReturn(true);
         when(solicitudAprobadaPort.buscarAulasConSolicitudesAprobadas(INTERVALO)).thenReturn(Set.of(2L));
         when(horarioAcademicoPort.buscarAulasConEventos(INTERVALO)).thenReturn(Set.of(3L));
         when(aulaConsultaPort.buscarActivas(FILTRO)).thenReturn(List.of(aulaUno, aulaDos, aulaTres, aulaCuatro));
@@ -83,7 +82,7 @@ class DisponibilidadAulaServiceTest {
     void unaMismaAulaOcupadaPorReservaYEventoNoSeDuplicaNiPasaALibres() {
         var aulaUno = aula(1L, "PRUEBA Aula 1");
         when(sincronizacionSigaPort.catalogoAulasVigente(LIMITE)).thenReturn(true);
-        when(sincronizacionSigaPort.eventosVigente(LIMITE)).thenReturn(true);
+        when(sincronizacionSigaPort.eventosCubren(LIMITE, INTERVALO)).thenReturn(true);
         when(solicitudAprobadaPort.buscarAulasConSolicitudesAprobadas(INTERVALO)).thenReturn(Set.of(2L));
         when(horarioAcademicoPort.buscarAulasConEventos(INTERVALO)).thenReturn(Set.of(2L, 3L));
         when(aulaConsultaPort.buscarActivas(FILTRO)).thenReturn(List.of(aulaUno));
@@ -105,7 +104,7 @@ class DisponibilidadAulaServiceTest {
     @Test
     void noAfirmaDisponibilidadConEventosVencidos() {
         when(sincronizacionSigaPort.catalogoAulasVigente(LIMITE)).thenReturn(true);
-        when(sincronizacionSigaPort.eventosVigente(LIMITE)).thenReturn(false);
+        when(sincronizacionSigaPort.eventosCubren(LIMITE, INTERVALO)).thenReturn(false);
 
         assertThrows(DisponibilidadNoVerificableException.class, () -> service.consultar(FILTRO, INTERVALO));
 
@@ -116,7 +115,7 @@ class DisponibilidadAulaServiceTest {
     void devuelveAulasActivasCuandoNoHayOcupacionAlguna() {
         var aula = aula(1L, "PRUEBA Aula 1");
         when(sincronizacionSigaPort.catalogoAulasVigente(LIMITE)).thenReturn(true);
-        when(sincronizacionSigaPort.eventosVigente(LIMITE)).thenReturn(true);
+        when(sincronizacionSigaPort.eventosCubren(LIMITE, INTERVALO)).thenReturn(true);
         when(solicitudAprobadaPort.buscarAulasConSolicitudesAprobadas(INTERVALO)).thenReturn(Set.of());
         when(horarioAcademicoPort.buscarAulasConEventos(INTERVALO)).thenReturn(Set.of());
         when(aulaConsultaPort.buscarActivas(FILTRO)).thenReturn(List.of(aula));
@@ -124,11 +123,31 @@ class DisponibilidadAulaServiceTest {
         var resultado = service.consultar(FILTRO, INTERVALO);
 
         assertEquals(List.of(aula), resultado.aulas());
-        verify(sincronizacionSigaPort).eventosVigente(LIMITE);
+        verify(sincronizacionSigaPort).eventosCubren(LIMITE, INTERVALO);
     }
 
     private Aula aula(Long id, String nombre) {
         var catalogo = new CatalogoAula(1L, -1L, "PRUEBA");
         return new Aula(id, -id, nombre, catalogo, 40, catalogo, catalogo, true);
+    }
+
+    @Test
+    void detalleUneEventosYReservasSinExponerMotivosPrivados() {
+        when(aulaConsultaPort.buscarActivaPorId(1L)).thenReturn(java.util.Optional.of(aula(1L, "Aula")));
+        when(sincronizacionSigaPort.catalogoAulasVigente(LIMITE)).thenReturn(true);
+        when(sincronizacionSigaPort.eventosCubren(LIMITE, INTERVALO)).thenReturn(true);
+        var evento = new co.edu.uceva.aulasmart.aulas.domain.model.OcupacionAula(1L, "Clase", INTERVALO.inicio(), INTERVALO.fin());
+        var reserva = new co.edu.uceva.aulasmart.aulas.domain.model.OcupacionAula(1L, "Solicitud aprobada en AulaSmart", INTERVALO.inicio(), INTERVALO.fin());
+        when(horarioAcademicoPort.buscarOcupacionDeAula(1L, INTERVALO)).thenReturn(List.of(evento));
+        when(solicitudAprobadaPort.buscarOcupacion(1L, INTERVALO)).thenReturn(List.of(reserva));
+        assertEquals(List.of(evento, reserva), service.consultarOcupacion(1L, INTERVALO));
+    }
+
+    @Test
+    void detalleNoPresentaVacioSiNoHayCobertura() {
+        when(aulaConsultaPort.buscarActivaPorId(1L)).thenReturn(java.util.Optional.of(aula(1L, "Aula")));
+        when(sincronizacionSigaPort.catalogoAulasVigente(LIMITE)).thenReturn(true);
+        assertThrows(DisponibilidadNoVerificableException.class, () -> service.consultarOcupacion(1L, INTERVALO));
+        verifyNoInteractions(horarioAcademicoPort, solicitudAprobadaPort);
     }
 }

@@ -6,18 +6,17 @@ import co.edu.uceva.aulasmart.aulas.application.port.RegistroSincronizacionPort;
 import co.edu.uceva.aulasmart.aulas.domain.model.EventoExterno;
 import co.edu.uceva.aulasmart.integrations.siga.application.model.ResultadoSincronizacion;
 import co.edu.uceva.aulasmart.integrations.siga.infrastructure.http.SigaRestClient;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -84,6 +83,7 @@ class SincronizadorDeEventosServiceTest {
         assertEquals("EXITOSA", resultado.estado());
         assertEquals(1, resultado.registrosProcesados());
         verify(registroSincronizacionPort).registrarFin(7L, "EXITOSA", 1, null);
+        verify(registroSincronizacionPort).registrarCobertura(7L, INICIO_VENTANA, FIN_VENTANA);
     }
 
     @Test

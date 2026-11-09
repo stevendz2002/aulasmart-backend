@@ -49,4 +49,10 @@ Thumbs.db
 /docs/evidencias/
 *.tmp
 *.bak
-/docs/
+# Mantener los entregables académicos locales excluidos y versionar solo la continuidad técnica.
+/docs/*
+!/docs/README.md
+!/docs/plan-maestro.md
+!/docs/arquitectura.md
+!/docs/fase-0.md
+!/docs/fase-2.md

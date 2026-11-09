@@ -1,14 +1,13 @@
 package co.edu.uceva.aulasmart.aulas.infrastructure.persistence.repository;
 
 import co.edu.uceva.aulasmart.aulas.infrastructure.persistence.entity.HorarioAcademicoEntity;
+import java.time.Instant;
+import java.util.List;
+import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Set;
 
 public interface HorarioAcademicoJpaRepository extends JpaRepository<HorarioAcademicoEntity, Long> {
 
@@ -49,7 +48,7 @@ public interface HorarioAcademicoJpaRepository extends JpaRepository<HorarioAcad
     @Query("""
             DELETE FROM HorarioAcademicoEntity h
             WHERE h.fuente = 'SIGA'
-              AND h.fechaInicio >= :inicioVentana
+              AND h.fechaFin > :inicioVentana
             """)
     int eliminarDesde(@Param("inicioVentana") Instant inicioVentana);
 }

@@ -26,7 +26,7 @@ const LLAVE_SESION = 'aulasmart.sesion';
 export class AuthService {
   private readonly http = inject(HttpClient);
 
-  readonly sesion = signal<SesionGuardada | null>(AuthService.hidratar());
+  readonly sesion = signal<SesionGuardada | null>(null);
 
   login(correo: string, password: string): Observable<SesionGuardada> {
     const claveCodificada = btoa(`${correo}:${password}`);
@@ -34,7 +34,7 @@ export class AuthService {
     return this.http.get<PerfilWhoami>(`${apiUrl}/usuarios/whoami`, { headers }).pipe(
       map(perfil => ({ ...perfil, claveCodificada })),
       tap(sesion => {
-        sessionStorage.setItem(LLAVE_SESION, JSON.stringify(sesion));
+        sessionStorage.removeItem(LLAVE_SESION);
         this.sesion.set(sesion);
       })
     );
@@ -50,8 +50,8 @@ export class AuthService {
     return sesion !== null && rolesPermitidos.some(rol => sesion.roles.includes(rol));
   }
 
-  private static hidratar(): SesionGuardada | null {
-    const guardada = sessionStorage.getItem(LLAVE_SESION);
-    return guardada === null ? null : (JSON.parse(guardada) as SesionGuardada);
+  constructor() {
+    // Retira credenciales persistidas por versiones anteriores.
+    sessionStorage.removeItem(LLAVE_SESION);
   }
 }
