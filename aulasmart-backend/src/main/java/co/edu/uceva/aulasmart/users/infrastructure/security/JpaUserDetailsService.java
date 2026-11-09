@@ -1,6 +1,6 @@
 package co.edu.uceva.aulasmart.users.infrastructure.security;
 
-import co.edu.uceva.aulasmart.users.infrastructure.persistence.entity.RolEntity;
+
 import co.edu.uceva.aulasmart.users.infrastructure.persistence.repository.UsuarioJpaRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.User;
@@ -29,12 +29,9 @@ public class JpaUserDetailsService implements UserDetailsService {
                 .filter(entity -> permitirCuentasPrueba || !entity.getCorreo().toLowerCase(java.util.Locale.ROOT)
                         .endsWith("@prueba.aulasmart.local"))
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado o inactivo."));
-        String[] roles = usuario.getRoles().stream()
-                .map(RolEntity::getNombre)
-                .toArray(String[]::new);
         return User.withUsername(usuario.getCorreo())
                 .password(usuario.getPasswordHash())
-                .roles(roles)
+                .roles(usuario.getRol().getNombre())
                 .build();
     }
 }

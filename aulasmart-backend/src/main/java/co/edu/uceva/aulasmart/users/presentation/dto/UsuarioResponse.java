@@ -3,7 +3,7 @@ package co.edu.uceva.aulasmart.users.presentation.dto;
 import co.edu.uceva.aulasmart.users.domain.model.PerfilUsuario;
 
 import java.time.Instant;
-import java.util.List;
+
 
 /**
  * Perfil de un usuario del directorio para la SPA: sin claves ni hashes.
@@ -13,7 +13,7 @@ public record UsuarioResponse(
         String nombre,
         String correo,
         boolean activo,
-        List<String> roles,
+        String rol,
         Instant creadoEn
 ) {
     public static UsuarioResponse desde(PerfilUsuario perfil) {
@@ -22,7 +22,7 @@ public record UsuarioResponse(
                 perfil.nombre(),
                 perfil.correo(),
                 perfil.activo(),
-                perfil.roles(),
+                perfil.rol(),
                 perfil.creadoEn()
         );
     }

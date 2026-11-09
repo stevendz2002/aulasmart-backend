@@ -13,7 +13,7 @@ export class UserMapper {
       fullName: dto.nombre,
       email: dto.correo,
       active: dto.activo,
-      roles: dto.roles,
+      role: dto.rol,
       createdAt: dto.creadoEn
     };
   }
@@ -23,7 +23,7 @@ export class UserMapper {
       nombre: command.fullName,
       correo: command.email,
       clave: command.password,
-      roles: command.roles
+      rol: command.role
     };
   }
 
@@ -32,8 +32,8 @@ export class UserMapper {
     if (command.fullName !== undefined) {
       dto.nombre = command.fullName;
     }
-    if (command.roles !== undefined) {
-      dto.roles = command.roles;
+    if (command.role !== undefined) {
+      dto.rol = command.role;
     }
     if (command.active !== undefined) {
       dto.activo = command.active;

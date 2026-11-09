@@ -1,7 +1,8 @@
 # Fase 0: auditoría y estabilización
 
 Revisión: 2026-11-08. Rama `refactor/architecture`. Base `4cd75fc`.
-Estado: fase 0 implementada y validada en desarrollo. Sin commits ni despliegue.
+Estado: fase 0 implementada, validada y publicada en `origin/refactor/architecture`,
+commit `7030f16`, con autorización del usuario. Sin despliegue.
 
 ## Hallazgos y cambios
 

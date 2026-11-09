@@ -14,7 +14,7 @@ describe('HttpUserRepository', () => {
     nombre: 'PRUEBA Administrador',
     correo: 'admin@prueba.aulasmart.local',
     activo: true,
-    roles: ['ADMINISTRADOR'],
+    rol: 'ADMINISTRADOR',
     creadoEn: '2026-11-03T03:24:03Z'
   };
 
@@ -40,7 +40,7 @@ describe('HttpUserRepository', () => {
         fullName: 'PRUEBA Administrador',
         email: 'admin@prueba.aulasmart.local',
         active: true,
-        roles: ['ADMINISTRADOR'],
+        role: 'ADMINISTRADOR',
         createdAt: '2026-11-03T03:24:03Z'
       }
     ]);
@@ -53,7 +53,7 @@ describe('HttpUserRepository', () => {
         fullName: 'Ana María Restrepo',
         email: 'ana@uceva.edu.co',
         password: 'claveSegura1',
-        roles: ['DOCENTE']
+        role: 'DOCENTE'
       })
       .subscribe(result => (creada = result));
 
@@ -63,14 +63,14 @@ describe('HttpUserRepository', () => {
       nombre: 'Ana María Restrepo',
       correo: 'ana@uceva.edu.co',
       clave: 'claveSegura1',
-      roles: ['DOCENTE']
+      rol: 'DOCENTE'
     });
     req.flush({
       id: 9,
       nombre: 'Ana María Restrepo',
       correo: 'ana@uceva.edu.co',
       activo: true,
-      roles: ['DOCENTE'],
+      rol: 'DOCENTE',
       creadoEn: '2026-11-03T13:00:00Z'
     });
 

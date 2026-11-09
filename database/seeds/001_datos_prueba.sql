@@ -10,27 +10,18 @@ INSERT INTO rol (id_rol, nombre, descripcion) VALUES
 ON CONFLICT (id_rol) DO NOTHING;
 
 -- Hash BCrypt público de prueba, no una credencial institucional ni de producción.
-INSERT INTO usuario (id_usuario, nombre, correo, password_hash, activo) VALUES
+INSERT INTO usuario (id_usuario, nombre, correo, password_hash, activo, id_rol) VALUES
     (9001, 'PRUEBA Docente', 'docente@prueba.aulasmart.local',
-     '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', TRUE),
+     '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', TRUE, 3),
     (9002, 'PRUEBA Revisor', 'revisor@prueba.aulasmart.local',
-     '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', TRUE)
+     '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', TRUE, 2)
 ON CONFLICT (id_usuario) DO NOTHING;
-
-INSERT INTO usuario_rol (id_usuario, id_rol) VALUES
-    (9001, 3),
-    (9002, 2)
-ON CONFLICT (id_usuario, id_rol) DO NOTHING;
 
 -- Cuenta del administrador (semilla de prueba): el único rol que crea cuentas.
-INSERT INTO usuario (id_usuario, nombre, correo, password_hash, activo) VALUES
+INSERT INTO usuario (id_usuario, nombre, correo, password_hash, activo, id_rol) VALUES
     (9003, 'PRUEBA Administrador', 'admin@prueba.aulasmart.local',
-     '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', TRUE)
+     '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', TRUE, 1)
 ON CONFLICT (id_usuario) DO NOTHING;
-
-INSERT INTO usuario_rol (id_usuario, id_rol) VALUES
-    (9003, 1)
-ON CONFLICT (id_usuario, id_rol) DO NOTHING;
 
 INSERT INTO edificio (id_edificio, codigo_siga, nombre) VALUES
     (9001, -9001, 'PRUEBA Edificio Norte'),

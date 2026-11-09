@@ -41,6 +41,7 @@
 ## Estado de autorización
 
 - Fase 0 completa autorizada en esta sesión; rama autorizada: `refactor/architecture`.
-- El usuario autorizó registrar y subir la fase 0 y continuar con fase 2 en
-  `feature/single-user-role`. Fases 1, 3 y 4 siguen pendientes de autorización.
-- Estado técnico y resultados actualizados: `docs/fase-0.md`.
+- El 2026-11-09 el usuario aprobó publicar la fase 2 (`feature/single-user-role`)
+  y continuar fase 1 en `feature/classroom-request`; informó migración sin conflictos.
+- Fases 3 y 4 pendientes de autorización. Consultar `docs/fase-1.md` para el trabajo activo
+  y `docs/fase-2.md` para el cierre previo. No repetir la auditoría global.

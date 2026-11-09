@@ -10,7 +10,7 @@ export interface User {
   fullName: string;
   email: string;
   active: boolean;
-  roles: string[];
+  role: SystemRole;
   createdAt: string;
 }
 
@@ -19,12 +19,12 @@ export interface CreateUserAccountCommand {
   fullName: string;
   email: string;
   password: string;
-  roles: SystemRole[];
+  role: SystemRole;
 }
 
 /** Cambios parciales sobre una cuenta existente (null/ausente = no tocar). */
 export interface UpdateUserAccountCommand {
   fullName?: string;
-  roles?: SystemRole[];
+  role?: SystemRole;
   active?: boolean;
 }

@@ -13,26 +13,29 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.LinkedHashSet;
+
 import java.util.List;
-import java.util.Set;
+
 
 /**
  * Implementación persistente del directorio de usuarios sobre JPA.
- * Transaccional: la creación guarda la cuenta y todos sus roles atómicamente.
+ * Transaccional: la creación guarda la cuenta y su rol atómicamente.
  */
 @Component
 public class GestionUsuariosPersistenceAdapter implements GestionUsuariosPort {
 
     private final UsuarioJpaRepository usuarios;
     private final RolJpaRepository roles;
+    private final boolean permitirPruebas;
 
     public GestionUsuariosPersistenceAdapter(
             UsuarioJpaRepository usuarios,
-            RolJpaRepository roles
+            RolJpaRepository roles,
+            @org.springframework.beans.factory.annotation.Value("${aulasmart.security.allow-test-accounts:false}") boolean permitirPruebas
     ) {
         this.usuarios = usuarios;
         this.roles = roles;
+        this.permitirPruebas = permitirPruebas;
     }
 
     @Override
@@ -51,9 +54,9 @@ public class GestionUsuariosPersistenceAdapter implements GestionUsuariosPort {
 
     @Override
     @Transactional
-    public PerfilUsuario crear(String nombre, String correo, String claveCodificada, List<String> rolesSolicitados) {
+    public PerfilUsuario crear(String nombre, String correo, String claveCodificada, String rolSolicitado) {
         var cuenta = UsuarioEntity.registrar(nombre, correo, claveCodificada, Instant.now());
-        cuenta.asignarRoles(resolverRoles(rolesSolicitados));
+        cuenta.asignarRol(resolverRol(rolSolicitado));
         var guardada = usuarios.save(cuenta);
 
         // Rehidrata: LA relación LAZY no se resolvió en la entidad guardada.
@@ -62,14 +65,23 @@ public class GestionUsuariosPersistenceAdapter implements GestionUsuariosPort {
 
     @Override
     @Transactional
-    public PerfilUsuario editar(Long idUsuario, String nombre, List<String> roles, Boolean activo) {
+    public PerfilUsuario editar(Long idUsuario, String nombre, String rol, Boolean activo) {
+        // Serializa cambios administrativos para que dos solicitudes no eliminen al último administrador.
+        roles.bloquearAdministracion().orElseThrow(() -> new RolInvalidoException("ADMINISTRADOR"));
         var cuenta = usuarios.findById(idUsuario)
                 .orElseThrow(() -> new UsuarioNoEncontradoException(idUsuario));
+        boolean pierdeAdministracion = cuenta.isActivo() && "ADMINISTRADOR".equals(cuenta.getRol().getNombre())
+                && (permitirPruebas || !cuenta.getCorreo().toLowerCase(java.util.Locale.ROOT).endsWith("@prueba.aulasmart.local"))
+                && (Boolean.FALSE.equals(activo) || (rol != null && !"ADMINISTRADOR".equals(rol)));
+        if (pierdeAdministracion && usuarios.contarAdministradoresHabilitados(permitirPruebas) <= 1) {
+            throw new co.edu.uceva.aulasmart.users.domain.exception.RegistroInvalidoException(
+                    "Debe permanecer al menos un administrador activo.");
+        }
         if (nombre != null) {
             cuenta.actualizarNombre(nombre);
         }
-        if (roles != null) {
-            cuenta.asignarRoles(resolverRoles(roles));
+        if (rol != null) {
+            cuenta.asignarRol(resolverRol(rol));
         }
         if (activo != null) {
             cuenta.actualizarActivo(activo);
@@ -78,13 +90,8 @@ public class GestionUsuariosPersistenceAdapter implements GestionUsuariosPort {
         return UsuarioMapper.toPerfil(cuenta);
     }
 
-    private Set<RolEntity> resolverRoles(List<String> rolesSolicitados) {
-        var rolesAsignados = new LinkedHashSet<RolEntity>();
-        for (String rol : rolesSolicitados) {
-            var entidad = roles.findByNombreIgnoreCase(rol)
-                    .orElseThrow(() -> new RolInvalidoException(rol));
-            rolesAsignados.add(entidad);
-        }
-        return rolesAsignados;
+    private RolEntity resolverRol(String rolSolicitado) {
+        return roles.findByNombreIgnoreCase(rolSolicitado)
+                .orElseThrow(() -> new RolInvalidoException(rolSolicitado));
     }
 }

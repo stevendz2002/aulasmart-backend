@@ -84,7 +84,7 @@ type Pestana = 'directorio' | 'crear' | 'editar';
                   <th>ID</th>
                   <th>Nombre</th>
                   <th>Correo</th>
-                  <th>Roles</th>
+                  <th>Rol</th>
                   <th>Estado</th>
                   <th>Acciones</th>
                 </tr>
@@ -95,7 +95,7 @@ type Pestana = 'directorio' | 'crear' | 'editar';
                     <td class="numero">{{ usuario.id }}</td>
                     <td class="nombre">{{ usuario.fullName }}</td>
                     <td>{{ usuario.email }}</td>
-                    <td>{{ usuario.roles.join(', ') }}</td>
+                    <td>{{ usuario.role }}</td>
                     <td><span [class]="usuario.active ? 'chip activo' : 'chip inactivo'">
                       {{ usuario.active ? 'Activo' : 'Inactivo' }}</span></td>
                     <td class="acciones">
@@ -133,10 +133,10 @@ type Pestana = 'directorio' | 'crear' | 'editar';
           </label>
 
           <fieldset class="roles">
-            <legend>Roles de la cuenta</legend>
+            <legend>Rol de la cuenta</legend>
             @for (rol of rolesCatalogo; track rol) {
               <label class="rol">
-                <input type="checkbox" [checked]="rolesElegidos().has(rol)" (change)="alternarRol(rol)" />
+                <input type="radio" name="rol-creacion" required [checked]="rolElegido() === rol" (change)="rolElegido.set(rol)" />
                 <span class="chip rol-chip">{{ rotuloRol(rol) }}</span>
               </label>
             }
@@ -165,10 +165,10 @@ type Pestana = 'directorio' | 'crear' | 'editar';
           </label>
 
           <fieldset class="roles">
-            <legend>Roles de la cuenta</legend>
+            <legend>Rol de la cuenta</legend>
             @for (rol of rolesCatalogo; track rol) {
               <label class="rol">
-                <input type="checkbox" [checked]="rolesEdicion().has(rol)" (change)="alternarRolEdicion(rol)" />
+                <input type="radio" name="rol-edicion" required [checked]="rolEdicion() === rol" (change)="rolEdicion.set(rol)" />
                 <span class="chip rol-chip">{{ rotuloRol(rol) }}</span>
               </label>
             }
@@ -193,6 +193,7 @@ type Pestana = 'directorio' | 'crear' | 'editar';
   `
 })
 export class UsuariosPage implements OnInit {
+  private readonly authService = inject(AuthService);
   private readonly getUsers = inject<GetUsersUseCase>(GET_USERS_USE_CASE);
   private readonly createUserAccount = inject<CreateUserAccountUseCase>(CREATE_USER_ACCOUNT_USE_CASE);
   private readonly updateUserAccount = inject<UpdateUserAccountUseCase>(UPDATE_USER_ACCOUNT_USE_CASE);
@@ -213,13 +214,13 @@ export class UsuariosPage implements OnInit {
       usuario =>
         usuario.fullName.toLowerCase().includes(consulta) ||
         usuario.email.toLowerCase().includes(consulta) ||
-        usuario.roles.join(' ').toLowerCase().includes(consulta)
+        usuario.role.toLowerCase().includes(consulta)
     );
   });
 
   // Crear
   protected readonly rolesCatalogo = ROLES_SISTEMA;
-  protected readonly rolesElegidos = signal<Set<SystemRole>>(new Set(['DOCENTE']));
+  protected readonly rolElegido = signal<SystemRole>('DOCENTE');
   protected readonly cargandoCreacion = signal(false);
   protected readonly errorCreacion = signal<string | null>(null);
   protected readonly exitoCreacion = signal<string | null>(null);
@@ -227,7 +228,7 @@ export class UsuariosPage implements OnInit {
   // Editar
   protected readonly editando = signal<User | null>(null);
   protected readonly nombreEdicion = signal('');
-  protected readonly rolesEdicion = signal<Set<SystemRole>>(new Set());
+  protected readonly rolEdicion = signal<SystemRole>('DOCENTE');
   protected readonly cargandoEdicion = signal(false);
   protected readonly errorEdicion = signal<string | null>(null);
   protected readonly exitoEdicion = signal<string | null>(null);
@@ -242,30 +243,6 @@ export class UsuariosPage implements OnInit {
 
   protected buscar(texto: string): void {
     this.textoBusqueda.set(texto);
-  }
-
-  protected alternarRol(rol: SystemRole): void {
-    this.rolesElegidos.update(roles => {
-      const siguiente = new Set(roles);
-      if (siguiente.has(rol)) {
-        siguiente.delete(rol);
-      } else {
-        siguiente.add(rol);
-      }
-      return siguiente;
-    });
-  }
-
-  protected alternarRolEdicion(rol: SystemRole): void {
-    this.rolesEdicion.update(roles => {
-      const siguiente = new Set(roles);
-      if (siguiente.has(rol)) {
-        siguiente.delete(rol);
-      } else {
-        siguiente.add(rol);
-      }
-      return siguiente;
-    });
   }
 
   protected rotuloRol(rol: SystemRole): string {
@@ -286,7 +263,7 @@ export class UsuariosPage implements OnInit {
       fullName: formulario.querySelector<HTMLInputElement>('#nombre')!.value.trim(),
       email: formulario.querySelector<HTMLInputElement>('#correo')!.value.trim(),
       password: formulario.querySelector<HTMLInputElement>('#clave')!.value,
-      roles: [...this.rolesElegidos()]
+      role: this.rolElegido()
     };
 
     this.cargandoCreacion.set(true);
@@ -296,7 +273,7 @@ export class UsuariosPage implements OnInit {
       next: usuario => {
         this.cargandoCreacion.set(false);
         this.exitoCreacion.set(`Cuenta creada para ${usuario.fullName}.`);
-        this.rolesElegidos.set(new Set(['DOCENTE']));
+        this.rolElegido.set('DOCENTE');
         formulario.reset();
         this.cargarDirectorio();
       },
@@ -310,7 +287,7 @@ export class UsuariosPage implements OnInit {
   protected iniciarEdicion(usuario: User): void {
     this.editando.set(usuario);
     this.nombreEdicion.set(usuario.fullName);
-    this.rolesEdicion.set(new Set(usuario.roles as SystemRole[]));
+    this.rolEdicion.set(usuario.role);
     this.errorEdicion.set(null);
     this.exitoEdicion.set(null);
     this.pestanaActiva.set('editar');
@@ -324,7 +301,7 @@ export class UsuariosPage implements OnInit {
     }
     const command: UpdateUserAccountCommand = {
       fullName: this.nombreEdicion().trim(),
-      roles: [...this.rolesEdicion()]
+      role: this.rolEdicion()
     };
 
     this.cargandoEdicion.set(true);
@@ -334,6 +311,8 @@ export class UsuariosPage implements OnInit {
       next: actualizado => {
         this.cargandoEdicion.set(false);
         this.exitoEdicion.set(`Cuenta de ${actualizado.fullName} actualizada.`);
+        this.authService.sesion.update(sesion => sesion?.correo === actualizado.email
+          ? { ...sesion, nombre: actualizado.fullName, rol: actualizado.role } : sesion);
         this.usuarios.update(lista => lista.map(u => (u.id === actualizado.id ? actualizado : u)));
       },
       error: (err: HttpErrorResponse) => {
@@ -388,7 +367,7 @@ export class UsuariosPage implements OnInit {
       return detalle ?? 'Ya existe una cuenta con ese correo.';
     }
     if (err.status === 400) {
-      return detalle ?? 'Datos inválidos: revisa nombre, correo, clave (mín. 8) y roles.';
+      return detalle ?? 'Datos inválidos: revisa nombre, correo, clave (mín. 8) y rol.';
     }
     if (err.status === 401 || err.status === 403) {
       return 'Solo el administrador puede crear cuentas con esta API.';
@@ -402,7 +381,7 @@ export class UsuariosPage implements OnInit {
       return detalle ?? 'La cuenta ya no existe en el directorio.';
     }
     if (err.status === 400) {
-      return detalle ?? 'Datos inválidos: revisa nombre y roles.';
+      return detalle ?? 'Datos inválidos: revisa nombre y rol.';
     }
     if (err.status === 401 || err.status === 403) {
       return 'Solo el administrador puede editar cuentas con esta API.';

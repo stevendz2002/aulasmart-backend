@@ -1,7 +1,7 @@
 package co.edu.uceva.aulasmart.users.domain.model;
 
 import java.time.Instant;
-import java.util.List;
+
 
 /**
  * Perfil de un usuario del sistema: el administrador lo consulta y crea
@@ -12,7 +12,7 @@ public record PerfilUsuario(
         String nombre,
         String correo,
         boolean activo,
-        List<String> roles,
+        String rol,
         Instant creadoEn
 ) {
 }

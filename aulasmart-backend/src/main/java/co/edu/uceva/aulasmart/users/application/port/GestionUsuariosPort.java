@@ -16,11 +16,11 @@ public interface GestionUsuariosPort {
 
     boolean existeCorreo(String correo);
 
-    PerfilUsuario crear(String nombre, String correo, String claveCodificada, List<String> roles);
+    PerfilUsuario crear(String nombre, String correo, String claveCodificada, String rol);
 
     /**
      * Edita una cuenta existente: los campos en null no se modifican.
      * Devuelve el perfil vigente tras el cambio.
      */
-    PerfilUsuario editar(Long idUsuario, String nombre, List<String> roles, Boolean activo);
+    PerfilUsuario editar(Long idUsuario, String nombre, String rol, Boolean activo);
 }

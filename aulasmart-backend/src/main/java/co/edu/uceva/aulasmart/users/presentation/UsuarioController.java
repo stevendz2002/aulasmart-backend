@@ -55,7 +55,7 @@ public class UsuarioController {
                 request.nombre(),
                 request.correo(),
                 request.clave(),
-                request.roles()
+                request.rol()
         );
         return UsuarioResponse.desde(perfil);
     }
@@ -76,7 +76,7 @@ public class UsuarioController {
         var perfil = gestionUsuariosService.editar(
                 idUsuario,
                 request.nombre(),
-                request.roles(),
+                request.rol(),
                 request.activo(),
                 idSolicitante
         );

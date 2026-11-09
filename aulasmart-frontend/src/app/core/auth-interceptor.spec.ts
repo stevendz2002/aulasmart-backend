@@ -15,7 +15,7 @@ describe('Credenciales limitadas a AulaSmart', () => {
     ] });
     http = TestBed.inject(HttpClient);
     requests = TestBed.inject(HttpTestingController);
-    TestBed.inject(AuthService).sesion.set({ correo: 'docente', nombre: null, roles: ['DOCENTE'], claveCodificada: 'credencial' });
+    TestBed.inject(AuthService).sesion.set({ correo: 'docente', nombre: null, rol: 'DOCENTE', claveCodificada: 'credencial' });
   });
   afterEach(() => requests.verify());
 

@@ -14,7 +14,7 @@ import java.util.List;
 public record SesionResponse(
         String correo,
         String nombre,
-        List<String> roles
+        String rol
 ) {
 
     public static SesionResponse desde(
@@ -25,6 +25,7 @@ public record SesionResponse(
                 .map(GrantedAuthority::getAuthority)
                 .map(autoridad -> autoridad.replaceFirst("^ROLE_", ""))
                 .toList();
-        return new SesionResponse(authentication.getName(), nombreDeLaCuenta, roles);
+        if (roles.size() != 1) throw new IllegalStateException("La sesión requiere exactamente un rol.");
+        return new SesionResponse(authentication.getName(), nombreDeLaCuenta, roles.get(0));
     }
 }

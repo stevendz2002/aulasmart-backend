@@ -46,7 +46,7 @@ describe('Sidebar', () => {
     authService.sesion.set({
       correo: 'docente@prueba.aulasmart.local',
       nombre: 'PRUEBA Docente',
-      roles: ['DOCENTE'],
+      rol: 'DOCENTE',
       claveCodificada: 'x'
     });
     const f = fixture();
@@ -60,7 +60,7 @@ describe('Sidebar', () => {
     authService.sesion.set({
       correo: 'secretaria@prueba.aulasmart.local',
       nombre: 'PRUEBA Revisor',
-      roles: ['ADMINISTRATIVO'],
+      rol: 'ADMINISTRATIVO',
       claveCodificada: 'x'
     });
     const f = fixture();
@@ -83,7 +83,7 @@ describe('Sidebar', () => {
     authService.sesion.set({
       correo: 'admin@prueba.aulasmart.local',
       nombre: 'PRUEBA Administrador',
-      roles: ['ADMINISTRADOR'],
+      rol: 'ADMINISTRADOR',
       claveCodificada: 'x'
     });
     const f = fixture();

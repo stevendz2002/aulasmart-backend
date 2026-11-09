@@ -23,7 +23,7 @@ describe('AuthService', () => {
   });
 
   it('login adjunta la credencial Basic y publica la sesion con el nombre real', () => {
-    let sesionRecibida: { correo: string; nombre: string | null; roles: string[]; claveCodificada: string } | null =
+    let sesionRecibida: { correo: string; nombre: string | null; rol: string; claveCodificada: string } | null =
       null;
     service.login('docente@prueba.aulasmart.local', 'password').subscribe(s => (sesionRecibida = s));
 
@@ -31,11 +31,11 @@ describe('AuthService', () => {
     expect(req.request.headers.get('Authorization')).toBe(
       'Basic ' + btoa('docente@prueba.aulasmart.local:password')
     );
-    req.flush({ correo: 'docente@prueba.aulasmart.local', nombre: 'PRUEBA Docente', roles: ['DOCENTE'] });
+    req.flush({ correo: 'docente@prueba.aulasmart.local', nombre: 'PRUEBA Docente', rol: 'DOCENTE' });
 
     expect(sesionRecibida!.correo).toBe('docente@prueba.aulasmart.local');
     expect(sesionRecibida!.nombre).toBe('PRUEBA Docente');
-    expect(service.sesion()?.roles).toEqual(['DOCENTE']);
+    expect(service.sesion()?.rol).toEqual('DOCENTE');
     expect(sessionStorage.getItem('aulasmart.sesion')).toBeNull();
   });
 
@@ -43,7 +43,7 @@ describe('AuthService', () => {
     service.login('docente@prueba.aulasmart.local', 'password').subscribe();
     peticiones
       .expectOne('http://localhost:8080/api/usuarios/whoami')
-      .flush({ correo: 'docente@prueba.aulasmart.local', nombre: null, roles: ['DOCENTE'] });
+      .flush({ correo: 'docente@prueba.aulasmart.local', nombre: null, rol: 'DOCENTE' });
 
     expect(service.sesion()?.nombre).toBeNull();
   });
@@ -51,7 +51,7 @@ describe('AuthService', () => {
   it('logout limpia la sesion y el almacen local', () => {
     service.login('docente@prueba.aulasmart.local', 'password').subscribe();
     peticiones.expectOne('http://localhost:8080/api/usuarios/whoami')
-      .flush({ correo: 'docente@prueba.aulasmart.local', nombre: 'PRUEBA Docente', roles: ['DOCENTE'] });
+      .flush({ correo: 'docente@prueba.aulasmart.local', nombre: 'PRUEBA Docente', rol: 'DOCENTE' });
 
     service.logout();
 

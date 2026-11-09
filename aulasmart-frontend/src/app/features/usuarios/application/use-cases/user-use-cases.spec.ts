@@ -11,7 +11,7 @@ const usuario: User = {
   fullName: 'PRUEBA Administrador',
   email: 'admin@prueba.aulasmart.local',
   active: true,
-  roles: ['ADMINISTRADOR'],
+  role: 'ADMINISTRADOR',
   createdAt: 'c'
 };
 
@@ -45,7 +45,7 @@ describe('Casos de uso de usuarios', () => {
       fullName: 'Ana María Restrepo',
       email: 'ana@uceva.edu.co',
       password: 'claveSegura1',
-      roles: ['DOCENTE']
+      role: 'DOCENTE'
     };
 
     useCase.execute(command).subscribe();

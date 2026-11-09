@@ -7,13 +7,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
+
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
+
+
 
 @Entity
 @Table(name = "usuario")
@@ -32,13 +32,9 @@ public class UsuarioEntity {
     private boolean activo;
     @Column(name = "creado_en")
     private Instant creadoEn;
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "usuario_rol",
-            joinColumns = @JoinColumn(name = "id_usuario"),
-            inverseJoinColumns = @JoinColumn(name = "id_rol")
-    )
-    private Set<RolEntity> roles = new HashSet<>();
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_rol", nullable = false)
+    private RolEntity rol;
 
     protected UsuarioEntity() {
     }
@@ -81,12 +77,12 @@ public class UsuarioEntity {
         return creadoEn;
     }
 
-    public Set<RolEntity> getRoles() {
-        return roles;
+    public RolEntity getRol() {
+        return rol;
     }
 
-    public void asignarRoles(Set<RolEntity> roles) {
-        this.roles = roles;
+    public void asignarRol(RolEntity rol) {
+        this.rol = java.util.Objects.requireNonNull(rol, "El rol es obligatorio.");
     }
 
     /** Edición del perfil por el administrador (nombre de la cuenta). */

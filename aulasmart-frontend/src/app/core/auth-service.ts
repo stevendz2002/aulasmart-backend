@@ -9,13 +9,13 @@ interface PerfilWhoami {
   correo: string;
   /** Nombre real de la cuenta (tabla usuario); null si no se resuelve. */
   nombre: string | null;
-  roles: string[];
+  rol: string;
 }
 
 interface SesionGuardada {
   correo: string;
   nombre: string | null;
-  roles: string[];
+  rol: string;
   claveCodificada: string;
 }
 
@@ -47,7 +47,7 @@ export class AuthService {
 
   tieneAlgunRol(rolesPermitidos: string[]): boolean {
     const sesion = this.sesion();
-    return sesion !== null && rolesPermitidos.some(rol => sesion.roles.includes(rol));
+    return sesion !== null && rolesPermitidos.includes(sesion.rol);
   }
 
   constructor() {

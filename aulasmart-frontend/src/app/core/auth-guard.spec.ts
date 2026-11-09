@@ -31,7 +31,7 @@ describe('requiereRoles', () => {
     authService.sesion.set({
       correo: 'docente@prueba.aulasmart.local',
       nombre: null,
-      roles: ['DOCENTE'],
+      rol: 'DOCENTE',
       claveCodificada: 'x'
     });
     const resultado = evaluar(requiereRoles('ADMINISTRADOR'));
@@ -42,7 +42,7 @@ describe('requiereRoles', () => {
     authService.sesion.set({
       correo: 'docente@prueba.aulasmart.local',
       nombre: 'PRUEBA Docente',
-      roles: ['DOCENTE'],
+      rol: 'DOCENTE',
       claveCodificada: 'x'
     });
     const resultado = evaluar(requiereRoles('DOCENTE', 'ADMINISTRADOR'));
@@ -53,7 +53,7 @@ describe('requiereRoles', () => {
     authService.sesion.set({
       correo: 'estudiante@prueba.aulasmart.local',
       nombre: null,
-      roles: ['ESTUDIANTE'],
+      rol: 'ESTUDIANTE',
       claveCodificada: 'x'
     });
     const resultado = evaluar(requiereRoles());

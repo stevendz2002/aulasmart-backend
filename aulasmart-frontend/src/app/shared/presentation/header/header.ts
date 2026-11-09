@@ -81,7 +81,7 @@ import { ShellState } from '../shell-state';
             <span class="avatar">{{ iniciales() }}</span>
             <span class="datos">
               <span class="nombre">{{ nombre() }}</span>
-              <span class="rol">{{ sesion.roles.join(' · ') }}</span>
+              <span class="rol">{{ sesion.rol }}</span>
             </span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="m7 10 5 5 5-5" />

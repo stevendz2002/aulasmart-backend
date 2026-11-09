@@ -17,8 +17,8 @@ class SesionResponseTest {
                 "docente@prueba.aulasmart.local",
                 "n/a",
                 List.of(
-                        new SimpleGrantedAuthority("ROLE_DOCENTE"),
-                        new SimpleGrantedAuthority("ROLE_ESTUDIANTE")
+                        new SimpleGrantedAuthority("ROLE_DOCENTE")
+
                 )
         );
 
@@ -26,7 +26,7 @@ class SesionResponseTest {
 
         assertEquals("docente@prueba.aulasmart.local", sesion.correo());
         assertEquals("PRUEBA Docente", sesion.nombre());
-        assertEquals(List.of("DOCENTE", "ESTUDIANTE"), sesion.roles());
+        assertEquals("DOCENTE", sesion.rol());
     }
 
     @Test
@@ -41,6 +41,6 @@ class SesionResponseTest {
 
         assertEquals("docente@prueba.aulasmart.local", sesion.correo());
         assertEquals(null, sesion.nombre());
-        assertEquals(List.of("DOCENTE"), sesion.roles());
+        assertEquals("DOCENTE", sesion.rol());
     }
 }

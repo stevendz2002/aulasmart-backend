@@ -1,6 +1,6 @@
 # Arquitectura y decisiones de AulaSmart
 
-Revisión: 2026-11-08, `refactor/architecture`, cambios sin commit sobre `4cd75fc`.
+Revisión: 2026-11-08, `feature/single-user-role`, fase 2 local sobre `7030f16`.
 
 ## Mapa del sistema
 
@@ -10,8 +10,8 @@ Revisión: 2026-11-08, `refactor/architecture`, cambios sin commit sobre `4cd75f
   adaptadores JPA consultan catálogo, horarios y estado de sincronización.
 - `solicitudes`: registro pendiente, revisión y consulta por permisos. Conserva
   la restricción PostgreSQL EXCLUDE para impedir aprobaciones solapadas.
-- `users`: cuentas persistidas, múltiples roles actualmente, BCrypt y Basic.
-  El rol único y JWT pertenecen a fases posteriores.
+- `users`: cuentas persistidas con un único rol obligatorio, BCrypt y Basic.
+  JWT pertenece a la fase 4.
 - `integrations/siga`: consulta HTTP de catálogo/eventos, sincronización inicial,
   manual y programada. No hay escritura de reservas institucionales implementada.
 - `shared/presentation`: traducción central de errores a respuestas HTTP.
@@ -59,4 +59,15 @@ requieren `AULASMART_ALLOW_TEST_ACCOUNTS=true`, deshabilitado por defecto.
   contraseñas de prueba habilitadas es exclusivamente para desarrollo controlado.
 - La URL de API del frontend sigue siendo local; adaptarla al despliegue en fase 4.
 - La interfaz conserva el presupuesto CSS excedido previo, a tratar en fase 3.
-- La migración de rol único requiere inventario y decisiones de negocio en fase 2.
+- V9 exige preflight y decisiones explícitas si una base contiene cuentas sin rol o con varios.
+
+## Decisiones de fase 2
+
+- `usuario.id_rol` obligatorio reemplaza la relación múltiple. V9 preserva
+  `usuario_rol_historial_v9`; el historial no interviene en permisos.
+- El contrato de API y sesión usa `rol` singular; el frontend usa `role` internamente.
+  Se rechazan campos heredados `roles`, arrays, rol vacío y null explícito.
+- Las ediciones bloquean la fila ADMINISTRADOR durante la transacción para
+  impedir que cambios concurrentes eliminen al último administrador habilitado.
+  Las cuentas sintéticas deshabilitadas por configuración no cuentan como acceso disponible.
+- La edición de la cuenta propia actualiza el rol de su sesión en memoria.

@@ -29,7 +29,7 @@ La decisión monolito modular frente a microservicios se revisará solo con evid
 
 - **Java 17 / Spring Boot 3.5.7**: Web MVC, Security (autenticación Basic y autorización por rol), Validation, Data JPA (Hibernate), Actuator.
 - **Angular 21.2** (SPA, señales y standalone components; `npm start` en `http://localhost:4200`).
-- **PostgreSQL 17.4** en Docker Compose (puerto 5433, base `aulasmart_test`), migraciones Flyway V1→V8.
+- **PostgreSQL 17.4** en Docker Compose (puerto 5433, base `aulasmart_test`), migraciones Flyway V1→V9.
 - **Roles**: `ESTUDIANTE`, `DOCENTE`, `ADMINISTRATIVO`, `ADMINISTRADOR`. El docente crea solicitudes; el administrativo revisa; **solo el administrador crea cuentas** (el administrativo no ve la gestión de usuarios).
 
 La integridad de las reservas no depende de la aplicación sola: intervalos `TIMESTAMPTZ`, restricciones CHECK de fechas/estados/auditoría y una **restricción de exclusión (EXCLUDE)** que impide en la base dos reservas APROBADAS solapadas en la misma aula.
@@ -44,7 +44,7 @@ Ruta | Método | Descripción
 `/api/solicitudes` | GET / POST | Consultar o registrar una solicitud de reserva (DOCENTE)
 `/api/solicitudes/{idSolicitud}/revision` | POST | Revisar una solicitud (ADMINISTRATIVO/ADMINISTRADOR)
 `/api/usuarios` | GET / POST | Directorio y creación de cuentas (solo ADMINISTRADOR)
-`/api/usuarios/whoami` | GET | Perfil de la sesión activa (correo, nombre real y roles)
+`/api/usuarios/whoami` | GET | Perfil de la sesión activa (correo, nombre real y rol único)
 `/api/sincronizaciones` | POST | Lanzar una corrida de sincronización con SIGA (`recurso=AULAS` o `recurso=EVENTOS`)
 
 ## Puesta en marcha
@@ -74,7 +74,7 @@ docker compose down
 # 1. Base de datos
 docker compose up -d db
 
-# 2. Backend (Flyway aplica las migraciones V1→V8 al arrancar)
+# 2. Backend (Flyway aplica las migraciones V1→V9 al arrancar)
 cd aulasmart-backend
 ./mvnw spring-boot:run  # http://localhost:8080
 
@@ -98,3 +98,12 @@ Jhon Edward Steven Loaiza Díaz · Ingeniería de Sistemas · Unidad Central del
 La documentación académica del proyecto se gestiona localmente y se excluye del repositorio. Los documentos técnicos de continuidad listados en `docs/README.md` sí están habilitados para versionarse (ver `/.gitignore`).
 
 Tras aplicar V8, sincronizar AULAS y luego EVENTOS: las corridas antiguas no tienen cobertura verificable. La sesión Basic permanece solo en memoria; recargar la página requiere iniciar sesión otra vez. JWT queda para la fase 4.
+
+## Rol único (fase 2)
+
+Las cuentas y `/api/usuarios/whoami` exponen `rol` singular. Desplegar backend
+y frontend juntos; el contrato anterior `roles[]` se rechaza. Antes de V9,
+ejecutar `database/validation/002_preflight_rol_unico.sql` sobre el esquema V8.
+Si devuelve cuentas ambiguas, acordar la asignación y registrar el mapeo mediante
+`003_resolucion_rol_unico.sql` antes de arrancar. V9 conserva las asociaciones
+anteriores en `usuario_rol_historial_v9`. Detalles en `docs/fase-2.md`.

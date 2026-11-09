@@ -83,7 +83,7 @@ class Phase0PostgresTest {
 
     @Test
     void migracionesAplicadasYRevisionVersionada() {
-        assertEquals("8", jdbc.queryForObject("SELECT version FROM flyway_schema_history WHERE success AND version IS NOT NULL ORDER BY installed_rank DESC LIMIT 1", String.class));
+        assertEquals("9", jdbc.queryForObject("SELECT version FROM flyway_schema_history WHERE success AND version IS NOT NULL ORDER BY installed_rank DESC LIMIT 1", String.class));
         solicitud(-101);
         revisar.revisar(-101L, 9002L, "RECHAZAR");
         assertEquals(1L, jdbc.queryForObject("SELECT version FROM solicitud_aula WHERE id_solicitud=-101", Long.class));

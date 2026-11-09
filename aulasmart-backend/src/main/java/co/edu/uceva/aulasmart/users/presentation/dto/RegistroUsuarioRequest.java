@@ -1,6 +1,6 @@
 package co.edu.uceva.aulasmart.users.presentation.dto;
 
-import java.util.List;
+
 
 /**
  * Datos de registro de una nueva cuenta. Solo el rol ADMINISTRADOR puede
@@ -10,6 +10,10 @@ public record RegistroUsuarioRequest(
         String nombre,
         String correo,
         String clave,
-        List<String> roles
+        String rol
 ) {
+    @com.fasterxml.jackson.annotation.JsonAnySetter
+    public void rechazarCampoDesconocido(String nombre, Object valor) {
+        throw new IllegalArgumentException("Campo no admitido: " + nombre + ". Use rol singular.");
+    }
 }

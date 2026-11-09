@@ -1,18 +1,18 @@
 # Plan maestro de evolución de AulaSmart
 
-Revisión: 2026-11-08. Base: `4cd75fc`; trabajo actual sin commit.
+Revisión: 2026-11-08. Base: `7030f16`; fase 2 local en `feature/single-user-role`.
 
 ## Orden y alcance
 
 1. **Fase 0: auditoría y estabilización.** Autorizada completa, implementada y
-   validada en desarrollo; cambios sin commit. Se corrigieron hallazgos de
+   validada y publicada en `origin/refactor/architecture` (`7030f16`). Se corrigieron hallazgos de
    disponibilidad, concurrencia y seguridad inmediata, conservando el monolito
    modular. Entrega y límites en [fase 0](fase-0.md).
-2. **Fase 2: rol único.** Autorizada para implementación. Simplificar persistencia,
+2. **Fase 2: rol único.** Implementada, validada y aprobada para publicación (2026-11-09). Se simplificaron persistencia,
    DTOs, formularios y permisos; migración explícita para cuentas con cero o varios
    roles, sin eliminar usuarios ni asignar privilegios automáticamente.
    Alcance aprobado en [fase 2](fase-2.md).
-3. **Fase 1: consolidar interacción y solicitudes.** Pendiente de autorización.
+3. **Fase 1: consolidar interacción y solicitudes.** Autorizada el 2026-11-09.
    Reutilizar detalles, horarios, formulario, registro y seguimiento existentes.
    Depende de permisos definitivos y disponibilidad fiable.
 4. **Fase 3: rediseño de consulta.** Pendiente de autorización. Propuesta visual

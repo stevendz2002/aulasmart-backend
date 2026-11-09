@@ -8,7 +8,7 @@ import co.edu.uceva.aulasmart.users.domain.exception.RolInvalidoException;
 import co.edu.uceva.aulasmart.users.domain.model.PerfilUsuario;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedHashSet;
+
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -44,7 +44,7 @@ public class GestionUsuariosService {
         return gestionUsuariosPort.listar();
     }
 
-    public PerfilUsuario crear(String nombre, String correo, String clave, List<String> roles) {
+    public PerfilUsuario crear(String nombre, String correo, String clave, String rol) {
         var nombreLimpio = textoONulo(nombre);
         var correoLimpio = textoONulo(correo);
 
@@ -57,17 +57,14 @@ public class GestionUsuariosService {
         if (clave == null || clave.length() < 8) {
             throw new RegistroInvalidoException("La clave de la cuenta debe tener al menos 8 caracteres.");
         }
-        var rolesLimpios = normalizarRoles(roles);
-        if (rolesLimpios.isEmpty()) {
-            throw new RegistroInvalidoException("La cuenta necesita al menos un rol del catálogo.");
-        }
+        var rolLimpio = normalizarRol(rol);
 
         if (gestionUsuariosPort.existeCorreo(correoLimpio)) {
             throw new CorreoYaRegistradoException(correoLimpio);
         }
 
         var claveCodificada = codificadorClavesPort.codificar(clave);
-        return gestionUsuariosPort.crear(nombreLimpio, correoLimpio, claveCodificada, List.copyOf(rolesLimpios));
+        return gestionUsuariosPort.crear(nombreLimpio, correoLimpio, claveCodificada, rolLimpio);
     }
 
     /**
@@ -78,7 +75,7 @@ public class GestionUsuariosService {
     public PerfilUsuario editar(
             Long idUsuario,
             String nombre,
-            List<String> roles,
+            String rol,
             Boolean activo,
             Long idSolicitante
     ) {
@@ -92,10 +89,7 @@ public class GestionUsuariosService {
                 throw new RegistroInvalidoException("El nombre debe tener entre 1 y 120 caracteres.");
             }
         }
-        var rolesLimpios = roles == null ? null : normalizarRoles(roles);
-        if (rolesLimpios != null && rolesLimpios.isEmpty()) {
-            throw new RegistroInvalidoException("La cuenta necesita al menos un rol del catálogo.");
-        }
+        var rolLimpio = rol == null ? null : normalizarRol(rol);
         if (Boolean.FALSE.equals(activo) && idUsuario.equals(idSolicitante)) {
             throw new RegistroInvalidoException("El administrador no puede desactivar su propia cuenta.");
         }
@@ -103,28 +97,17 @@ public class GestionUsuariosService {
         return gestionUsuariosPort.editar(
                 idUsuario,
                 nombreLimpio,
-                rolesLimpios == null ? null : List.copyOf(rolesLimpios),
+                rolLimpio,
                 activo
         );
     }
 
-    /** Normaliza, deduplica y valida los roles contra el catálogo real. */
-    private Set<String> normalizarRoles(List<String> roles) {
-        if (roles == null || roles.isEmpty()) {
-            return Set.of();
-        }
-        var rolesLimpios = new LinkedHashSet<String>();
-        for (String rol : roles) {
-            var rolLimpio = rol == null ? "" : rol.trim().toUpperCase(Locale.ROOT);
-            if (rolLimpio.isEmpty()) {
-                continue;
-            }
-            if (!ROLES_VALIDOS.contains(rolLimpio)) {
-                throw new RolInvalidoException(rolLimpio);
-            }
-            rolesLimpios.add(rolLimpio);
-        }
-        return rolesLimpios;
+    /** Valida un único rol contra el catálogo. */
+    private String normalizarRol(String rol) {
+        String limpio = rol == null ? "" : rol.trim().toUpperCase(Locale.ROOT);
+        if (limpio.isEmpty()) throw new RegistroInvalidoException("La cuenta necesita exactamente un rol.");
+        if (!ROLES_VALIDOS.contains(limpio)) throw new RolInvalidoException(limpio);
+        return limpio;
     }
 
     private String textoONulo(String texto) {
