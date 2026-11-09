@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectionStrategy, computed, inject, signal } from '@angular/core';
 
+import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../../core/auth-service';
 import {
   CREATE_CLASSROOM_REQUEST_USE_CASE,
@@ -23,7 +24,7 @@ interface PestanaEstado {
 }
 
 function horaCorta(iso: string): string {
-  return new Date(iso).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+  return new Date(iso).toLocaleTimeString('es-CO', { timeZone: 'America/Bogota', hour: '2-digit', minute: '2-digit' });
 }
 
 /**
@@ -33,7 +34,7 @@ function horaCorta(iso: string): string {
  * (un pedido `ALL`) y el filtro es del lado del cliente: no se inventan
  * endpoints ni chiffres. DOCENTE conserva su formulario de registro y ve su
  * propio listado; para todos los roles el "solicitante" se muestra como
- * `Docente id N` porque la API no expone nombres de personas.
+ * `Usuario id N` porque la API no expone nombres de personas.
  */
 @Component({
   selector: 'app-solicitudes-page',
@@ -46,9 +47,9 @@ function horaCorta(iso: string): string {
         <h2>Solicitudes de aula</h2>
         <p class="ayuda">
           @if (esDocente()) {
-            Registra tu reserva y sigue su estado: un revisor del área administrativa la aprobará o la rechazará.
+            Registra tu solicitud y sigue su estado: un revisor del área administrativa la aprobará o la rechazará.
           } @else if (esRevisor()) {
-            Revisa las solicitudes pendientes y decide: aprobar reserva el aula en la franja, rechazar la devuelve al docente.
+            Revisa las solicitudes pendientes y decide: aprobar registra una asignación local; no confirma una reserva institucional.
           } @else {
             Histórico de solicitudes de reserva de aulas.
           }
@@ -56,11 +57,11 @@ function horaCorta(iso: string): string {
       </div>
     </header>
 
-    @if (esDocente()) {
+    @if (puedeSolicitar()) {
       <section class="tarjeta registro">
         <header>
           <h3>Registrar nueva solicitud</h3>
-          <span class="apagada">El intervalo obedece la semántica [inicio, fin)</span>
+          <span class="apagada">Horarios de Colombia. Una solicitud queda pendiente de revisión.</span>
         </header>
         <form class="formulario" (submit)="registrarReserva($event)">
           <label>
@@ -82,7 +83,7 @@ function horaCorta(iso: string): string {
           </label>
           <label>
             Motivo
-            <textarea id="motivoNueva" rows="2" maxlength="300" placeholder="Clase de refuerzo, monitoria, defensa de proyecto…"></textarea>
+            <textarea required id="motivoNueva" rows="2" maxlength="300" placeholder="Clase de refuerzo, monitoria, defensa de proyecto…"></textarea>
           </label>
           <button class="boton" type="submit" [disabled]="registrando()">
             {{ registrando() ? 'Enviando…' : 'Enviar solicitud' }}
@@ -133,7 +134,9 @@ function horaCorta(iso: string): string {
       }
 
       <div class="tabla-envoltorio">
-        @if (solicitudes() === null || cargando()) {
+        @if (errorCarga()) {
+          <button type="button" class="boton secundario" (click)="cargar('ALL')">Reintentar</button>
+        } @else if (solicitudes() === null || cargando()) {
           <p class="mensaje-info">Consultando solicitudes…</p>
         } @else if (visibles().length === 0) {
           <p class="mensaje-info">
@@ -164,7 +167,7 @@ function horaCorta(iso: string): string {
                   <td class="aula">{{ nombreAula(solicitud.classroomId) }}</td>
                   <td>{{ fecha(solicitud.start) }}</td>
                   <td>{{ horaCorta(solicitud.start) }} – {{ horaCorta(solicitud.end) }}</td>
-                  <td>Docente id {{ solicitud.requesterId }}</td>
+                  <td>Usuario id {{ solicitud.requesterId }}</td>
                   <td class="motivo">{{ solicitud.reason }}</td>
                   <td><span class="estado {{ solicitud.status }}">{{ solicitud.status }}</span></td>
                   @if (esRevisor()) {
@@ -175,6 +178,7 @@ function horaCorta(iso: string): string {
                           class="accion si"
                           title="Aprobar"
                           aria-label="Aprobar la solicitud SOL-{{ solicitud.id }}"
+                          [disabled]="revisando().has(solicitud.id)"
                           (click)="decidir(solicitud, 'APROBAR')"
                         >✓</button>
                         <button
@@ -182,6 +186,7 @@ function horaCorta(iso: string): string {
                           class="accion no"
                           title="Rechazar"
                           aria-label="Rechazar la solicitud SOL-{{ solicitud.id }}"
+                          [disabled]="revisando().has(solicitud.id)"
                           (click)="decidir(solicitud, 'RECHAZAR')"
                         >✕</button>
                       } @else {
@@ -200,6 +205,9 @@ function horaCorta(iso: string): string {
   `
 })
 export class SolicitudesPage implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+  protected readonly revisando = signal<Set<number>>(new Set());
+  protected readonly puedeSolicitar = computed(() => this.esDocente() || this.esRevisor());
   private readonly authService = inject(AuthService);
   private readonly getAllClassrooms = inject<GetAllClassroomsUseCase>(GET_ALL_CLASSROOMS_USE_CASE);
   private readonly getRequests = inject<GetClassroomRequestsUseCase>(GET_CLASSROOM_REQUESTS_USE_CASE);
@@ -255,17 +263,20 @@ export class SolicitudesPage implements OnInit {
       if (texto === '') {
         return true;
       }
-      const aguja = texto.replace(/^sol-/, '');
+      if (/^sol-\d+$/.test(texto)) return solicitud.id === Number(texto.slice(4));
+      const aguja = texto;
       return (
         String(solicitud.id).includes(aguja) ||
         this.nombreAula(solicitud.classroomId).toLowerCase().includes(aguja) ||
-        `docente id ${solicitud.requesterId}`.includes(aguja) ||
+        `usuario id ${solicitud.requesterId}`.includes(aguja) ||
         solicitud.reason.toLowerCase().includes(aguja)
       );
     });
   });
 
   ngOnInit(): void {
+    const id = this.route.snapshot.queryParamMap.get('solicitud');
+    if (id && /^\d+$/.test(id)) this.textoBusqueda.set('SOL-' + id);
     this.getAllClassrooms.execute({}).subscribe({
       next: aulas => {
         this.aulasParaReserva.set(aulas);
@@ -289,18 +300,21 @@ export class SolicitudesPage implements OnInit {
 
   protected registrarReserva(evento: Event): void {
     evento.preventDefault();
+    if (this.registrando() || !this.puedeSolicitar()) return;
 
     const aulaId = Number.parseInt(this.valor('#aulaNueva') ?? '', 10);
     const inicioTexto = this.valor('#inicioNueva');
     const finTexto = this.valor('#finNueva');
     const motivo = (this.valor('#motivoNueva') ?? '').trim();
 
-    if (!Number.isFinite(aulaId) || !inicioTexto || !finTexto) {
+    if (!Number.isFinite(aulaId) || !inicioTexto || !finTexto || !motivo) {
       this.registroExitoso.set(false);
-      this.mensajeRegistro.set('Completa aula, inicio y fin de la reserva.');
+      this.mensajeRegistro.set('Completa aula, inicio, fin y motivo de la solicitud.');
       return;
     }
-    if (new Date(inicioTexto).getTime() >= new Date(finTexto).getTime()) {
+    const inicio = new Date(inicioTexto + ':00-05:00');
+    const fin = new Date(finTexto + ':00-05:00');
+    if (!(inicio.getTime() < fin.getTime())) {
       this.registroExitoso.set(false);
       this.mensajeRegistro.set('El intervalo debe cumplir inicio < fin (semántica [inicio, fin)).');
       return;
@@ -310,8 +324,8 @@ export class SolicitudesPage implements OnInit {
     this.createRequest
       .execute({
         classroomId: aulaId,
-        start: new Date(inicioTexto),
-        end: new Date(finTexto),
+        start: inicio,
+        end: fin,
         reason: motivo
       })
       .subscribe({
@@ -334,14 +348,20 @@ export class SolicitudesPage implements OnInit {
   }
 
   protected decidir(solicitud: ClassroomRequest, decision: ReviewDecision): void {
+    if (!this.esRevisor() || solicitud.status !== 'PENDIENTE' || this.revisando().has(solicitud.id)) return;
+    this.revisando.update(ids => new Set(ids).add(solicitud.id));
+    this.mensajeRevision.set(null);
     this.reviewRequest.execute(solicitud.id, decision).subscribe({
       next: respuesta => {
+        this.solicitudes.update(lista => lista?.map(item => item.id === respuesta.id ? respuesta : item) ?? null);
+        this.terminarRevision(solicitud.id);
         this.revisionExitosa.set(true);
         this.mensajeRevision.set(`Solicitud SOL-${respuesta.id}: ${respuesta.status}.`);
         this.pestanaActiva.set('TODAS');
         this.cargar('ALL');
       },
       error: error => {
+        this.terminarRevision(solicitud.id);
         this.revisionExitosa.set(false);
         this.mensajeRevision.set(
           this.mensajeDe(
@@ -355,28 +375,37 @@ export class SolicitudesPage implements OnInit {
     });
   }
 
+  private terminarRevision(id: number): void {
+    this.revisando.update(ids => { const copia = new Set(ids); copia.delete(id); return copia; });
+  }
+
   protected nombreAula(classroomId: number): string {
     const aula = this.catalogoAulas.find(candidata => candidata.id === classroomId);
     return aula ? aula.name : `aula ${classroomId}`;
   }
 
   protected fecha(iso: string): string {
-    return new Date(iso).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+    return new Date(iso).toLocaleDateString('es-CO', { timeZone: 'America/Bogota', day: '2-digit', month: 'short', year: 'numeric' });
   }
 
   protected horaCorta(iso: string): string {
     return horaCorta(iso);
   }
 
-  private cargar(estado: RequestStatusFilter): void {
+  private consultaListadoId = 0;
+
+  protected cargar(estado: RequestStatusFilter): void {
+    const consultaId = ++this.consultaListadoId;
     this.cargando.set(true);
     this.errorCarga.set(null);
     this.getRequests.execute(estado).subscribe({
       next: solicitudes => {
+        if (consultaId !== this.consultaListadoId) return;
         this.solicitudes.set(solicitudes);
         this.cargando.set(false);
       },
       error: error => {
+        if (consultaId !== this.consultaListadoId) return;
         this.cargando.set(false);
         this.errorCarga.set(this.mensajeDe(error, 'No fue posible consultar las solicitudes.'));
       }

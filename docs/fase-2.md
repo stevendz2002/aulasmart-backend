@@ -1,7 +1,7 @@
 # Fase 2: rol único por usuario
 
-Estado: implementada y validada localmente; aprobada por el usuario para publicación el 2026-11-09.
-Revisión: 2026-11-08. Rama: `feature/single-user-role`, cambios sin commit sobre `7030f16`.
+Estado: implementada y validada localmente; aprobada y publicada el 2026-11-09.
+Revisión: 2026-11-09. Publicada en `origin/feature/single-user-role`, commit `621e3d6`.
 Fase 0 publicada en `origin/refactor/architecture`.
 
 ## Evidencia de partida (antes de implementar)

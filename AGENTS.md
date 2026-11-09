@@ -43,5 +43,13 @@
 - Fase 0 completa autorizada en esta sesión; rama autorizada: `refactor/architecture`.
 - El 2026-11-09 el usuario aprobó publicar la fase 2 (`feature/single-user-role`)
   y continuar fase 1 en `feature/classroom-request`; informó migración sin conflictos.
-- Fases 3 y 4 pendientes de autorización. Consultar `docs/fase-1.md` para el trabajo activo
-  y `docs/fase-2.md` para el cierre previo. No repetir la auditoría global.
+- El usuario autorizó publicar fase 1 y comenzar fase 3 el 2026-11-09.
+  Preparar propuesta visual antes de implementar, conforme al plan maestro.
+- Fase 4 pendiente de autorización. No repetir la auditoría global.
+
+## Punto de continuidad (2026-11-09)
+
+- Fase 2 publicada: `621e3d6` en `origin/feature/single-user-role`.
+- Rama activa: `feature/classroom-request`, fase 1 local implementada y validada.
+- Leer `docs/fase-1.md` antes de continuar: 74 pruebas frontend y build correctos;
+  publicación aprobada por el usuario. Backend sin cambios en esta fase.

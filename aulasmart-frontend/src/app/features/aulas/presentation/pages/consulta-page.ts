@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectionStrategy, WritableSignal, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router';
+import { AuthService } from '../../../../core/auth-service';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { GET_ALL_CLASSROOMS_USE_CASE, GET_AVAILABLE_CLASSROOMS_USE_CASE, GET_CLASSROOM_OCCUPATION_USE_CASE } from '../../application/classrooms-di';
 import { GetAllClassroomsUseCase } from '../../application/use-cases/get-all-classrooms.use-case';
@@ -34,6 +35,7 @@ const MOTIVOS_GENERICOS: readonly string[] = [
 
 @Component({
   selector: 'app-consulta-page',
+  imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './consulta-page.css',
   template: `
@@ -151,7 +153,10 @@ const MOTIVOS_GENERICOS: readonly string[] = [
       </div>
 
       <div class="grid-aulas">
-        @if (catalogo() === null || cargandoCatalogo() || cargandoDisponibilidad()) {
+        @if (errorCatalogo(); as error) {
+          <p class="mensaje-error" role="alert">{{ error }}</p>
+          <button type="button" class="boton secundario" (click)="cargarCatalogo({})">Reintentar catálogo</button>
+        } @else if (catalogo() === null || cargandoCatalogo() || cargandoDisponibilidad()) {
           <p class="mensaje-info">Consultando catálogo…</p>
         } @else if (visibles().length === 0) {
           <p class="mensaje-info">
@@ -187,9 +192,9 @@ const MOTIVOS_GENERICOS: readonly string[] = [
               }
               <div class="aula-card__acciones">
                 <button type="button" class="boton secundario" (click)="abrirDetalle(card)">Detalles</button>
-                <button type="button" class="boton boton-solicitar" (click)="abrirSolicitudDirecta(card)">
-                  Solicitar ↗
-                </button>
+                @if (puedeSolicitar()) {
+                  <button type="button" class="boton boton-solicitar" (click)="abrirSolicitudDirecta(card)">Solicitar ↗</button>
+                }
               </div>
             </article>
           }
@@ -198,7 +203,7 @@ const MOTIVOS_GENERICOS: readonly string[] = [
     </section>
 
     <!-- Modal 1: Ficha de detalles del aula -->
-    @if (detalleConstruido(); as card) {
+    @if (!modalSolicitudAbierto() && detalleConstruido(); as card) {
       <div class="modal-overlay" (click)="cerrarDetalle()">
         <div class="modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="detalle-titulo">
           <header class="modal__cabecera">
@@ -258,7 +263,9 @@ const MOTIVOS_GENERICOS: readonly string[] = [
 
           <footer class="modal__acciones">
             <button type="button" class="boton secundario" (click)="cerrarDetalle()">Cerrar</button>
-            <button type="button" class="boton boton-solicitar" (click)="abrirSolicitud()">Solicitar aula ↗</button>
+            @if (puedeSolicitar()) {
+              <button type="button" class="boton boton-solicitar" (click)="abrirSolicitud()">Solicitar aula ↗</button>
+            }
           </footer>
         </div>
       </div>
@@ -297,7 +304,7 @@ const MOTIVOS_GENERICOS: readonly string[] = [
             }
             @if (franjasLibres().length > 0 && (solicitudAula()?.id ?? -1) !== -1) {
               <div class="franjas-libres">
-                <span class="franjas-libres__etiqueta">Franjas libres hoy:</span>
+                <span class="franjas-libres__etiqueta">Franjas libres de {{ fechaSolicitud() }}:</span>
                 @for (f of franjasLibres(); track f.start) {
                   <button type="button" class="chip-franja" (click)="inicioSolicitud.set(f.start); finSolicitud.set(f.end)">
                     {{ f.label }}
@@ -305,11 +312,6 @@ const MOTIVOS_GENERICOS: readonly string[] = [
                 }
               </div>
             }
-
-            <label>
-              Asistentes
-              <input type="number" min="1" [value]="asistentes()" (input)="asistentes.set($any($event.target).valueAsNumber)" />
-            </label>
 
             <label>
               Motivo
@@ -337,12 +339,13 @@ const MOTIVOS_GENERICOS: readonly string[] = [
               <p class="mensaje-error">{{ mensaje }}</p>
             }
             @if (exitoSolicitud(); as mensaje) {
-              <p class="mensaje-exito">{{ mensaje }}</p>
+              <p class="mensaje-exito" role="status">{{ mensaje }}</p>
+              <a routerLink="/solicitudes" [queryParams]="{ solicitud: solicitudCreadaId() }">Ver estado de la solicitud</a>
             }
 
             <footer class="modal__acciones">
               <button type="button" class="boton secundario" (click)="cerrarSolicitud()">Cancelar</button>
-              <button type="submit" class="boton" [disabled]="enviandoSolicitud()">
+              <button type="submit" class="boton" [disabled]="enviandoSolicitud() || solicitudCreadaId() !== null">
                 {{ enviandoSolicitud() ? 'Enviando…' : 'Enviar solicitud' }}
               </button>
             </footer>
@@ -353,6 +356,9 @@ const MOTIVOS_GENERICOS: readonly string[] = [
   `
 })
 export class ConsultaPage implements OnInit {
+  private readonly authService = inject(AuthService);
+  protected readonly puedeSolicitar = computed(() => this.authService.tieneAlgunRol(['DOCENTE', 'ADMINISTRATIVO', 'ADMINISTRADOR']));
+  protected readonly solicitudCreadaId = signal<number | null>(null);
   private readonly route = inject(ActivatedRoute);
   private readonly getAllClassrooms = inject<GetAllClassroomsUseCase>(GET_ALL_CLASSROOMS_USE_CASE);
   private readonly getAvailableClassrooms = inject<GetAvailableClassroomsUseCase>(GET_AVAILABLE_CLASSROOMS_USE_CASE);
@@ -399,7 +405,6 @@ export class ConsultaPage implements OnInit {
   protected readonly fechaSolicitud = signal<string>(this.fechaDeManana());
   protected readonly inicioSolicitud = signal<string>('08:00');
   protected readonly finSolicitud = signal<string>('10:00');
-  protected readonly asistentes = signal<number>(30);
   protected readonly motivoSeleccionado = signal<string>(MOTIVOS_GENERICOS[0]);
   protected readonly motivoOtro = signal<string>('');
   protected readonly enviandoSolicitud = signal(false);
@@ -580,6 +585,8 @@ export class ConsultaPage implements OnInit {
   }
 
   protected abrirSolicitudDirecta(aula: ClassroomCard): void {
+    if (!this.puedeSolicitar() || this.enviandoSolicitud()) return;
+    this.solicitudCreadaId.set(null);
     const classroom = (this.catalogo() ?? []).find(c => c.id === aula.id);
     if (classroom === undefined) {
       return;
@@ -597,7 +604,6 @@ export class ConsultaPage implements OnInit {
       this.inicioSolicitud.set(this.horaInicio());
       this.finSolicitud.set(this.horaFin());
     }
-    this.asistentes.set(30);
     this.motivoSeleccionado.set(MOTIVOS_GENERICOS[0]);
     this.motivoOtro.set('');
     this.errorSolicitud.set(null);
@@ -606,6 +612,8 @@ export class ConsultaPage implements OnInit {
   }
 
   protected abrirSolicitud(): void {
+    if (!this.puedeSolicitar() || this.enviandoSolicitud()) return;
+    this.solicitudCreadaId.set(null);
     const aula = this.detalle();
     if (aula === null) {
       return;
@@ -620,7 +628,6 @@ export class ConsultaPage implements OnInit {
       this.inicioSolicitud.set(this.horaInicio());
       this.finSolicitud.set(this.horaFin());
     }
-    this.asistentes.set(30);
     this.motivoSeleccionado.set(MOTIVOS_GENERICOS[0]);
     this.motivoOtro.set('');
     this.errorSolicitud.set(null);
@@ -629,12 +636,15 @@ export class ConsultaPage implements OnInit {
   }
 
   protected cerrarSolicitud(): void {
+    if (this.enviandoSolicitud()) return;
+    this.cerrarDetalle();
     this.modalSolicitudAbierto.set(false);
     this.solicitudAula.set(null);
   }
 
   protected enviarSolicitud(evento: Event): void {
     evento.preventDefault();
+    if (!this.puedeSolicitar() || this.enviandoSolicitud() || this.solicitudCreadaId() !== null) return;
     const aula = this.solicitudAula();
     if (aula === null) {
       return;
@@ -665,16 +675,10 @@ export class ConsultaPage implements OnInit {
     this.errorSolicitud.set(null);
     this.exitoSolicitud.set(null);
     this.createRequest.execute(command).subscribe({
-      next: () => {
+      next: solicitud => {
         this.enviandoSolicitud.set(false);
-        this.exitoSolicitud.set('Solicitud enviada. Será revisada por el área administrativa.');
-        setTimeout(() => {
-          this.modalSolicitudAbierto.set(false);
-          this.detalle.set(null);
-          this.ocupacion.set([]);
-          this.solicitudAula.set(null);
-          this.exitoSolicitud.set(null);
-        }, 1500);
+        this.solicitudCreadaId.set(solicitud.id);
+        this.exitoSolicitud.set(`Solicitud SOL-${solicitud.id} registrada como ${solicitud.status}. No constituye una reserva institucional confirmada.`);
       },
       error: (err: HttpErrorResponse) => {
         this.enviandoSolicitud.set(false);
@@ -708,11 +712,11 @@ export class ConsultaPage implements OnInit {
   }
 
   protected fechaCorta(iso: string): string {
-    return new Date(iso).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
+    return new Date(iso).toLocaleDateString('es-CO', { timeZone: 'America/Bogota', day: '2-digit', month: 'short' });
   }
 
   protected comoHora(iso: string): string {
-    return new Date(iso).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+    return new Date(iso).toLocaleTimeString('es-CO', { timeZone: 'America/Bogota', hour: '2-digit', minute: '2-digit' });
   }
 
   private obtenerDisponibilidad(inicio: Date, fin: Date, capacidad: number): void {
@@ -740,7 +744,7 @@ export class ConsultaPage implements OnInit {
     this.pestanaActiva.set('TODAS');
   }
 
-  private cargarCatalogo(filter: ClassroomFilter): void {
+  protected cargarCatalogo(filter: ClassroomFilter): void {
     this.cargandoCatalogo.set(true);
     this.errorCatalogo.set(null);
     this.getAllClassrooms.execute(filter).subscribe({

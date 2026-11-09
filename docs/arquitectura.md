@@ -1,6 +1,6 @@
 # Arquitectura y decisiones de AulaSmart
 
-Revisión: 2026-11-08, `feature/single-user-role`, fase 2 local sobre `7030f16`.
+Revisión: 2026-11-09, `feature/classroom-request`, fase 1 local sobre `621e3d6`.
 
 ## Mapa del sistema
 
@@ -71,3 +71,10 @@ requieren `AULASMART_ALLOW_TEST_ACCOUNTS=true`, deshabilitado por defecto.
   impedir que cambios concurrentes eliminen al último administrador habilitado.
   Las cuentas sintéticas deshabilitadas por configuración no cuentan como acceso disponible.
 - La edición de la cuenta propia actualiza el rol de su sesión en memoria.
+
+## Decisiones de fase 1
+
+Se reutilizan los casos de uso de solicitudes y el detalle de aulas. La confirmación
+lleva el ID real a la bandeja mediante un parámetro de consulta; la API sigue filtrando
+por identidad y rol. Las protecciones contra doble clic son de interfaz, sin cambiar
+las garantías transaccionales del backend ni introducir reservas en SIGA.
