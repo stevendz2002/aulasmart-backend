@@ -1,6 +1,6 @@
 # Documentación técnica de continuidad
 
-Última revisión: 2026-11-09. Rama: `feature/classroom-request`.
+Última revisión: 2026-11-09. Rama: `refactor/classroom-search-ui`.
 
 1. Leer [plan maestro](plan-maestro.md) para alcance y autorizaciones.
 2. Consultar [arquitectura](arquitectura.md) para ubicar los módulos relevantes.
@@ -10,7 +10,8 @@
 
 La fase 0 está publicada en `origin/refactor/architecture`, commit `7030f16`.
 La fase 2 está publicada en `origin/feature/single-user-role`, commit `621e3d6`.
-El trabajo activo es [fase 1](fase-1.md), local sobre esa base.
+Fase 1 publicada en `origin/feature/classroom-request`: `7c5779f`.
+Trabajo activo: ajuste de tarjetas de [fase 3](fase-3.md), manteniendo los colores actuales.
 No sustituyen la inspección de diferencias ni demuestran que una base instalada
 ya recibió las migraciones. El informe de auditoría previo mencionado por el
 usuario no fue localizado; esta documentación registra la revisión actual.

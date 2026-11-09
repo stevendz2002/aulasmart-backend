@@ -52,18 +52,27 @@
 .busqueda input:focus { outline: none; }
 .busqueda:focus-within { border-color: var(--color-primary); }
 
-/* Grid de tarjetas densas */
-.grid-aulas { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
-.aula-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; min-height: 150px; transition: box-shadow 0.12s ease, border-color 0.12s ease; }
+/* Tarjetas: conservar identidad visual y dar espacio a títulos y estados. */
+.grid-aulas { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.aula-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; min-height: 240px; transition: box-shadow 0.15s ease, border-color 0.15s ease; }
 .aula-card:hover { box-shadow: var(--shadow-sm); border-color: var(--color-primary-light); }
-.aula-card.libre { border-left: 3px solid var(--color-success); }
-.aula-card.ocupada { border-left: 3px solid var(--color-danger); opacity: 0.88; }
+@media (max-width: 1199px) { .grid-aulas { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 800px) { .grid-aulas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .grid-aulas { grid-template-columns: minmax(0, 1fr); } }
 
-.aula-card__cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
-.aula-card__cabecera h3 { margin: 0; font-size: 0.92rem; color: var(--color-text); line-height: 1.2; }
-.aula-card__ubicacion { margin: 0; font-size: 0.74rem; color: var(--color-text-secondary); }
+.aula-card__cabecera { display: flex; flex-direction: column; gap: 12px; }
+.aula-card__cabecera h3 { margin: 0; font-size: 1.05rem; color: var(--color-primary-dark); line-height: 1.35; overflow-wrap: anywhere; }
+.aula-card__ubicacion { margin: 0; font-size: 0.82rem; color: var(--color-text-secondary); line-height: 1.5; overflow-wrap: anywhere; }
 
-.aula-card__meta { display: flex; gap: 10px; font-size: 0.74rem; color: var(--color-text-secondary); }
+.aula-card__referencia { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 8px; font-size: 0.72rem; color: var(--color-text-secondary); }
+.aula-card__codigo { font-variant-numeric: tabular-nums; }
+.aula-card__ubicacion { display: flex; align-items: flex-start; gap: 6px; }
+.aula-card svg { width: 18px; height: 18px; flex-shrink: 0; }
+.aula-card__capacidad { display: flex; align-items: center; gap: 8px; color: var(--color-primary-dark); padding: 10px 0; }
+.aula-card__capacidad strong { font-size: 1.05rem; font-weight: 600; line-height: 1; }
+.aula-card__capacidad span { font-size: 0.8rem; line-height: 1.3; }
+.aula-card__capacidad small { color: var(--color-text-secondary); }
+@media (prefers-reduced-motion: reduce) { .aula-card { transition: none; } }
 .meta-item { display: inline-flex; align-items: center; gap: 3px; }
 .meta-icono { font-size: 0.85rem; }
 
@@ -74,8 +83,11 @@
 .chip.estado-chip.libre { background: #DCFCE7; color: var(--color-success); }
 .chip.estado-chip.ocupada { background: #FEE2E2; color: var(--color-danger); }
 
-.aula-card__acciones { display: flex; gap: 5px; margin-top: auto; padding-top: 6px; }
-.aula-card__acciones .boton { padding: 4px 8px; font-size: 0.74rem; flex: 1 1 auto; }
+.aula-card__acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 10px; }
+.aula-card__acciones .boton { padding: 8px; min-height: 44px; font-size: 0.8rem; flex: 1 1 70px; }
+.aula-card .chip { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.aula-card .meta-item { min-width: 0; overflow-wrap: anywhere; }
+.aula-card__acciones .boton:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
 
 .liberacion { margin: 2px 0 0; font-size: 0.72rem; color: var(--color-text-secondary); font-style: italic; }
 
@@ -126,3 +138,19 @@
 
 /* Oculta el icono nativo del picker para evitar el duplicado con el SVG */
 .input-icono input::-webkit-calendar-picker-indicator { opacity: 0; cursor: pointer; width: 100%; height: 100%; position: absolute; right: 0; top: 0; }
+
+
+/* Iconos de tipo de aula: misma identidad azul y sin fotografías. */
+.aula-card__superior { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.aula-card__icono { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border-radius: 12px; background: #eaf0ff; color: #244bea; }
+.aula-card__icono svg { width: 23px; height: 23px; }
+.aula-card__estado { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; color: var(--color-text-secondary); background: var(--color-background); }
+.aula-card__estado::before { content: ''; width: 6px; height: 6px; flex-shrink: 0; border-radius: 50%; background: currentColor; }
+.aula-card__estado.libre { color: #15803d; background: #e7f6ec; }
+.aula-card__estado.ocupada { color: #b91c1c; background: #fdefed; }
+.aula-card__capacidad { background: #f5f7fc; border-radius: var(--radius-md); padding: 10px; }
+.aula-card__acciones .boton { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 10px; background: #214be2; font-weight: 600; }
+.aula-card__acciones .boton.secundario { background: var(--color-surface); color: var(--color-primary-dark); border-color: #dbe3f0; }
+.aula-card .chip.caracteristica { background: #eef2ff; color: #25418f; border: 0; gap: 6px; padding: 5px 9px; font-weight: 500; }
+.aula-card .chip.caracteristica svg { width: 13px; height: 13px; }
+.aula-card__acciones svg { width: 15px; height: 15px; }

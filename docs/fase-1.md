@@ -1,7 +1,8 @@
 # Fase 1: interacción con aulas y solicitudes
 
 Revisión: 2026-11-09. Rama: `feature/classroom-request`, base `621e3d6`.
-Estado: implementada y validada automáticamente; publicación autorizada el 2026-11-09.
+Estado: implementada, validada y publicada en `origin/feature/classroom-request`,
+commit `7c5779f` (2026-11-09).
 
 ## Análisis y alcance
 

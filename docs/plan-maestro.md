@@ -1,6 +1,6 @@
 # Plan maestro de evolución de AulaSmart
 
-Revisión: 2026-11-09. Base: `621e3d6`; fase 1 local en `feature/classroom-request`.
+Revisión: 2026-11-09. Base: `7c5779f`; propuesta de fase 3 en `refactor/classroom-search-ui`.
 
 ## Orden y alcance
 
@@ -12,11 +12,11 @@ Revisión: 2026-11-09. Base: `621e3d6`; fase 1 local en `feature/classroom-reque
    DTOs, formularios y permisos; migración explícita para cuentas con cero o varios
    roles, sin eliminar usuarios ni asignar privilegios automáticamente.
    Alcance aprobado en [fase 2](fase-2.md).
-3. **Fase 1: consolidar interacción y solicitudes.** Autorizada el 2026-11-09; implementada y validada localmente.
+3. **Fase 1: consolidar interacción y solicitudes.** Autorizada el 2026-11-09; implementada, validada y publicada (`7c5779f`).
    Entrega y pruebas en [fase 1](fase-1.md). Reutilizar detalles, horarios, formulario, registro y seguimiento existentes.
    Depende de permisos definitivos y disponibilidad fiable.
-4. **Fase 3: rediseño de consulta.** Pendiente de autorización. Propuesta visual
-   antes de implementación; accesibilidad, responsive y componentes reutilizados.
+4. **Fase 3: ajuste de tarjetas.** Alcance acotado por el usuario: solo tarjetas,
+   manteniendo colores. Implementación y validación en [fase 3](fase-3.md).
 5. **Fase 4: configuración definitiva y JWT.** Pendiente de autorización.
    Completar entornos, HTTPS, sesiones, access/refresh tokens, rotación, revocación
    y evaluación de cookies/CSRF. No guardar tokens de usuario en `.env`.

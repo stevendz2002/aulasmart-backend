@@ -44,12 +44,24 @@
 - El 2026-11-09 el usuario aprobó publicar la fase 2 (`feature/single-user-role`)
   y continuar fase 1 en `feature/classroom-request`; informó migración sin conflictos.
 - El usuario autorizó publicar fase 1 y comenzar fase 3 el 2026-11-09.
-  Preparar propuesta visual antes de implementar, conforme al plan maestro.
+  El usuario acotó después el cambio a las tarjetas de resultados, conservando colores.
 - Fase 4 pendiente de autorización. No repetir la auditoría global.
 
 ## Punto de continuidad (2026-11-09)
 
 - Fase 2 publicada: `621e3d6` en `origin/feature/single-user-role`.
-- Rama activa: `feature/classroom-request`, fase 1 local implementada y validada.
-- Leer `docs/fase-1.md` antes de continuar: 74 pruebas frontend y build correctos;
-  publicación aprobada por el usuario. Backend sin cambios en esta fase.
+- Fase 1 publicada: `7c5779f` en `origin/feature/classroom-request`.
+- Rama activa: `refactor/classroom-search-ui`; propuesta de fase 3 en `docs/fase-3.md`.
+- Alcance vigente de fase 3: solo distribución y legibilidad de tarjetas de aulas;
+  conservar identidad azul/blanca, filtros, diálogos y comportamiento. El usuario
+  aprobó jerarquía de nombre/código/capacidad, iconos uniformes, Libre verde y Ocupada rojo
+  según la última referencia, sin borde lateral, botones como la referencia: Solicitar principal en libres, Ver aula principal
+  en ocupadas/sin verificar; fondos pastel en iconos y etiquetas; cinco columnas
+  en escritorio y adaptación móvil. El usuario aclaró que quiere iconos, no fotografías:
+  usar icono azul sobre recuadro suave según tipo de aula, como su referencia.
+  Evitar textos íntegramente en mayúsculas en tarjetas; preservar códigos y siglas. Conservar estado textual. La propuesta
+  amplia anterior no está aprobada. Consultar `docs/fase-3.md`.
+
+- El usuario aprobó publicar las tarjetas actuales y continuar con búsquedas:
+  conectar resultados de búsqueda principal con consulta/detalle/solicitud y
+  mejorar texto/altura del buscador de consulta sin ampliar su ancho.

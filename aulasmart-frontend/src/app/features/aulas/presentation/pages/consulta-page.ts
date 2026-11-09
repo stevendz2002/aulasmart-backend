@@ -170,30 +170,47 @@ const MOTIVOS_GENERICOS: readonly string[] = [
           </p>
         } @else {
           @for (card of visibles(); track card.id) {
-            <article class="aula-card" [class.libre]="card.status === 'LIBRE'" [class.ocupada]="card.status === 'OCUPADA'">
-              <header class="aula-card__cabecera">
-                <h3>{{ card.name }}</h3>
-                <span class="chip estado-chip" [class.libre]="card.status === 'LIBRE'" [class.ocupada]="card.status === 'OCUPADA'">
-                  {{ card.statusLabel }}
+            <article class="aula-card">
+              <div class="aula-card__superior">
+                <span class="aula-card__icono" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    @if (card.type.toLowerCase().includes('audiovisual')) {
+                      <rect x="3" y="6" width="18" height="11" rx="2"/><circle cx="16" cy="11.5" r="2.5"/><path d="M6 17v3m12-3v3M6 10h3m-3 3h3"/>
+                    } @else if (card.type.toLowerCase().includes('interactiva')) {
+                      <rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8M9 7l2 7 2-3 3-2Z"/>
+                    } @else {
+                      <rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-6-4-1 4m5-4 1 4"/>
+                    }
+                  </svg>
                 </span>
+                <span class="aula-card__estado" [class.libre]="card.status === 'LIBRE'" [class.ocupada]="card.status === 'OCUPADA'">{{ card.statusLabel }}</span>
+              </div>
+              <header class="aula-card__cabecera">
+                <div class="aula-card__referencia">
+                  @if (card.referenceCode) { <span class="aula-card__codigo">Cód. {{ card.referenceCode }}</span> }
+                </div>
+                <h3>{{ card.displayName }}</h3>
               </header>
-              <p class="aula-card__ubicacion">{{ card.building }} · {{ card.type }}</p>
-              <div class="aula-card__meta">
-                <span class="meta-item"><span class="meta-icono">👥</span>{{ card.capacity }}</span>
-                <span class="meta-item"><span class="meta-icono">📍</span>{{ card.building }}</span>
+              <p class="aula-card__ubicacion">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                {{ card.building }}
+              </p>
+              <div class="aula-card__capacidad">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="9" cy="7" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 4a3 3 0 0 1 0 6M18 13a5 5 0 0 1 3 5v3"/></svg>
+                <strong>{{ card.capacity }}</strong><span>personas</span>
               </div>
               <div class="chips">
                 @for (c of card.characteristics; track c) {
-                  <span class="chip caracteristica">{{ c }}</span>
+                  <span class="chip caracteristica"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>{{ c }}</span>
                 }
               </div>
               @if (card.status === 'OCUPADA' && liberacion(card.id); as hora) {
                 <p class="liberacion">Se libera a las {{ hora }}</p>
               }
               <div class="aula-card__acciones">
-                <button type="button" class="boton secundario" (click)="abrirDetalle(card)">Detalles</button>
+                <button type="button" class="boton" [class.secundario]="card.status === 'LIBRE' && puedeSolicitar()" (click)="abrirDetalle(card)" [attr.aria-label]="'Ver aula ' + card.name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Ver aula</button>
                 @if (puedeSolicitar()) {
-                  <button type="button" class="boton boton-solicitar" (click)="abrirSolicitudDirecta(card)">Solicitar ↗</button>
+                  <button type="button" class="boton" [class.secundario]="card.status !== 'LIBRE'" (click)="abrirSolicitudDirecta(card)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4m8-4v4m-4 6v6m-3-3h6"/></svg>Solicitar</button>
                 }
               </div>
             </article>

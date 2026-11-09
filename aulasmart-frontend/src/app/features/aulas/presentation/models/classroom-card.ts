@@ -1,5 +1,17 @@
 import { Classroom } from '../../domain/entities/classroom';
 
+/** Normaliza solo textos del catálogo escritos íntegramente en mayúsculas. */
+function readableLabel(value: string, title = false): string {
+  if (value !== value.toLocaleUpperCase('es')) return value;
+  const lower = value.toLocaleLowerCase('es');
+  const formatted = title
+    ? lower.replace(/(^|[\s(-])(\p{L})/gu, (_, prefix, letter) => prefix + letter.toLocaleUpperCase('es'))
+        .replace(/\b(De|Del|La|Las|El|Los|Y|En)\b/g, word => word.toLocaleLowerCase('es'))
+    : lower;
+  return formatted.replace(/\b[\p{L}\d]+\b/gu, word => /\d/.test(word) || word.length === 1 || ['uceva', 'siga', 'tic'].includes(word.toLowerCase()) ? word.toUpperCase() : word)
+    .replace(/^\p{L}/u, letter => letter.toLocaleUpperCase('es'));
+}
+
 export type ClassroomAvailabilityStatus = 'LIBRE' | 'OCUPADA' | 'DESCONOCIDO';
 
 /**
@@ -10,6 +22,8 @@ export type ClassroomAvailabilityStatus = 'LIBRE' | 'OCUPADA' | 'DESCONOCIDO';
 export interface ClassroomCard {
   readonly id: number;
   readonly name: string;
+  readonly displayName: string;
+  readonly referenceCode: string | null;
   readonly building: string;
   readonly type: string;
   readonly department: string;
@@ -47,16 +61,19 @@ export class ClassroomCardBuilder {
       throw new Error('ClassroomCardBuilder requiere un aula (forClassroom) antes de build().');
     }
     const classroom = this.classroom;
+    const suffix = classroom.name.match(/^(.*?)\s*\((\d+)\)\s*$/);
     return {
       id: classroom.id,
       name: classroom.name,
-      building: classroom.building.name,
+      displayName: readableLabel(suffix?.[1].trim() || classroom.name, true),
+      referenceCode: suffix?.[2] ?? null,
+      building: readableLabel(classroom.building.name, true),
       type: classroom.type.name,
       department: classroom.department.name,
       capacity: classroom.capacity,
       status: this.status,
       statusLabel: this.labelFor(this.status),
-      characteristics: [this.classroom.type.name, this.classroom.department.name]
+      characteristics: [readableLabel(classroom.type.name), readableLabel(classroom.department.name)]
     };
   }
 
@@ -70,7 +87,7 @@ export class ClassroomCardBuilder {
       case 'LIBRE':
         return 'Libre';
       case 'OCUPADA':
-        return 'Ocupada en la franja';
+        return 'Ocupada';
       default:
         return 'Sin verificar';
     }
