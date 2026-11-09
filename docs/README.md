@@ -1,6 +1,7 @@
 # Documentación técnica de continuidad
 
-Última revisión: 2026-11-09. Rama: `refactor/classroom-search-ui`.
+Última revisión: 2026-11-09. Fase 4 implementada en `6965a7a`; cierre aprobado.
+Ruta de entrega autorizada: `feature/jwt-authentication` → `develop` → `main`.
 
 1. Leer [plan maestro](plan-maestro.md) para alcance y autorizaciones.
 2. Consultar [arquitectura](arquitectura.md) para ubicar los módulos relevantes.
@@ -13,7 +14,9 @@ La fase 2 está publicada en `origin/feature/single-user-role`, commit `621e3d6`
 Fase 1 publicada en `origin/feature/classroom-request`: `7c5779f`.
 Tarjetas aprobadas y publicadas: `f481bad` en `origin/refactor/classroom-search-ui`.
 Búsquedas aprobadas y publicadas: `5fea5b4`.
-Trabajo activo: [corrección SIGA](sincronizacion-siga.md), local sobre esa base.
+[Corrección SIGA](sincronizacion-siga.md) publicada: `f432436`.
+[Fase 4: autenticación y configuración](fase-4.md) aceptada por el usuario,
+con publicación en `develop` y después `main` autorizada. No hay otra fase activa.
 No sustituyen la inspección de diferencias ni demuestran que una base instalada
 ya recibió las migraciones. El informe de auditoría previo mencionado por el
 usuario no fue localizado; esta documentación registra la revisión actual.

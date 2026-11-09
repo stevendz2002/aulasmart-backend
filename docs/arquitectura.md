@@ -1,6 +1,6 @@
 # Arquitectura y decisiones de AulaSmart
 
-Revisión: 2026-11-09, `feature/classroom-request`, fase 1 local sobre `621e3d6`.
+Revisión: 2026-11-09, fase 4 implementada en `6965a7a`, aceptada para entrega vía develop/main.
 
 ## Mapa del sistema
 
@@ -10,8 +10,8 @@ Revisión: 2026-11-09, `feature/classroom-request`, fase 1 local sobre `621e3d6`
   adaptadores JPA consultan catálogo, horarios y estado de sincronización.
 - `solicitudes`: registro pendiente, revisión y consulta por permisos. Conserva
   la restricción PostgreSQL EXCLUDE para impedir aprobaciones solapadas.
-- `users`: cuentas persistidas con un único rol obligatorio, BCrypt y Basic.
-  JWT pertenece a la fase 4.
+- `users`: rol único, BCrypt y JWT Bearer; sesiones/refresh en PostgreSQL (V10).
+  Firma/validación con Spring Security/Nimbus; perfil y permisos se consultan por petición.
 - `integrations/siga`: consulta HTTP de catálogo/eventos, sincronización inicial,
   manual y programada. No hay escritura de reservas institucionales implementada.
 - `shared/presentation`: traducción central de errores a respuestas HTTP.
@@ -55,10 +55,9 @@ requieren `AULASMART_ALLOW_TEST_ACCOUNTS=true`, deshabilitado por defecto.
   puede impedir cambios institucionales posteriores.
 - La sincronización está coordinada para una instancia del monolito; un despliegue
   con varias réplicas necesita coordinación distribuida antes de habilitarlo.
-- Falta la fase de JWT/HTTPS/configuración definitiva y revisión CSRF. Basic con
-  contraseñas de prueba habilitadas es exclusivamente para desarrollo controlado.
-- La URL de API del frontend sigue siendo local; adaptarla al despliegue en fase 4.
-- La interfaz conserva el presupuesto CSS excedido previo, a tratar en fase 3.
+- Fase 4 aceptada: JWT y perfiles local/prod. El despliegue HTTPS real no se verificó.
+- API relativa /api: proxy Angular en desarrollo, Nginx en Compose; sin secretos frontend.
+- La interfaz conserva la advertencia CSS de consulta (10,77 kB / 6 kB), pendiente independiente.
 - V9 exige preflight y decisiones explícitas si una base contiene cuentas sin rol o con varios.
 
 ## Decisiones de fase 2
@@ -78,3 +77,19 @@ Se reutilizan los casos de uso de solicitudes y el detalle de aulas. La confirma
 lleva el ID real a la bandeja mediante un parámetro de consulta; la API sigue filtrando
 por identidad y rol. Las protecciones contra doble clic son de interfaz, sin cambiar
 las garantías transaccionales del backend ni introducir reservas en SIGA.
+
+## Decisiones de fase 4 (aceptada)
+
+Se retira Basic y se conserva BCrypt. Access JWT HS256 por 15 minutos en memoria;
+refresh opaco de 256 bits en cookie HttpOnly/SameSite=Strict, Secure en producción.
+El servidor solo guarda hashes SHA-256 de refresh. La rotación bloquea la sesión
+en PostgreSQL; reutilizar un token anterior revoca la familia completa. El cierre
+revoca también access gracias a la comprobación de sesión y usuario en cada petición.
+Esta consulta deliberada evita privilegios obsoletos y revocación diferida.
+
+CSRF: las operaciones con cookie exigen Origin exacto y X-AulaSmart-CSRF: 1.
+El resto de la API exige Bearer y no autentica usando cookies. Los endpoints de
+autenticación no reciben el access anterior. Los perfiles local/prod separan HTTP
+de desarrollo y HTTPS obligatorio; prod rechaza clave ausente y orígenes inseguros.
+El servicio técnico de sesiones vive en infraestructura de seguridad, sin acoplar
+los modelos de dominio a JWT, cookies ni JdbcTemplate. Detalles en fase-4.md.

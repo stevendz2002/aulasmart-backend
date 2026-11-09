@@ -1,6 +1,6 @@
 # Plan maestro de evolución de AulaSmart
 
-Revisión: 2026-11-09. Base: `5fea5b4`; corrección de sincronización SIGA en `refactor/classroom-search-ui`.
+Revisión: 2026-11-09. Base publicada: `f432436` (SIGA). Fase 4: `6965a7a`, cierre e integración `develop` → `main` aprobados.
 
 ## Orden y alcance
 
@@ -18,12 +18,12 @@ Revisión: 2026-11-09. Base: `5fea5b4`; corrección de sincronización SIGA en `
 4. **Fase 3: ajuste de tarjetas.** Alcance acotado por el usuario: solo tarjetas,
    manteniendo colores. Tarjetas aprobadas/publicadas (`f481bad`). Continuación
    de búsquedas publicada (`5fea5b4`). Parte visual aceptada por el usuario.
-   Corrección adicional autorizada: [SIGA](sincronizacion-siga.md).
-5. **Fase 4: configuración definitiva y JWT.** Autorizada el 2026-11-09.
-   Implementar en rama independiente y mantener local para prueba del usuario;
-   su publicación requiere aprobación posterior.
-   Completar entornos, HTTPS, sesiones, access/refresh tokens, rotación, revocación
-   y evaluación de cookies/CSRF. No guardar tokens de usuario en `.env`.
+   Corrección adicional [SIGA](sincronizacion-siga.md) publicada: `f432436`.
+5. **Fase 4: configuración definitiva y JWT.** Implementada (`6965a7a`), validada
+   y aceptada el 2026-11-09. El usuario autorizó su publicación vía `develop` → `main`
+   y dio la fase por terminada. Incluye entornos, configuración HTTPS, sesiones,
+   access/refresh, rotación, revocación y CSRF. Entrega y límites en [fase 4](fase-4.md).
+   HTTPS instalado requiere certificados propios; no se afirma despliegue real.
 
 Se adelanta el rol único para evitar rehacer los permisos de solicitudes y JWT.
 La configuración por entorno y BCrypt ya existen; no deben reconstruirse.

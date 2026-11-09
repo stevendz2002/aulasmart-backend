@@ -1,8 +1,8 @@
 # Corrección de sincronización SIGA
 
 Fecha: 2026-11-09. Rama: `refactor/classroom-search-ui`.
-Base publicada: `5fea5b4` (búsquedas aprobadas). Corrección SIGA validada; publicación autorizada por el usuario el 2026-11-09.
-Este documento acompaña el commit de corrección sobre la base indicada.
+Publicado: `f432436` en `origin/refactor/classroom-search-ui`, sobre `5fea5b4`.
+Publicación autorizada y realizada el 2026-11-09.
 Autorización: el usuario reportó errores intermitentes y pidió corregirlos.
 
 ## Hallazgos comprobados

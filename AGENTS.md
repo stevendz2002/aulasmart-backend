@@ -46,29 +46,24 @@
 - El usuario autorizó publicar fase 1 y comenzar fase 3 el 2026-11-09.
   El usuario acotó después el cambio a las tarjetas de resultados, conservando colores.
 - El 2026-11-09 el usuario autorizó publicar la corrección SIGA y continuar fase 4.
-  Los cambios nuevos de fase 4 deben quedar locales hasta su prueba y aprobación. No repetir la auditoría global.
+  Posteriormente aprobó publicar fase 4 en `develop` y después `main`, y cerrar la fase.
+  No repetir la auditoría global.
 
 ## Punto de continuidad (2026-11-09)
 
-- Fase 2 publicada: `621e3d6` en `origin/feature/single-user-role`.
-- Fase 1 publicada: `7c5779f` en `origin/feature/classroom-request`.
-- Rama activa: `refactor/classroom-search-ui`; propuesta de fase 3 en `docs/fase-3.md`.
-- Alcance vigente de fase 3: solo distribución y legibilidad de tarjetas de aulas;
-  conservar identidad azul/blanca, filtros, diálogos y comportamiento. El usuario
-  aprobó jerarquía de nombre/código/capacidad, iconos uniformes, Libre verde y Ocupada rojo
-  según la última referencia, sin borde lateral, botones como la referencia: Solicitar principal en libres, Ver aula principal
-  en ocupadas/sin verificar; fondos pastel en iconos y etiquetas; cinco columnas
-  en escritorio y adaptación móvil. El usuario aclaró que quiere iconos, no fotografías:
-  usar icono azul sobre recuadro suave según tipo de aula, como su referencia.
-  Evitar textos íntegramente en mayúsculas en tarjetas; preservar códigos y siglas. Conservar estado textual. La propuesta
-  amplia anterior no está aprobada. Consultar `docs/fase-3.md`.
-
-- El usuario aprobó publicar las tarjetas actuales y continuar con búsquedas:
-  conectar resultados de búsqueda principal con consulta/detalle/solicitud y
-  alargar horizontalmente el buscador de consulta sin aumentar su altura
-  (aclaración explícita del usuario). Tarjetas publicadas: `f481bad`.
-- Búsquedas aprobadas y publicadas: `5fea5b4`. Parte visual aprobada por el usuario.
-- Trabajo actual autorizado: corregir sincronización SIGA; cambios locales en la
-  misma rama. Consultar `docs/sincronizacion-siga.md` antes de continuar.
-- Próximo trabajo autorizado: fase 4, configuración y JWT, en rama independiente.
-  No publicar sus cambios hasta que el usuario los pruebe y lo autorice.
+- Publicado: fase 0 `7030f16`, fase 2 `621e3d6`, fase 1 `7c5779f`.
+- Fase 3: tarjetas `f481bad` y búsquedas `5fea5b4`, aprobadas por el usuario.
+  Sus decisiones visuales están en `docs/fase-3.md`; conservarlas.
+- SIGA publicado: `f432436` en `origin/refactor/classroom-search-ui`.
+  Consultar `docs/sincronizacion-siga.md`; no se comprobó SIGA vivo.
+- Fase 4 implementada en `6965a7a`, origen `feature/jwt-authentication`; aceptada.
+  Entrega autorizada a `develop` y después `main`. Consultar Git para la rama activa
+  y `docs/fase-4.md` para decisiones y evidencia. No hay otra fase activa.
+- Implementado: JWT Bearer, refresh HttpOnly con rotación/revocación en PostgreSQL,
+  V10 aditiva, API relativa /api y perfiles local/prod con configuración HTTPS.
+  No restaurar Basic. No guardar contraseñas ni tokens en almacenamiento web o env.
+- Validado: 109 pruebas backend, 91 frontend, compilaciones y configuración Compose.
+  PostgreSQL descartable detenido; no se modificó la base instalada del usuario.
+- El usuario aprobó explícitamente la publicación y el cierre de fase 4 el 2026-11-09.
+- Límites de entorno: HTTPS real requiere certificados propios; SIGA vivo no verificado
+  por el agente. Advertencia CSS previa documentada como mantenimiento.
