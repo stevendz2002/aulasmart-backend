@@ -98,7 +98,8 @@ import { ShellState } from '../shell-state';
           @if (menuAbierto()) {
             <div class="menu-sesion">
               <span class="fila apagada" [attr.title]="sesion.correo">{{ sesion.correo }}</span>
-              <button type="button" class="fila" (click)="cerrarSesion()">Cerrar sesión</button>
+              <button type="button" class="fila" [disabled]="cerrandoSesion()" (click)="cerrarSesion()">{{ cerrandoSesion() ? 'Cerrando…' : 'Cerrar sesión' }}</button>
+              @if (errorSesion()) { <span class="fila" role="alert">{{ errorSesion() }}</span> }
             </div>
           }
         </div>
@@ -109,6 +110,8 @@ import { ShellState } from '../shell-state';
   `
 })
 export class Header {
+  protected readonly cerrandoSesion = signal(false);
+  protected readonly errorSesion = signal<string | null>(null);
   protected readonly authService = inject(AuthService);
   protected readonly router = inject(Router);
   protected readonly shell = inject(ShellState);
@@ -196,9 +199,20 @@ export class Header {
   }
 
   protected cerrarSesion(): void {
-    this.authService.logout();
-    this.menuAbierto.set(false);
-    void this.router.navigateByUrl('/login');
+    if (this.cerrandoSesion()) return;
+    this.cerrandoSesion.set(true);
+    this.errorSesion.set(null);
+    this.authService.logout().subscribe({
+      next: () => {
+        this.cerrandoSesion.set(false);
+        this.menuAbierto.set(false);
+        void this.router.navigateByUrl('/login');
+      },
+      error: () => {
+        this.cerrandoSesion.set(false);
+        this.errorSesion.set('No se pudo cerrar la sesión. Comprueba la conexión e inténtalo de nuevo.');
+      }
+    });
   }
 
   private esAtajoK(evento: KeyboardEvent): boolean {

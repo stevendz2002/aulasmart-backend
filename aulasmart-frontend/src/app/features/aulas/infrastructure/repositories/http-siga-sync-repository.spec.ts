@@ -35,7 +35,7 @@ describe('HttpSigaSyncRepository', () => {
 
     const req = requests.expectOne(
       http =>
-        http.url === 'http://localhost:8080/api/sincronizaciones' &&
+        http.url === '/api/sincronizaciones' &&
         http.params.get('recurso') === 'AULAS'
     );
     expect(req.request.method).toBe('POST');
@@ -61,7 +61,7 @@ describe('HttpSigaSyncRepository', () => {
 
     const req = requests.expectOne(
       http =>
-        http.url === 'http://localhost:8080/api/sincronizaciones' &&
+        http.url === '/api/sincronizaciones' &&
         http.params.get('recurso') === 'EVENTOS'
     );
     req.flush([

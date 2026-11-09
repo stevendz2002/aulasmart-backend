@@ -1,0 +1,15 @@
+# Uso: docker compose -f compose.yaml -f compose.prod.yaml up --build -d
+# Requiere certificados propios en ./certs (ignorado por Git) y las variables indicadas.
+services:
+  backend:
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      AULASMART_JWT_SECRET: ${AULASMART_JWT_SECRET:?Define una clave aleatoria Base64 para producción}
+      AULASMART_CORS_ORIGINS: ${AULASMART_CORS_ORIGINS:?Define el origen público HTTPS}
+      AULASMART_ALLOW_TEST_ACCOUNTS: "false"
+  frontend:
+    ports:
+      - "443:443"
+    volumes:
+      - ./aulasmart-frontend/nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs:/etc/nginx/certs:ro

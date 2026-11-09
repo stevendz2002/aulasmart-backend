@@ -22,7 +22,7 @@ public class JpaUserDetailsService implements UserDetailsService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, noRollbackFor = UsernameNotFoundException.class)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         var usuario = repository.findByCorreoIgnoreCase(username)
                 .filter(entity -> entity.isActivo())

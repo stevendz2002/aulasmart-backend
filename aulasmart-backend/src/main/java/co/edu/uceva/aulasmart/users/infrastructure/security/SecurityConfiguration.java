@@ -28,13 +28,23 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, SessionTokenService sessions,
+            org.springframework.core.env.Environment environment,
+            @Value("${aulasmart.auth.secure-cookie:true}") boolean secureCookie) throws Exception {
+        if (environment.matchesProfiles("prod")) {
+            if (!secureCookie || origenesCorsPermitidos.stream().anyMatch(o -> !o.startsWith("https://") || o.contains("*")))
+                throw new IllegalStateException("Producción requiere cookies Secure y orígenes HTTPS explícitos.");
+            http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
+        }
         return http
+                // La API requiere Bearer; los endpoints con cookies tienen verificación estricta de origen/cabecera.
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
+                .addFilterBefore(new AuthOriginFilter(origenesCorsPermitidos), org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/refresh", "/api/auth/logout").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/usuarios").hasRole("ADMINISTRADOR")
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").hasRole("ADMINISTRADOR")
                         .requestMatchers(HttpMethod.PATCH, "/api/usuarios/**").hasRole("ADMINISTRADOR")
@@ -55,7 +65,11 @@ public class SecurityConfiguration {
                         )
                         .anyRequest().authenticated()
                 )
-                .httpBasic(Customizer.withDefaults())
+                .oauth2ResourceServer(resource -> resource.jwt(jwt -> jwt.jwtAuthenticationConverter(token -> {
+                    var user = sessions.authenticate(token);
+                    return new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken(
+                            token, user.getAuthorities(), user.getUsername());
+                })))
                 .build();
     }
 
@@ -75,5 +89,13 @@ public class SecurityConfiguration {
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    org.springframework.security.authentication.AuthenticationManager authenticationManager(
+            JpaUserDetailsService users, PasswordEncoder encoder) {
+        var provider = new org.springframework.security.authentication.dao.DaoAuthenticationProvider(users);
+        provider.setPasswordEncoder(encoder);
+        return new org.springframework.security.authentication.ProviderManager(provider);
     }
 }

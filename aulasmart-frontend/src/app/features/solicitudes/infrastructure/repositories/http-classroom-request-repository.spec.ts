@@ -36,7 +36,7 @@ describe('HttpClassroomRequestRepository', () => {
     let solicitudes: ClassroomRequest[] | undefined;
     repository.list().subscribe(result => (solicitudes = result));
 
-    requests.expectOne('http://localhost:8080/api/solicitudes').flush([requestDto]);
+    requests.expectOne('/api/solicitudes').flush([requestDto]);
 
     expect(solicitudes).toEqual([
       {
@@ -56,11 +56,11 @@ describe('HttpClassroomRequestRepository', () => {
 
   it('omite el parámetro cuando el filtro es ALL y lo envía con estado concreto', () => {
     repository.list('ALL').subscribe();
-    requests.expectOne('http://localhost:8080/api/solicitudes').flush([]);
+    requests.expectOne('/api/solicitudes').flush([]);
 
     repository.list('PENDIENTE').subscribe();
     requests.expectOne(
-      http => http.params.get('estado') === 'PENDIENTE' && http.url === 'http://localhost:8080/api/solicitudes'
+      http => http.params.get('estado') === 'PENDIENTE' && http.url === '/api/solicitudes'
     ).flush([]);
   });
 
@@ -75,7 +75,7 @@ describe('HttpClassroomRequestRepository', () => {
       })
       .subscribe(result => (creada = result));
 
-    const req = requests.expectOne('http://localhost:8080/api/solicitudes');
+    const req = requests.expectOne('/api/solicitudes');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({
       aulaId: 9004,
@@ -92,7 +92,7 @@ describe('HttpClassroomRequestRepository', () => {
   it('envía la decisión al endpoint de revisión con el cuerpo real', () => {
     repository.review(9002, 'APROBAR').subscribe();
 
-    const req = requests.expectOne('http://localhost:8080/api/solicitudes/9002/revision');
+    const req = requests.expectOne('/api/solicitudes/9002/revision');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({ decision: 'APROBAR' });
     req.flush(requestDto);

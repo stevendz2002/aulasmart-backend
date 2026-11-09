@@ -32,7 +32,7 @@ describe('HttpUserRepository', () => {
     let usuarios: User[] | undefined;
     repository.getAll().subscribe(result => (usuarios = result));
 
-    requests.expectOne('http://localhost:8080/api/usuarios').flush([usuarioDto]);
+    requests.expectOne('/api/usuarios').flush([usuarioDto]);
 
     expect(usuarios).toEqual([
       {
@@ -57,7 +57,7 @@ describe('HttpUserRepository', () => {
       })
       .subscribe(result => (creada = result));
 
-    const req = requests.expectOne('http://localhost:8080/api/usuarios');
+    const req = requests.expectOne('/api/usuarios');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({
       nombre: 'Ana María Restrepo',

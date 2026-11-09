@@ -10,12 +10,12 @@ describe('Usuarios con rol único', () => {
   const usuario: User = { id: 1, fullName: 'Ana', email: 'ana@example.test', active: true, role: 'ADMINISTRADOR', createdAt: '' };
   const crear = vi.fn();
   const editar = vi.fn();
-  const sesion = signal({ correo: usuario.email, nombre: usuario.fullName, rol: 'ADMINISTRADOR', claveCodificada: '' });
+  const sesion = signal({ correo: usuario.email, nombre: usuario.fullName, rol: 'ADMINISTRADOR', accessToken: '' });
 
   beforeEach(() => {
     crear.mockReset().mockReturnValue(of({ ...usuario, role: 'ESTUDIANTE' }));
     editar.mockReset().mockReturnValue(of({ ...usuario, role: 'DOCENTE' }));
-    sesion.set({ correo: usuario.email, nombre: usuario.fullName, rol: 'ADMINISTRADOR', claveCodificada: '' });
+    sesion.set({ correo: usuario.email, nombre: usuario.fullName, rol: 'ADMINISTRADOR', accessToken: '' });
     TestBed.configureTestingModule({ imports: [UsuariosPage], providers: [
       { provide: AuthService, useValue: { sesion } },
       { provide: GET_USERS_USE_CASE, useValue: { execute: () => of([usuario]) } },

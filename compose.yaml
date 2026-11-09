@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-aulasmart}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en el archivo .env}
     ports:
-      - "${POSTGRES_PORT:-5433}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
     volumes:
       - aulasmart_pgdata_test:/var/lib/postgresql/data
       - ./database:/database
@@ -31,11 +31,17 @@ services:
       DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-aulasmart_test}
       DB_USERNAME: ${POSTGRES_USER:-aulasmart}
       DB_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en el archivo .env}
-      SERVER_PORT: ${SERVER_PORT:-8080}
+      SERVER_PORT: 8080
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      AULASMART_JWT_SECRET: ${AULASMART_JWT_SECRET:-}
+      AULASMART_JWT_ISSUER: ${AULASMART_JWT_ISSUER:-aulasmart}
+      AULASMART_ACCESS_TTL: ${AULASMART_ACCESS_TTL:-PT15M}
+      AULASMART_REFRESH_TTL: ${AULASMART_REFRESH_TTL:-P7D}
+      AULASMART_SIGA_SYNC_CRON: ${AULASMART_SIGA_SYNC_CRON:-0 */15 * * * *}
       AULASMART_ALLOW_TEST_ACCOUNTS: ${AULASMART_ALLOW_TEST_ACCOUNTS:-false}
       AULASMART_CORS_ORIGINS: ${AULASMART_CORS_ORIGINS:-http://localhost:4200,http://localhost}
     ports:
-      - "${SERVER_PORT:-8080}:8080"
+      - "127.0.0.1:${SERVER_PORT:-8080}:8080"
     depends_on:
       db:
         condition: service_healthy
@@ -48,7 +54,7 @@ services:
       dockerfile: Dockerfile
     container_name: aulasmart-frontend
     ports:
-      - "${FRONTEND_PORT:-4200}:80"
+      - "127.0.0.1:${FRONTEND_PORT:-4200}:80"
     depends_on:
       - backend
     restart: unless-stopped

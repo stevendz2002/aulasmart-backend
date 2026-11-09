@@ -47,7 +47,7 @@ describe('Sidebar', () => {
       correo: 'docente@prueba.aulasmart.local',
       nombre: 'PRUEBA Docente',
       rol: 'DOCENTE',
-      claveCodificada: 'x'
+      accessToken: 'x'
     });
     const f = fixture();
     f.detectChanges();
@@ -61,12 +61,12 @@ describe('Sidebar', () => {
       correo: 'secretaria@prueba.aulasmart.local',
       nombre: 'PRUEBA Revisor',
       rol: 'ADMINISTRATIVO',
-      claveCodificada: 'x'
+      accessToken: 'x'
     });
     const f = fixture();
     f.detectChanges();
 
-    const peticion = requests.expectOne('http://localhost:8080/api/solicitudes?estado=PENDIENTE');
+    const peticion = requests.expectOne('/api/solicitudes?estado=PENDIENTE');
     peticion.flush([]);
     f.detectChanges();
 
@@ -84,12 +84,12 @@ describe('Sidebar', () => {
       correo: 'admin@prueba.aulasmart.local',
       nombre: 'PRUEBA Administrador',
       rol: 'ADMINISTRADOR',
-      claveCodificada: 'x'
+      accessToken: 'x'
     });
     const f = fixture();
     f.detectChanges();
 
-    const peticion = requests.expectOne('http://localhost:8080/api/solicitudes?estado=PENDIENTE');
+    const peticion = requests.expectOne('/api/solicitudes?estado=PENDIENTE');
     peticion.flush([
       { id: 1, aulaId: 2, docenteId: 3, inicio: 's', fin: 'e', estado: 'PENDIENTE', motivo: 'm', revisadaPorId: null, revisadaEn: null, creadaEn: 'c' },
       { id: 2, aulaId: 2, docenteId: 3, inicio: 's', fin: 'e', estado: 'PENDIENTE', motivo: 'm', revisadaPorId: null, revisadaEn: null, creadaEn: 'c' }

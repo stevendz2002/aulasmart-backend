@@ -33,7 +33,7 @@ describe('HttpClassroomRepository', () => {
     let aulas: Classroom[] | undefined;
     repository.getAll({}).subscribe(result => (aulas = result));
 
-    requests.expectOne('http://localhost:8080/api/aulas').flush([classroomDto]);
+    requests.expectOne('/api/aulas').flush([classroomDto]);
 
     expect(aulas).toEqual([
       {
@@ -54,7 +54,7 @@ describe('HttpClassroomRepository', () => {
 
     const req = requests.expectOne(
       http =>
-        http.url === 'http://localhost:8080/api/aulas' &&
+        http.url === '/api/aulas' &&
         http.params.get('capacidadMinima') === '50' &&
         http.params.get('idEdificio') === '9'
     );
@@ -72,7 +72,7 @@ describe('HttpClassroomRepository', () => {
 
     const req = requests.expectOne(
       http =>
-        http.url === 'http://localhost:8080/api/aulas/disponibles' &&
+        http.url === '/api/aulas/disponibles' &&
         http.params.get('inicio') === '2026-11-10T14:00:00.000Z' &&
         http.params.get('fin') === '2026-11-10T16:00:00.000Z' &&
         http.params.get('capacidadMinima') === '100'

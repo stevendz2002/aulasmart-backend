@@ -1,48 +1,66 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { Observable, map, tap } from 'rxjs';
-
+import { Observable, defer, finalize, firstValueFrom, from, shareReplay, tap } from 'rxjs';
 import { apiUrl } from './api-url';
 
-interface PerfilWhoami {
-  correo: string;
-  /** Nombre real de la cuenta (tabla usuario); null si no se resuelve. */
-  nombre: string | null;
-  rol: string;
-}
-
-interface SesionGuardada {
+export interface SesionGuardada {
   correo: string;
   nombre: string | null;
   rol: string;
-  claveCodificada: string;
+  accessToken: string;
+  expiresIn?: number;
 }
 
-const LLAVE_SESION = 'aulasmart.sesion';
-
-/** Sesion activa de la SPA: no hay sesion en el servidor (Basic en cada peticion). */
+/** Access solo en memoria; refresh en cookie HttpOnly administrada por el servidor. */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
-
+  private renovacion?: Observable<SesionGuardada>;
+  private revision = 0;
   readonly sesion = signal<SesionGuardada | null>(null);
+  private readonly options = { withCredentials: true, headers: { 'X-AulaSmart-CSRF': '1' }, timeout: 15000 };
+  get sessionVersion(): number { return this.revision; }
+
+  constructor() { sessionStorage.removeItem('aulasmart.sesion'); }
 
   login(correo: string, password: string): Observable<SesionGuardada> {
-    const claveCodificada = btoa(`${correo}:${password}`);
-    const headers = { Authorization: `Basic ${claveCodificada}` };
-    return this.http.get<PerfilWhoami>(`${apiUrl}/usuarios/whoami`, { headers }).pipe(
-      map(perfil => ({ ...perfil, claveCodificada })),
-      tap(sesion => {
-        sessionStorage.removeItem(LLAVE_SESION);
-        this.sesion.set(sesion);
-      })
-    );
+    return defer(() => {
+      const version = ++this.revision;
+      return from(this.exclusive(() => firstValueFrom(this.http.post<SesionGuardada>(apiUrl + '/auth/login', { correo, password }, this.options))))
+        .pipe(tap(session => { if (version === this.revision) this.sesion.set(session); }));
+    });
   }
 
-  logout(): void {
-    sessionStorage.removeItem(LLAVE_SESION);
+  refresh(): Observable<SesionGuardada> {
+    if (!this.renovacion) {
+      const version = this.revision;
+      this.renovacion = defer(() => from(this.exclusive(() => firstValueFrom(
+        this.http.post<SesionGuardada>(apiUrl + '/auth/refresh', {}, this.options)
+      )))).pipe(
+        tap(session => { if (version === this.revision) this.sesion.set(session); }),
+        finalize(() => { this.renovacion = undefined; }),
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
+    }
+    return this.renovacion;
+  }
+
+  async restore(): Promise<void> {
+    try { await firstValueFrom(this.refresh()); } catch { this.clear(); }
+  }
+
+  logout(): Observable<void> {
+    return defer(() => {
+      ++this.revision;
+      return from(this.exclusive(() => firstValueFrom(this.http.post<void>(apiUrl + '/auth/logout', {}, this.options))))
+        .pipe(tap(() => this.clear()));
+    });
+  }
+
+  clear(): void {
+    ++this.revision;
     this.sesion.set(null);
+    sessionStorage.removeItem('aulasmart.sesion');
   }
 
   tieneAlgunRol(rolesPermitidos: string[]): boolean {
@@ -50,8 +68,10 @@ export class AuthService {
     return sesion !== null && rolesPermitidos.includes(sesion.rol);
   }
 
-  constructor() {
-    // Retira credenciales persistidas por versiones anteriores.
-    sessionStorage.removeItem(LLAVE_SESION);
+  // Coordina la cookie compartida entre pestañas cuando Web Locks está disponible.
+  private async exclusive<T>(action: () => Promise<T>): Promise<T> {
+    return typeof navigator !== 'undefined' && navigator.locks
+      ? await navigator.locks.request('aulasmart-auth', action)
+      : action();
   }
 }

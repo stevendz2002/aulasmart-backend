@@ -32,7 +32,7 @@ describe('requiereRoles', () => {
       correo: 'docente@prueba.aulasmart.local',
       nombre: null,
       rol: 'DOCENTE',
-      claveCodificada: 'x'
+      accessToken: 'x'
     });
     const resultado = evaluar(requiereRoles('ADMINISTRADOR'));
     expect(resultado instanceof UrlTree ? resultado.toString() : resultado).toBe('/');
@@ -43,7 +43,7 @@ describe('requiereRoles', () => {
       correo: 'docente@prueba.aulasmart.local',
       nombre: 'PRUEBA Docente',
       rol: 'DOCENTE',
-      claveCodificada: 'x'
+      accessToken: 'x'
     });
     const resultado = evaluar(requiereRoles('DOCENTE', 'ADMINISTRADOR'));
     expect(resultado).toBe(true);
@@ -54,7 +54,7 @@ describe('requiereRoles', () => {
       correo: 'estudiante@prueba.aulasmart.local',
       nombre: null,
       rol: 'ESTUDIANTE',
-      claveCodificada: 'x'
+      accessToken: 'x'
     });
     const resultado = evaluar(requiereRoles());
     expect(resultado).toBe(true);

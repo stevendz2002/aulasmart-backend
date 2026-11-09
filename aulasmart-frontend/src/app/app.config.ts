@@ -1,7 +1,8 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
+import { AuthService } from './core/auth-service';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth-interceptor';
 import { AULAS_PROVIDERS } from './features/aulas/infrastructure/aulas-providers';
@@ -11,6 +12,7 @@ import { USUARIOS_PROVIDERS } from './features/usuarios/infrastructure/users-pro
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    provideAppInitializer(() => inject(AuthService).restore()),
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
     ...AULAS_PROVIDERS,
