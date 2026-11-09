@@ -49,4 +49,17 @@ class CoberturaSigaTest {
         catalogo.finalizar("EXITOSA", inicio.plusSeconds(1), 2, null);
         assertFalse(adapter.eventosCubren(inicio, new Intervalo(inicio, fin)));
     }
+    @Test
+    void catalogoDebeSerLaUltimaCorridaExitosaYReciente() {
+        var repository = mock(SincronizacionSigaJpaRepository.class);
+        var adapter = new SincronizacionSigaPersistenceAdapter(repository);
+        var corrida = SincronizacionSigaEntity.crear("AULAS", inicio);
+        when(repository.findFirstByRecursoOrderByIdDesc("AULAS")).thenReturn(Optional.of(corrida));
+        assertFalse(adapter.catalogoAulasVigente(inicio));
+        corrida.finalizar("FALLIDA", inicio, 0, "red");
+        assertFalse(adapter.catalogoAulasVigente(inicio));
+        corrida.finalizar("EXITOSA", inicio, 1, null);
+        assertTrue(adapter.catalogoAulasVigente(inicio));
+        assertFalse(adapter.catalogoAulasVigente(inicio.plusSeconds(1)));
+    }
 }

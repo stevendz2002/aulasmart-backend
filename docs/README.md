@@ -12,7 +12,8 @@ La fase 0 está publicada en `origin/refactor/architecture`, commit `7030f16`.
 La fase 2 está publicada en `origin/feature/single-user-role`, commit `621e3d6`.
 Fase 1 publicada en `origin/feature/classroom-request`: `7c5779f`.
 Tarjetas aprobadas y publicadas: `f481bad` en `origin/refactor/classroom-search-ui`.
-Trabajo activo: interacción de búsquedas, documentada en [fase 3](fase-3.md).
+Búsquedas aprobadas y publicadas: `5fea5b4`.
+Trabajo activo: [corrección SIGA](sincronizacion-siga.md), local sobre esa base.
 No sustituyen la inspección de diferencias ni demuestran que una base instalada
 ya recibió las migraciones. El informe de auditoría previo mencionado por el
 usuario no fue localizado; esta documentación registra la revisión actual.

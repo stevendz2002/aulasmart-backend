@@ -28,9 +28,10 @@ public class SincronizacionSigaPersistenceAdapter implements SincronizacionSigaP
 
     @Override
     public boolean catalogoAulasVigente(Instant limiteActualizacion) {
-        return repository.existsByRecursoAndEstadoAndFinalizadaEnGreaterThanEqual(
-                "AULAS", "EXITOSA", limiteActualizacion
-        );
+        return repository.findFirstByRecursoOrderByIdDesc("AULAS")
+                .filter(r -> "EXITOSA".equals(r.getEstado()))
+                .filter(r -> r.getFinalizadaEn() != null && !r.getFinalizadaEn().isBefore(limiteActualizacion))
+                .isPresent();
     }
 
     @Override

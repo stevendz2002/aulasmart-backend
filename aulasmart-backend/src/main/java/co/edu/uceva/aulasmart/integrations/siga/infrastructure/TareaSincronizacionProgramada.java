@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Tarea programada de sincronización diaria. Una falla nunca detiene la
+ * Tarea programada de sincronización periódica. Una falla nunca detiene la
  * aplicación: el resultado queda evidenciado en `sincronizacion_siga`.
  */
 @Component
@@ -22,13 +22,18 @@ public class TareaSincronizacionProgramada {
     }
 
     @Scheduled(
-            cron = "${aulasmart.siga.programado.cron:0 0 4 * * *}",
+            cron = "${aulasmart.siga.programado.cron:0 */15 * * * *}",
             zone = "${aulasmart.siga.programado.zona:America/Bogota}"
     )
     public void sincronizarCadaDia() {
         try {
-            servicio.ejecutar("AULAS");
-            servicio.ejecutar("EVENTOS");
+            var resultados = servicio.sincronizar(java.util.List.of("AULAS", "EVENTOS"));
+            for (var resultado : resultados) {
+                if (!"EXITOSA".equals(resultado.estado())) {
+                    REGISTRO.warn("Sincronización programada {}: {}. Se reintentará en el próximo ciclo.",
+                            resultado.recurso(), resultado.estado());
+                }
+            }
         } catch (Exception e) {
             REGISTRO.error("La sincronización programada terminó con error.", e);
         }

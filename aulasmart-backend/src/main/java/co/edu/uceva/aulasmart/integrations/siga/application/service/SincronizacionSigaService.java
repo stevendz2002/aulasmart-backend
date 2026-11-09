@@ -33,7 +33,7 @@ public class SincronizacionSigaService {
         this.sincronizadorDeEventos = sincronizadorDeEventos;
     }
 
-    public List<ResultadoSincronizacion> sincronizar(List<String> recursos) {
+    public synchronized List<ResultadoSincronizacion> sincronizar(List<String> recursos) {
         List<ResultadoSincronizacion> resultados = new ArrayList<>(recursos.size());
         for (String recurso : recursos) {
             resultados.add(ejecutar(recurso));

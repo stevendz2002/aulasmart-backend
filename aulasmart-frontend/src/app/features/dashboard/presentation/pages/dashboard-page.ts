@@ -1,4 +1,6 @@
-import { Component, OnInit, ChangeDetectionStrategy, computed, inject, signal } from '@angular/core';
+import { interval } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, OnInit, ChangeDetectionStrategy, DestroyRef, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { AuthService } from '../../../../core/auth-service';
@@ -177,6 +179,8 @@ function horaCorta(iso: string): string {
   `
 })
 export class DashboardPage implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+  private disponibilidadEnCurso = false;
   private readonly authService = inject(AuthService);
   private readonly getAllClassrooms = inject<GetAllClassroomsUseCase>(GET_ALL_CLASSROOMS_USE_CASE);
   private readonly getAvailableClassrooms = inject<GetAvailableClassroomsUseCase>(
@@ -220,19 +224,8 @@ export class DashboardPage implements OnInit {
       error: () => this.catalogo.set([])
     });
 
-    this.getAvailableClassrooms.execute(this.inicioFranja, this.finFranja, {}).subscribe({
-      next: disponibilidad => {
-        this.libres.set(disponibilidad.classrooms.length);
-        this.libresCampus.set(disponibilidad.classrooms);
-      },
-      error: error => {
-        this.mensajeDisponibilidad.set(
-          error.status === 503
-            ? 'La sincronización con SIGA está desactualizada; el personal administrativo debe relanzarla.'
-            : `Disponibilidad no calculable en este momento (HTTP ${error.status ?? '—'}).`
-        );
-      }
-    });
+    this.actualizarDisponibilidad();
+    interval(30000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.actualizarDisponibilidad());
 
     this.getRequests.execute('ALL').subscribe({
       next: solicitudes => {
@@ -243,6 +236,30 @@ export class DashboardPage implements OnInit {
       error: error =>
         this.errorSolicitudes.set(`Solicitudes no consultables ahora (HTTP ${error.status ?? '—'}).`)
     });
+  }
+
+  private actualizarDisponibilidad(): void {
+    if (this.disponibilidadEnCurso) return;
+    this.disponibilidadEnCurso = true;
+    this.inicioFranja = new Date();
+    this.finFranja = new Date(this.inicioFranja.getTime() + 2 * 60 * 60 * 1000);
+    this.getAvailableClassrooms.execute(this.inicioFranja, this.finFranja, {})
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: disponibilidad => {
+          this.disponibilidadEnCurso = false;
+          this.libres.set(disponibilidad.classrooms.length);
+          this.libresCampus.set(disponibilidad.classrooms);
+          this.mensajeDisponibilidad.set(null);
+        },
+        error: error => {
+          this.disponibilidadEnCurso = false;
+          this.libres.set(null);
+          this.libresCampus.set([]);
+          this.mensajeDisponibilidad.set(error.status === 503
+            ? 'La disponibilidad no se puede verificar: SIGA puede estar sincronizándose, haber fallado o no cubrir esta franja. Volveremos a consultar automáticamente.'
+            : 'No fue posible consultar la disponibilidad. Volveremos a intentarlo automáticamente.');
+        }
+      });
   }
 
   protected rango(): string {

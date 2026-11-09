@@ -1,6 +1,7 @@
 package co.edu.uceva.aulasmart.integrations.siga.infrastructure;
 
 import co.edu.uceva.aulasmart.aulas.application.port.SincronizacionSigaPort;
+import co.edu.uceva.aulasmart.aulas.domain.model.Intervalo;
 import co.edu.uceva.aulasmart.integrations.siga.application.service.SincronizacionSigaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,83 +9,55 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
+import java.time.*;
+import java.util.List;
 
-import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
-
-/**
- * Disparador de sincronización inicial al arranque del backend.
- * Si la base de datos no cuenta con un catálogo de aulas o eventos vigentes
- * (por ejemplo, en una instalación limpia o base de datos recién creada),
- * ejecuta automáticamente la sincronización con SIGA para que las aulas
- * y la ocupación queden disponibles inmediatamente sin requerir sincronización manual.
- */
+/** Recupera al arrancar la misma cobertura/coherencia que exige la disponibilidad. */
 @Component
 public class SincronizacionInicialRunner implements ApplicationRunner {
-
     private static final Logger REGISTRO = LoggerFactory.getLogger(SincronizacionInicialRunner.class);
-
-    private final SincronizacionSigaService sincronizacionService;
-    private final SincronizacionSigaPort sincronizacionSigaPort;
+    private final SincronizacionSigaService servicio;
+    private final SincronizacionSigaPort estado;
     private final Clock clock;
     private final Duration maxAntiguedad;
     private final boolean habilitado;
+    private final int diasVentana;
 
-    public SincronizacionInicialRunner(
-            SincronizacionSigaService sincronizacionService,
-            SincronizacionSigaPort sincronizacionSigaPort,
-            Clock clock,
-            @Value("${aulasmart.disponibilidad.max-antiguedad:PT24H}") Duration maxAntiguedad,
-            @Value("${aulasmart.siga.sincronizacion-inicial.enabled:true}") boolean habilitado
-    ) {
-        this.sincronizacionService = sincronizacionService;
-        this.sincronizacionSigaPort = sincronizacionSigaPort;
+    public SincronizacionInicialRunner(SincronizacionSigaService servicio, SincronizacionSigaPort estado,
+            Clock clock, @Value("${aulasmart.disponibilidad.max-antiguedad:PT24H}") Duration maxAntiguedad,
+            @Value("${aulasmart.siga.sincronizacion-inicial.enabled:true}") boolean habilitado,
+            @Value("${aulasmart.siga.eventos.dias-ventana:7}") int diasVentana) {
+        this.servicio = servicio;
+        this.estado = estado;
         this.clock = clock;
         this.maxAntiguedad = maxAntiguedad;
         this.habilitado = habilitado;
+        this.diasVentana = diasVentana;
     }
 
     @Override
     public void run(ApplicationArguments args) {
-        if (!habilitado) {
-            REGISTRO.info("Sincronización inicial automática deshabilitada por configuración.");
-            return;
-        }
-
-        Instant ahora = clock.instant();
-        Instant limiteVigencia = ahora.minus(maxAntiguedad);
-
-        boolean aulasVigentes = sincronizacionSigaPort.catalogoAulasVigente(limiteVigencia);
-        boolean eventosVigentes = sincronizacionSigaPort.eventosVigente(limiteVigencia);
-
-        if (aulasVigentes && eventosVigentes) {
-            REGISTRO.info("Catálogo de aulas y eventos vigentes en base de datos. No se requiere sincronización inicial.");
-            return;
-        }
-
-        REGISTRO.info("Detectada ausencia de sincronización vigente con SIGA (aulas={}, eventos={}). Sincronizando automáticamente...",
-                aulasVigentes, eventosVigentes);
-
-        if (!aulasVigentes) {
-            try {
-                REGISTRO.info("Sincronizando catálogo de aulas desde SIGA...");
-                sincronizacionService.ejecutar("AULAS");
-                REGISTRO.info("Catálogo de aulas sincronizado exitosamente al arranque.");
-            } catch (Exception e) {
-                REGISTRO.warn("No fue posible completar la sincronización automática de AULAS: {}", e.getMessage());
+        if (!habilitado) return;
+        Instant limite = clock.instant().minus(maxAntiguedad);
+        var zona = ZoneOffset.ofHours(-5);
+        var hoy = LocalDate.now(clock.withZone(zona));
+        var ventana = new Intervalo(hoy.atStartOfDay().toInstant(zona), hoy.plusDays(diasVentana).atStartOfDay().toInstant(zona));
+        boolean aulasVigentes = estado.catalogoAulasVigente(limite);
+        boolean eventosCubiertos = estado.eventosCubren(limite, ventana);
+        if (aulasVigentes && eventosCubiertos) return;
+        // Un catálogo renovado requiere eventos posteriores, aunque haya un éxito reciente.
+        var recursos = aulasVigentes ? List.of("EVENTOS") : List.of("AULAS", "EVENTOS");
+        try {
+            for (var resultado : servicio.sincronizar(recursos)) {
+                if ("EXITOSA".equals(resultado.estado())) {
+                    REGISTRO.info("Sincronización inicial {} completada.", resultado.recurso());
+                } else {
+                    REGISTRO.warn("Sincronización inicial {}: {}. Recuperación pendiente del próximo ciclo automático.",
+                            resultado.recurso(), resultado.estado());
+                }
             }
-        }
-
-        if (!eventosVigentes) {
-            try {
-                REGISTRO.info("Sincronizando eventos y ocupación académica desde SIGA...");
-                sincronizacionService.ejecutar("EVENTOS");
-                REGISTRO.info("Eventos académicos sincronizados exitosamente al arranque.");
-            } catch (Exception e) {
-                REGISTRO.warn("No fue posible completar la sincronización automática de EVENTOS: {}", e.getMessage());
-            }
+        } catch (Exception e) {
+            REGISTRO.warn("No fue posible completar la sincronización inicial. El próximo ciclo volverá a intentarlo.", e);
         }
     }
 }
-

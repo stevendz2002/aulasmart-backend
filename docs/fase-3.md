@@ -104,6 +104,8 @@ misma ruta no surtían efecto.
 - Pruebas: navegación por ID, misma ruta, espera de catálogo y permisos.
 - Validación: 82 pruebas aprobadas en 20 archivos, build correcto y diff sin
   errores. Advertencia CSS: 10,77 kB / 6 kB; presupuesto sin cambios.
-- No hay cambios backend ni migraciones. Esta continuación queda local para
-  revisión; la publicación confirmada corresponde a las tarjetas (`f481bad`).
+- No hay cambios backend ni migraciones. Esta continuación fue aprobada y publicada en `5fea5b4`.
 - No se realizó prueba manual en navegador en esta continuación.
+
+El usuario dio por aceptada la parte visual y de búsquedas; continuación autorizada:
+[corrección de sincronización SIGA](sincronizacion-siga.md).

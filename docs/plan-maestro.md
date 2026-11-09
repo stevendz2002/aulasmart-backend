@@ -1,6 +1,6 @@
 # Plan maestro de evolución de AulaSmart
 
-Revisión: 2026-11-09. Base: `f481bad`; continuación de búsquedas de fase 3 en `refactor/classroom-search-ui`.
+Revisión: 2026-11-09. Base: `5fea5b4`; corrección de sincronización SIGA en `refactor/classroom-search-ui`.
 
 ## Orden y alcance
 
@@ -17,8 +17,11 @@ Revisión: 2026-11-09. Base: `f481bad`; continuación de búsquedas de fase 3 en
    Depende de permisos definitivos y disponibilidad fiable.
 4. **Fase 3: ajuste de tarjetas.** Alcance acotado por el usuario: solo tarjetas,
    manteniendo colores. Tarjetas aprobadas/publicadas (`f481bad`). Continuación
-   de búsquedas autorizada; implementación y validación en [fase 3](fase-3.md).
-5. **Fase 4: configuración definitiva y JWT.** Pendiente de autorización.
+   de búsquedas publicada (`5fea5b4`). Parte visual aceptada por el usuario.
+   Corrección adicional autorizada: [SIGA](sincronizacion-siga.md).
+5. **Fase 4: configuración definitiva y JWT.** Autorizada el 2026-11-09.
+   Implementar en rama independiente y mantener local para prueba del usuario;
+   su publicación requiere aprobación posterior.
    Completar entornos, HTTPS, sesiones, access/refresh tokens, rotación, revocación
    y evaluación de cookies/CSRF. No guardar tokens de usuario en `.env`.
 

@@ -45,7 +45,8 @@
   y continuar fase 1 en `feature/classroom-request`; informó migración sin conflictos.
 - El usuario autorizó publicar fase 1 y comenzar fase 3 el 2026-11-09.
   El usuario acotó después el cambio a las tarjetas de resultados, conservando colores.
-- Fase 4 pendiente de autorización. No repetir la auditoría global.
+- El 2026-11-09 el usuario autorizó publicar la corrección SIGA y continuar fase 4.
+  Los cambios nuevos de fase 4 deben quedar locales hasta su prueba y aprobación. No repetir la auditoría global.
 
 ## Punto de continuidad (2026-11-09)
 
@@ -66,5 +67,8 @@
   conectar resultados de búsqueda principal con consulta/detalle/solicitud y
   alargar horizontalmente el buscador de consulta sin aumentar su altura
   (aclaración explícita del usuario). Tarjetas publicadas: `f481bad`.
-- Trabajo actual: búsquedas en la misma rama, cambios locales; consultar el cierre
-  y la continuación en `docs/fase-3.md`.
+- Búsquedas aprobadas y publicadas: `5fea5b4`. Parte visual aprobada por el usuario.
+- Trabajo actual autorizado: corregir sincronización SIGA; cambios locales en la
+  misma rama. Consultar `docs/sincronizacion-siga.md` antes de continuar.
+- Próximo trabajo autorizado: fase 4, configuración y JWT, en rama independiente.
+  No publicar sus cambios hasta que el usuario los pruebe y lo autorice.
