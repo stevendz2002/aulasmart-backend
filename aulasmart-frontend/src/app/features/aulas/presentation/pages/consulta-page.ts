@@ -1,7 +1,8 @@
-import { Component, OnInit, ChangeDetectionStrategy, WritableSignal, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, OnInit, ChangeDetectionStrategy, WritableSignal, DestroyRef, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../../core/auth-service';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { GET_ALL_CLASSROOMS_USE_CASE, GET_AVAILABLE_CLASSROOMS_USE_CASE, GET_CLASSROOM_OCCUPATION_USE_CASE } from '../../application/classrooms-di';
 import { GetAllClassroomsUseCase } from '../../application/use-cases/get-all-classrooms.use-case';
@@ -377,6 +378,9 @@ export class ConsultaPage implements OnInit {
   protected readonly puedeSolicitar = computed(() => this.authService.tieneAlgunRol(['DOCENTE', 'ADMINISTRATIVO', 'ADMINISTRADOR']));
   protected readonly solicitudCreadaId = signal<number | null>(null);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  private seleccionPendiente: { id: number; accion: string } | null = null;
   private readonly getAllClassrooms = inject<GetAllClassroomsUseCase>(GET_ALL_CLASSROOMS_USE_CASE);
   private readonly getAvailableClassrooms = inject<GetAvailableClassroomsUseCase>(GET_AVAILABLE_CLASSROOMS_USE_CASE);
   private readonly getOccupation = inject<GetClassroomOccupationUseCase>(GET_CLASSROOM_OCCUPATION_USE_CASE);
@@ -531,10 +535,35 @@ export class ConsultaPage implements OnInit {
   );
 
   ngOnInit(): void {
-    const nombre = (this.route.snapshot.queryParamMap.get('name') ?? '').trim();
-    this.textoBusqueda.set(nombre);
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      const nombre = (params.get('name') ?? '').trim();
+      if (nombre !== this.textoBusqueda() && !this.enviandoSolicitud()) this.cerrarSolicitud();
+      this.textoBusqueda.set(nombre);
+      this.pestanaActiva.set('TODAS');
+      this.bloqueSeleccionado.set('');
+      this.tipoAulaSeleccionado.set('');
+      const id = params.get('aula');
+      this.seleccionPendiente = id && /^\d+$/.test(id) ? { id: Number(id), accion: params.get('accion') ?? 'detalle' } : null;
+      this.abrirSeleccionPendiente();
+    });
     this.cargarCatalogo({});
     this.consultar();
+  }
+
+  private abrirSeleccionPendiente(): void {
+    const seleccion = this.seleccionPendiente;
+    const catalogo = this.catalogo();
+    if (!seleccion || catalogo === null || this.enviandoSolicitud()) return;
+    this.seleccionPendiente = null;
+    const aula = catalogo.find(item => item.id === seleccion.id);
+    if (aula) {
+      this.cerrarSolicitud();
+      const card = ClassroomCardBuilder.of(aula, 'DESCONOCIDO');
+      if (seleccion.accion === 'solicitar' && this.puedeSolicitar()) this.abrirSolicitudDirecta(card);
+      else this.abrirDetalle(card);
+    }
+    // Consumir la acción permite abrir de nuevo el mismo resultado desde la cabecera.
+    void this.router.navigate([], { relativeTo: this.route, queryParams: { aula: null, accion: null }, queryParamsHandling: 'merge', replaceUrl: true });
   }
 
   protected elegirPestana(valor: PestanaEstadoValor): void {
@@ -768,6 +797,7 @@ export class ConsultaPage implements OnInit {
       next: aulas => {
         this.catalogo.set(aulas);
         this.cargandoCatalogo.set(false);
+        this.abrirSeleccionPendiente();
       },
       error: error => this.fallo(error, this.errorCatalogo, this.cargandoCatalogo)
     });

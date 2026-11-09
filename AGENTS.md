@@ -64,4 +64,7 @@
 
 - El usuario aprobó publicar las tarjetas actuales y continuar con búsquedas:
   conectar resultados de búsqueda principal con consulta/detalle/solicitud y
-  mejorar texto/altura del buscador de consulta sin ampliar su ancho.
+  alargar horizontalmente el buscador de consulta sin aumentar su altura
+  (aclaración explícita del usuario). Tarjetas publicadas: `f481bad`.
+- Trabajo actual: búsquedas en la misma rama, cambios locales; consultar el cierre
+  y la continuación en `docs/fase-3.md`.

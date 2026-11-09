@@ -1,7 +1,7 @@
 # Fase 3: tarjetas de aulas
 
 Revisión: 2026-11-09. Rama: `refactor/classroom-search-ui`, base `7c5779f`.
-Estado: implementación local del diseño aprobado; pruebas y compilación correctas.
+Estado: tarjetas aprobadas y publicadas en `f481bad`; continuación de búsquedas local.
 
 ## Alcance aprobado
 
@@ -81,4 +81,29 @@ Verificación: revisión de la regla y git diff --check; sin repetir suite por e
 
 El usuario aceptó el diseño actual y autorizó commits y publicación el 2026-11-09.
 Después de publicar, autorizó corregir interacción de búsqueda principal y mejorar
-legibilidad del buscador de consulta conservando su ancho.
+legibilidad del buscador de consulta. Aclaración posterior: alargarlo horizontalmente
+sin aumentar su altura.
+
+## Continuación: búsqueda principal y consulta
+
+Base publicada `f481bad`. Se inspeccionó solo cabecera compartida y ConsultaPage.
+Causa: los resultados enviaban el texto parcial en lugar del aula seleccionada;
+ConsultaPage leía los parámetros solo al inicializar, así que cambios dentro de la
+misma ruta no surtían efecto.
+
+- Cada resultado abre detalles por ID real, con botón adicional Solicitar según rol.
+- Búsqueda principal también encuentra por edificio; evita peticiones duplicadas
+  mientras carga el catálogo. Enter conserva búsqueda general por texto.
+- Consulta escucha cambios de parámetros, espera el catálogo y abre detalle o
+  solicitud reutilizando las operaciones existentes. Consume la acción de URL
+  para permitir abrir de nuevo el mismo resultado.
+- Nuevas búsquedas cierran el detalle anterior salvo envío en curso; la URL no
+  permite que un estudiante abra el formulario de solicitud.
+- Buscador local horizontal de hasta 460 px, limitado por el contenedor; altura
+  32 px, texto 0,9 rem. No se incrementa su altura, conforme a la aclaración.
+- Pruebas: navegación por ID, misma ruta, espera de catálogo y permisos.
+- Validación: 82 pruebas aprobadas en 20 archivos, build correcto y diff sin
+  errores. Advertencia CSS: 10,77 kB / 6 kB; presupuesto sin cambios.
+- No hay cambios backend ni migraciones. Esta continuación queda local para
+  revisión; la publicación confirmada corresponde a las tarjetas (`f481bad`).
+- No se realizó prueba manual en navegador en esta continuación.

@@ -1,6 +1,6 @@
 # Plan maestro de evolución de AulaSmart
 
-Revisión: 2026-11-09. Base: `7c5779f`; propuesta de fase 3 en `refactor/classroom-search-ui`.
+Revisión: 2026-11-09. Base: `f481bad`; continuación de búsquedas de fase 3 en `refactor/classroom-search-ui`.
 
 ## Orden y alcance
 
@@ -16,7 +16,8 @@ Revisión: 2026-11-09. Base: `7c5779f`; propuesta de fase 3 en `refactor/classro
    Entrega y pruebas en [fase 1](fase-1.md). Reutilizar detalles, horarios, formulario, registro y seguimiento existentes.
    Depende de permisos definitivos y disponibilidad fiable.
 4. **Fase 3: ajuste de tarjetas.** Alcance acotado por el usuario: solo tarjetas,
-   manteniendo colores. Implementación y validación en [fase 3](fase-3.md).
+   manteniendo colores. Tarjetas aprobadas/publicadas (`f481bad`). Continuación
+   de búsquedas autorizada; implementación y validación en [fase 3](fase-3.md).
 5. **Fase 4: configuración definitiva y JWT.** Pendiente de autorización.
    Completar entornos, HTTPS, sesiones, access/refresh tokens, rotación, revocación
    y evaluación de cookies/CSRF. No guardar tokens de usuario en `.env`.

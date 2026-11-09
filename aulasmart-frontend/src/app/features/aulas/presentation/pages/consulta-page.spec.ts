@@ -1,8 +1,8 @@
 import { signal } from '@angular/core';
 import { AuthService } from '../../../../core/auth-service';
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute } from '@angular/router';
-import { Subject, of, throwError } from 'rxjs';
+import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
+import { BehaviorSubject, Subject, of, throwError } from 'rxjs';
 import { ConsultaPage } from './consulta-page';
 import { GET_ALL_CLASSROOMS_USE_CASE, GET_AVAILABLE_CLASSROOMS_USE_CASE, GET_CLASSROOM_OCCUPATION_USE_CASE } from '../../application/classrooms-di';
 import { CREATE_CLASSROOM_REQUEST_USE_CASE } from '../../../solicitudes/application/classroom-requests-di';
@@ -18,16 +18,21 @@ describe('Consulta: disponibilidad verificable', () => {
   const disponibilidad = vi.fn();
   const crear = vi.fn();
   const rol = signal('DOCENTE');
+  const parametros = new BehaviorSubject(convertToParamMap({}));
+  const navegar = vi.fn().mockResolvedValue(true);
 
   beforeEach(() => {
+    parametros.next(convertToParamMap({}));
+    navegar.mockClear();
     execute.mockReset();
     crear.mockReset();
     rol.set('DOCENTE');
     disponibilidad.mockReset();
     TestBed.configureTestingModule({ providers: [
-      { provide: ActivatedRoute, useValue: {} },
+      { provide: ActivatedRoute, useValue: { queryParamMap: parametros } },
+      { provide: Router, useValue: { navigate: navegar } },
       { provide: AuthService, useValue: { tieneAlgunRol: (roles: string[]) => roles.includes(rol()) } },
-      { provide: GET_ALL_CLASSROOMS_USE_CASE, useValue: {} },
+      { provide: GET_ALL_CLASSROOMS_USE_CASE, useValue: { execute: () => of([aula]) } },
       { provide: GET_AVAILABLE_CLASSROOMS_USE_CASE, useValue: { execute: disponibilidad } },
       { provide: GET_CLASSROOM_OCCUPATION_USE_CASE, useValue: { execute } },
       { provide: CREATE_CLASSROOM_REQUEST_USE_CASE, useValue: { execute: crear } }
@@ -109,5 +114,35 @@ describe('Consulta: disponibilidad verificable', () => {
     expect(page['exitoSolicitud']()).toBeNull();
     expect(page['enviandoSolicitud']()).toBe(false);
     expect(page['solicitudCreadaId']()).toBeNull();
+  });
+  it('actualiza la búsqueda estando ya en consulta y abre el aula por ID', () => {
+    execute.mockReturnValue(of([]));
+    disponibilidad.mockReturnValue(of({ range: { start: '', end: '', verifiedAt: '' }, classrooms: [] }));
+    page.ngOnInit();
+    parametros.next(convertToParamMap({ name: 'Aula', aula: '1', accion: 'detalle' }));
+    expect(page['detalle']()?.id).toBe(1);
+    parametros.next(convertToParamMap({ name: 'Nueva búsqueda' }));
+    expect(page['textoBusqueda']()).toBe('Nueva búsqueda');
+    expect(page['detalle']()).toBeNull();
+    expect(navegar).toHaveBeenCalledWith([], expect.objectContaining({ replaceUrl: true }));
+  });
+
+  it('espera al catálogo al entrar desde la búsqueda principal y abre solicitud', () => {
+    execute.mockReturnValue(of([]));
+    disponibilidad.mockReturnValue(of({ range: { start: '', end: '', verifiedAt: '' }, classrooms: [] }));
+    page['catalogo'].set(null);
+    parametros.next(convertToParamMap({ name: 'Aula', aula: '1', accion: 'solicitar' }));
+    page.ngOnInit();
+    expect(page['modalSolicitudAbierto']()).toBe(true);
+    expect(page['solicitudAula']()?.id).toBe(1);
+  });
+
+  it('una URL de solicitar no abre formulario a estudiantes', () => {
+    rol.set('ESTUDIANTE'); execute.mockReturnValue(of([]));
+    disponibilidad.mockReturnValue(of({ range: { start: '', end: '', verifiedAt: '' }, classrooms: [] }));
+    parametros.next(convertToParamMap({ aula: '1', accion: 'solicitar' }));
+    page.ngOnInit();
+    expect(page['modalSolicitudAbierto']()).toBe(false);
+    expect(page['detalle']()?.id).toBe(1);
   });
 });

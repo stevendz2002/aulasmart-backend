@@ -63,10 +63,18 @@ import { ShellState } from '../shell-state';
         } @else if (resultados().length > 0) {
           <div class="menu-resultados">
             @for (aula of resultados(); track aula.id) {
-              <button type="button" class="fila" (click)="irAConsulta()">
-                <strong>{{ aula.name }}</strong>
-                <span>{{ aula.building.name }} · capacidad {{ aula.capacity }}</span>
-              </button>
+              <div class="resultado-aula">
+                <button type="button" class="fila" (click)="irAAula(aula, 'detalle')">
+                  <strong>{{ aula.name }}</strong>
+                  <span>{{ aula.building.name }} · capacidad {{ aula.capacity }}</span>
+                </button>
+                <div class="resultado-acciones">
+                  <button type="button" (click)="irAAula(aula, 'detalle')" [attr.aria-label]="'Ver detalles de ' + aula.name">Ver detalles</button>
+                  @if (puedeSolicitar()) {
+                    <button type="button" (click)="irAAula(aula, 'solicitar')" [attr.aria-label]="'Solicitar ' + aula.name">Solicitar</button>
+                  }
+                </div>
+              </div>
             }
             <button type="button" class="fila" (click)="irAConsulta()">
               <span class="apagada">Ver «{{ consulta() }}» en la consulta de aulas →</span>
@@ -108,6 +116,7 @@ export class Header {
 
   protected readonly atajoTexto = typeof navigator !== 'undefined' && /Mac/i.test(navigator.platform ?? '') ? '⌘K' : 'Ctrl K';
   protected readonly consulta = signal('');
+  protected readonly puedeSolicitar = computed(() => this.authService.tieneAlgunRol(['DOCENTE', 'ADMINISTRATIVO', 'ADMINISTRADOR']));
   protected readonly consultando = signal(false);
   protected readonly catalogo = signal<Classroom[] | null>(null);
   protected readonly menuAbierto = signal(false);
@@ -140,7 +149,7 @@ export class Header {
     if (catalogo === null || consulta === '') {
       return [];
     }
-    return catalogo.filter(aula => aula.name.toLowerCase().includes(consulta)).slice(0, 6);
+    return catalogo.filter(aula => (aula.name + ' ' + aula.building.name).toLowerCase().includes(consulta)).slice(0, 6);
   });
 
   @HostListener('document:keydown', ['$event'])
@@ -153,7 +162,7 @@ export class Header {
 
   protected consultar(texto: string): void {
     this.consulta.set(texto);
-    if (this.catalogo() !== null) {
+    if (this.catalogo() !== null || this.consultando()) {
       return;
     }
     this.consultando.set(true);
@@ -168,6 +177,12 @@ export class Header {
 
   protected limpiar(): void {
     this.consulta.set('');
+  }
+
+  protected irAAula(aula: Classroom, accion: 'detalle' | 'solicitar'): void {
+    if (accion === 'solicitar' && !this.puedeSolicitar()) return;
+    void this.router.navigate(['/consulta'], { queryParams: { name: aula.name, aula: aula.id, accion } });
+    this.limpiar();
   }
 
   protected irAConsulta(): void {

@@ -46,9 +46,9 @@
 .pestanas .cuenta { font-size: 0.68rem; border-radius: 999px; padding: 0 6px; background: var(--color-primary-light); color: var(--color-primary-dark); }
 .pestanas button.activa .cuenta { background: rgba(255,255,255,0.24); color: #fff; }
 
-.busqueda { display: flex; align-items: center; gap: 6px; border: 1px solid var(--color-border); border-radius: 999px; padding: 5px 10px; background: var(--color-background); color: var(--color-text-secondary); }
+.busqueda { width: min(100%, 460px); height: 32px; display: flex; align-items: center; gap: 6px; border: 1px solid var(--color-border); border-radius: 999px; padding: 5px 10px; background: var(--color-background); color: var(--color-text-secondary); }
 .busqueda svg { width: 14px; height: 14px; flex: 0 0 auto; }
-.busqueda input { border: 0; background: transparent; font: inherit; font-size: 0.8rem; color: var(--color-text); min-width: 180px; }
+.busqueda input { border: 0; background: transparent; font: inherit; font-size: 0.9rem; line-height: 20px; color: var(--color-text); min-width: 0; width: 100%; }
 .busqueda input:focus { outline: none; }
 .busqueda:focus-within { border-color: var(--color-primary); }
 
