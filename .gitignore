@@ -64,3 +64,6 @@ Thumbs.db
 !/docs/fase-4.md
 !/docs/fase-5.md
 /certs/
+
+# Imágenes locales para el poster (no versionadas)
+/imgs/
