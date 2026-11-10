@@ -3,11 +3,14 @@
   align-items: center;
   gap: 14px;
   padding: 10px 20px;
-  background: var(--color-surface);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--color-border);
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: var(--z-sticky, 20);
+  transition: background var(--transition-base), border-color var(--transition-base);
 }
 
 .alternar {
@@ -22,6 +25,7 @@
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
+  transition: background var(--transition-base), color var(--transition-base);
 }
 
 .alternar:hover {
@@ -29,9 +33,54 @@
   color: var(--color-text);
 }
 
+.alternar:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 .alternar svg {
   width: 19px;
   height: 19px;
+}
+
+/* Botón de alternancia de tema (claro / oscuro) */
+.alternar-tema {
+  border: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  margin-left: auto;
+  transition: background var(--transition-base), color var(--transition-base), transform var(--transition-base);
+}
+
+.alternar-tema:hover {
+  background: var(--color-background);
+  color: var(--color-primary);
+  transform: rotate(15deg);
+}
+
+.alternar-tema:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.alternar-tema svg {
+  width: 19px;
+  height: 19px;
+  transition: transform var(--transition-base);
+}
+
+/* Cuando identidad está presente, el toggle no consume el auto margin */
+.identidad ~ .alternar-tema,
+.alternar-tema + .identidad {
+  margin-left: 0;
 }
 
 /* Buscador de aulas sobre el catálogo real. */
@@ -46,6 +95,12 @@
   padding: 7px 12px;
   background: var(--color-background);
   color: var(--color-text-secondary);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.buscador:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 .buscador svg {
@@ -78,6 +133,17 @@
   white-space: nowrap;
 }
 
+@keyframes menu-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .menu-resultados {
   position: absolute;
   top: calc(100% + 6px);
@@ -90,9 +156,10 @@
   padding: 4px;
   display: flex;
   flex-direction: column;
-  z-index: 40;
+  z-index: var(--z-dropdown, 40);
   max-height: 320px;
   overflow: auto;
+  animation: menu-entrar 150ms ease both;
 }
 
 .menu-resultados .fila {
@@ -108,10 +175,16 @@
   border-radius: var(--radius-sm);
   cursor: pointer;
   color: var(--color-text);
+  transition: background var(--transition-fast);
 }
 
 .menu-resultados .fila:hover {
   background: var(--color-background);
+}
+
+.menu-resultados .fila:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .menu-resultados .fila strong {
@@ -137,6 +210,11 @@
   align-items: center;
 }
 
+/* Cuando hay toggle de tema antes de identidad, eliminar el auto margin */
+.alternar-tema + .identidad {
+  margin-left: 0;
+}
+
 .persona {
   display: flex;
   align-items: center;
@@ -148,10 +226,16 @@
   padding: 4px 8px;
   border-radius: var(--radius-md);
   color: var(--color-text);
+  transition: background var(--transition-base);
 }
 
 .persona:hover {
   background: var(--color-background);
+}
+
+.persona:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .avatar {
@@ -160,12 +244,15 @@
   flex: 0 0 auto;
   border-radius: 50%;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-surface);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.8rem;
   font-weight: 700;
+  /* Garantiza contraste en dark mode */
+  outline: 2px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
+  outline-offset: 1px;
 }
 
 .datos {
@@ -193,6 +280,17 @@
   color: var(--color-text-secondary);
 }
 
+@keyframes menu-sesion-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .menu-sesion {
   position: absolute;
   top: calc(100% + 8px);
@@ -205,7 +303,8 @@
   display: flex;
   flex-direction: column;
   min-width: 230px;
-  z-index: 40;
+  z-index: var(--z-dropdown, 40);
+  animation: menu-sesion-entrar 150ms ease both;
 }
 
 .menu-sesion .fila {
@@ -220,10 +319,16 @@
   color: var(--color-text);
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: background var(--transition-fast);
 }
 
 .menu-sesion .fila:hover {
   background: var(--color-background);
+}
+
+.menu-sesion .fila:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .menu-sesion .apagada {
@@ -242,11 +347,53 @@
   color: var(--color-primary);
   text-decoration: none;
   font-weight: 600;
+  transition: color var(--transition-base);
+}
+
+.ingresar:hover {
+  color: var(--color-primary-hover, var(--color-primary-dark));
+}
+
+.ingresar:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 
 .resultado-aula { border-bottom: 1px solid var(--color-border); padding-bottom: 8px; }
 .resultado-aula > .fila { width: 100%; }
 .resultado-acciones { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 10px; }
-.resultado-acciones button { border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 6px 10px; min-height: 36px; background: var(--color-surface); color: var(--color-primary-dark); font: inherit; font-size: .8rem; cursor: pointer; }
-.resultado-acciones button:hover { background: var(--color-primary-light); }
+.resultado-acciones button {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  min-height: 36px;
+  background: var(--color-surface);
+  color: var(--color-primary-dark);
+  font: inherit;
+  font-size: .8rem;
+  cursor: pointer;
+  transition: background var(--transition-base), border-color var(--transition-base);
+}
+.resultado-acciones button:hover { background: var(--color-primary-light); border-color: var(--color-primary); }
 .resultado-acciones button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .barra,
+  .alternar,
+  .alternar-tema,
+  .alternar-tema svg,
+  .buscador,
+  .menu-resultados .fila,
+  .menu-sesion .fila,
+  .persona,
+  .resultado-acciones button,
+  .ingresar {
+    transition: none;
+    animation: none;
+  }
+
+  .alternar-tema:hover {
+    transform: none;
+  }
+}

@@ -1,3 +1,375 @@
-.bot{max-width:1050px;margin:auto;color:#16376d}header{display:flex;justify-content:space-between;align-items:center;gap:16px}h2{margin:6px 0;font-size:1.8rem}.eyebrow{font-size:.8rem;color:#5874a5}p{line-height:1.5}button,a{font:inherit}button{cursor:pointer}button:disabled{opacity:.55;cursor:default}.secondary,.primary{display:inline-block;border-radius:10px;padding:10px 14px;text-decoration:none;border:1px solid #dce5f5}.secondary{background:#fff;color:#173b79}.primary{background:#214fe3;color:#fff;border-color:#214fe3}.conversation{margin:20px 0;padding:24px;background:#f4f7fc;border:1px solid #e4eaf5;border-radius:18px;max-height:65vh;overflow:auto}.welcome{text-align:center;padding:25px 8px}.bot-icon{font-size:2rem;color:#2352e8}.examples{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.question{background:#e6eeff;margin:18px 0 14px auto;max-width:80%;padding:14px 18px;border-radius:14px}.question p{white-space:pre-wrap;margin-bottom:0}.answer{padding:18px;background:white;border-radius:14px;margin-bottom:16px}.answer>a{margin-left:12px}.rooms{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:16px}article{border:1px solid #e3eaf6;padding:16px;border-radius:14px}.room-top{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:14px}.room-icon{background:#eaf0ff;color:#2451e8;padding:8px 12px;border-radius:10px}.badge{font-size:.75rem;background:#f0f2f7;padding:5px 8px;border-radius:20px}.badge.free{background:#e7f6ed;color:#137239}h4{margin:8px 0}article p,small,.muted,.filters{font-size:.85rem;color:#637898}.date{background:#edf2ff;padding:10px;border-radius:8px}.actions{display:flex;gap:8px}.composer{background:white;border:1px solid #e3eaf6;padding:18px;border-radius:16px}.composer label{display:block;margin-bottom:8px}.composer>div{display:flex;gap:12px;align-items:center}textarea{flex:1;min-width:0;resize:vertical;border:1px solid #d5e0f2;border-radius:10px;padding:12px;font:inherit;color:#16376d}.composer small{display:block;margin-top:10px}:focus-visible{outline:3px solid #8aafff;outline-offset:3px}@media(max-width:600px){header{align-items:flex-start;flex-direction:column}.conversation{padding:12px}.composer>div{align-items:stretch;flex-direction:column}.question{max-width:95%}}
+/* ===================================================================
+   AulaBot — aulabot-page.css
+   Sistema de tokens CSS · Fase 6 — identidad visual y dark mode
+   =================================================================== */
 
-.modes{display:flex;gap:8px;margin-top:16px}.modes button{border:1px solid #dce5f5;border-radius:10px;padding:10px 14px}.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.chips button{background:#fff;color:#214fe3;border:1px solid #c9d8f6;border-radius:20px;padding:8px 14px;font-size:.85rem;text-align:left}.chips button:hover{background:#edf2ff}.guide{background:#eef3ff;border:1px solid #d9e4fa;border-radius:16px;padding:18px;margin-bottom:16px}.guide h3{margin:0 0 12px;font-size:1rem}.summary{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}.summary button{background:#fff;color:#234780;border:1px solid #d5e0f2;border-radius:20px;padding:7px 12px}.guide-options{border:0;padding:0;margin:0 0 10px;display:flex;align-items:end;gap:10px;flex-wrap:wrap}.guide-options label{display:flex;flex-direction:column;gap:5px;font-size:.85rem}.guide-options input{font:inherit;padding:9px;border:1px solid #ccd9ef;border-radius:8px;color:#16376d;background:#fff}.conversation{max-height:48vh}
+/* -------------------------------------------------------------------
+   1. LAYOUT PRINCIPAL Y TIPOGRAFÍA
+   ------------------------------------------------------------------- */
+
+.bot {
+  max-width: 1050px;
+  margin: auto;
+  color: var(--color-text);
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+h2 {
+  margin: var(--space-1) 0;
+  font-size: 1.8rem;
+  color: var(--color-primary-dark);
+  font-weight: var(--font-weight-bold);
+}
+
+.eyebrow {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+p {
+  line-height: var(--line-height-relaxed);
+}
+
+button,
+a {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* -------------------------------------------------------------------
+   2. BOTONES DE ACCIÓN PRIMARIO / SECUNDARIO
+   ------------------------------------------------------------------- */
+
+.secondary,
+.primary {
+  display: inline-block;
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-4);
+  text-decoration: none;
+  border: 1px solid var(--color-border);
+  transition: var(--transition-base);
+}
+
+.secondary {
+  background: var(--color-surface);
+  color: var(--color-primary-dark);
+}
+
+.secondary:hover:not(:disabled) {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+
+.primary {
+  background: var(--color-primary);
+  color: var(--color-surface);
+  border-color: var(--color-primary);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--color-primary-hover, var(--color-primary-dark));
+  border-color: var(--color-primary-hover, var(--color-primary-dark));
+}
+
+/* -------------------------------------------------------------------
+   3. CONVERSACIÓN Y BURBUJAS
+   ------------------------------------------------------------------- */
+
+.conversation {
+  margin: var(--space-5) 0;
+  padding: var(--space-6);
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  max-height: 65vh;
+  overflow: auto;
+  scroll-behavior: smooth;
+}
+
+/* Pantalla de bienvenida */
+.welcome {
+  text-align: center;
+  padding: var(--space-7) var(--space-2);
+}
+
+.bot-icon {
+  font-size: 2rem;
+  color: var(--color-primary);
+  display: block;
+  margin-bottom: var(--space-3);
+}
+
+.welcome h3 {
+  margin: 0 0 var(--space-2);
+  color: var(--color-primary-dark);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+}
+
+.welcome p {
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-5);
+}
+
+.welcome-chips {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Burbuja del usuario (derecha) */
+.question {
+  background: var(--color-primary);
+  color: var(--color-surface);
+  margin: var(--space-4) 0 var(--space-3) auto;
+  max-width: 80%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+}
+
+.question strong {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-size: var(--font-size-sm);
+  opacity: 0.85;
+}
+
+.question p {
+  white-space: pre-wrap;
+  margin-bottom: 0;
+}
+
+/* Burbuja del bot (izquierda) */
+.answer {
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-4);
+}
+
+.answer > a {
+  margin-left: var(--space-3);
+}
+
+.answer strong {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--color-primary-dark);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* -------------------------------------------------------------------
+   4. TARJETAS DE AULAS EN RESPUESTAS
+   ------------------------------------------------------------------- */
+
+.rooms {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+article {
+  border: 1px solid var(--color-border);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  transition: var(--transition-base);
+}
+
+article:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: var(--color-border-strong, var(--color-primary-light));
+}
+
+.room-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+}
+
+.room-icon {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+}
+
+.badge {
+  font-size: var(--font-size-xs);
+  background: var(--color-background);
+  color: var(--color-text-secondary);
+  padding: 5px var(--space-2);
+  border-radius: var(--radius-full);
+  font-weight: var(--font-weight-medium);
+}
+
+.badge.free {
+  background: color-mix(in srgb, var(--color-success) 15%, transparent);
+  color: var(--color-success);
+}
+
+h4 {
+  margin: var(--space-2) 0;
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+article p,
+small,
+.muted,
+.filters {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.date {
+  background: var(--color-primary-light);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-primary-dark);
+  margin: var(--space-2) 0;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+/* -------------------------------------------------------------------
+   5. COMPOSER (ÁREA DE ENTRADA)
+   ------------------------------------------------------------------- */
+
+.composer {
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  transition: var(--transition-base);
+}
+
+.composer:focus-within {
+  border-color: var(--color-primary);
+}
+
+.composer label {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+}
+
+.composer > div {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+textarea {
+  flex: 1;
+  min-width: 0;
+  resize: vertical;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+  transition: var(--transition-base);
+}
+
+textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.composer small {
+  display: block;
+  margin-top: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+/* -------------------------------------------------------------------
+   6. CHIPS Y FILTROS
+   ------------------------------------------------------------------- */
+
+.chips {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-top: var(--space-3);
+}
+
+.chips button {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  text-align: left;
+  transition: var(--transition-base);
+}
+
+.chips button:hover:not(:disabled) {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+
+/* Focus visible global */
+:focus-visible {
+  outline: 3px solid var(--color-primary-light);
+  outline-offset: 3px;
+}
+
+/* -------------------------------------------------------------------
+   7. RESPONSIVE @media (max-width: 600px)
+   ------------------------------------------------------------------- */
+
+@media (max-width: 600px) {
+  header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .conversation {
+    padding: var(--space-3);
+    max-height: 48vh;
+  }
+
+  .composer > div {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .question {
+    max-width: 95%;
+  }
+}

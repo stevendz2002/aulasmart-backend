@@ -9,6 +9,7 @@ import {
 import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../../core/auth-service';
+import { ThemeService } from '../../../core/theme.service';
 import { inicialesDesdeCorreo, inicialesDesdeNombre, nombreDesdeCorreo } from '../../../core/nombre-usuario';
 import { GET_ALL_CLASSROOMS_USE_CASE } from '../../../features/aulas/application/classrooms-di';
 import { GetAllClassroomsUseCase } from '../../../features/aulas/application/use-cases/get-all-classrooms.use-case';
@@ -83,6 +84,24 @@ import { ShellState } from '../shell-state';
         }
       </div>
 
+      <button
+        type="button"
+        class="alternar-tema"
+        (click)="themeService.alternar()"
+        [attr.aria-label]="themeService.theme() === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
+        [attr.title]="themeService.theme() === 'dark' ? 'Modo claro' : 'Modo oscuro'"
+      >
+        @if (themeService.theme() === 'dark') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+          </svg>
+        } @else {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        }
+      </button>
+
       @if (authService.sesion(); as sesion) {
         <div class="identidad">
           <button type="button" class="persona" (click)="alternarMenu()">
@@ -113,6 +132,7 @@ export class Header {
   protected readonly cerrandoSesion = signal(false);
   protected readonly errorSesion = signal<string | null>(null);
   protected readonly authService = inject(AuthService);
+  protected readonly themeService = inject(ThemeService);
   protected readonly router = inject(Router);
   protected readonly shell = inject(ShellState);
   private readonly getAllClassrooms = inject<GetAllClassroomsUseCase>(GET_ALL_CLASSROOMS_USE_CASE);
