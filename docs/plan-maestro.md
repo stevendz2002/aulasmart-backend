@@ -33,6 +33,11 @@ Revisión: 2026-11-09. Base publicada: `f432436` (SIGA). Fase 4: `6965a7a`, cier
    Groq GPT-OSS 120B, cuenta Free sin facturación confirmada por el usuario.
    Trabajo local en `feature/aulabot`; publicación pendiente de aprobación.
    Entrega, pruebas y límites en [fase 5](fase-5.md).
+7. **Fase 6: identidad visual y modo oscuro.** Implementada en `feature/visual-identity-dark-mode`,
+   base `main` (`84f8c89`). Sistema de diseño con 60+ tokens CSS, ThemeService reactivo,
+   toggle claro/oscuro en header, anti-parpadeo en index.html, mejoras en todos los componentes.
+   Build correcto, 100 pruebas frontend aprobadas. Pendiente prueba funcional del usuario
+   y autorización de publicación. Entrega en [fase 6](fase-6.md).
 
 Se adelanta el rol único para evitar rehacer los permisos de solicitudes y JWT.
 La configuración por entorno y BCrypt ya existen; no deben reconstruirse.
