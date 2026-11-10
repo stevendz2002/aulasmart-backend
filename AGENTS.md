@@ -120,3 +120,4 @@
   Cuota: 6/min/usuario y 20/min global, acciones sin cuota, fallo → respuesta guiada
   sin 503. Validado: 146 backend, 99 frontend, build OK. Se eliminó el interpretador
   local determinista intermedio. Rama `feature/aulabot`; autorizado commit/push.
+  Publicado: `7db7cde` en `origin/feature/aulabot`.
