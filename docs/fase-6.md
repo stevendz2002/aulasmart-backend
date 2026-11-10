@@ -204,6 +204,11 @@ Reescritura completa desde 3 líneas minificadas (todos los colores hardcodeados
 - **Build Angular:** `ng build --configuration development` → ✅ exitoso (12.5 s), sin errores ni warnings de compilación.
 - **Pruebas frontend:** `ng test --watch=false` → ✅ 22 archivos, **100 pruebas aprobadas**, 0 fallidas.
 - **Backend:** no se modificó; pruebas backend no re-ejecutadas (no hubo cambios).
+- **Ajuste de consulta de aulas (2026-11-10):**
+  - Botones de acción en tarjetas de aula («Ver aula» y «Solicitar») alineados estrictamente en fila (`flex-direction: row; flex-wrap: nowrap; gap: 6px;`) con ancho compartido proporcional y sin desborde en columna.
+  - Color de botones homogéneo: ambos botones en azul institucional (`.boton` primario) en todas las tarjetas, eliminando la inversión condicional según estado libre u ocupada.
+  - Presupuesto de estilos en `angular.json` actualizado a 12kB warning / 16kB error para cubrir tokens semánticos completos.
+  - Validación: 100 de 100 pruebas frontend aprobadas y build exitoso.
 - **Verificación visual:** no ejecutada con navegador real (SIGA vivo no verificado por el agente, servidor de desarrollo no arrancado). Verificación pendiente de prueba funcional del usuario.
 
 ## 7. Limitaciones documentadas

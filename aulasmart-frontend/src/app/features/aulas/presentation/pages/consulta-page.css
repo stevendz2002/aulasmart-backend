@@ -348,29 +348,38 @@
 
 .aula-card__acciones {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 6px;
   margin-top: auto;
   padding-top: 10px;
 }
 .aula-card__acciones .boton {
-  padding: 8px 12px;
-  min-height: 38px;
-  font-size: 0.82rem;
-  flex: 1 1 70px;
+  padding: 6px 8px;
+  min-height: 36px;
+  font-size: 0.78rem;
+  flex: 1 1 0;
+  min-width: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
+  white-space: nowrap;
   border-radius: var(--radius-sm);
   background: var(--color-primary);
   color: #FFFFFF;
   font-weight: 500;
   border: 1px solid var(--color-primary);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+.aula-card__acciones .boton:hover {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
 }
 .aula-card__acciones .boton svg {
-  width: 15px;
-  height: 15px;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
   color: #FFFFFF;
   stroke: #FFFFFF;
 }

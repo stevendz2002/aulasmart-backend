@@ -209,9 +209,9 @@ const MOTIVOS_GENERICOS: readonly string[] = [
                 <p class="liberacion">Se libera a las {{ hora }}</p>
               }
               <div class="aula-card__acciones">
-                <button type="button" class="boton" [class.secundario]="card.status === 'LIBRE' && puedeSolicitar()" (click)="abrirDetalle(card)" [attr.aria-label]="'Ver aula ' + card.name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Ver aula</button>
+                <button type="button" class="boton" (click)="abrirDetalle(card)" [attr.aria-label]="'Ver aula ' + card.name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Ver aula</button>
                 @if (puedeSolicitar()) {
-                  <button type="button" class="boton" [class.secundario]="card.status !== 'LIBRE'" (click)="abrirSolicitudDirecta(card)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4m8-4v4m-4 6v6m-3-3h6"/></svg>Solicitar</button>
+                  <button type="button" class="boton" (click)="abrirSolicitudDirecta(card)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4m8-4v4m-4 6v6m-3-3h6"/></svg>Solicitar</button>
                 }
               </div>
             </article>
