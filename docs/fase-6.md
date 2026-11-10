@@ -10,7 +10,24 @@
 | `58752ab` | feat(design-system): tokens CSS expandidos, dark mode y ThemeService |
 | `35593d8` | feat(ui): mejorar identidad visual de todos los componentes con dark mode |
 
-## 1. Sistema de diseño (`styles.css` — 477 líneas)
+## Commits de la fase (exclusivamente locales)
+
+| Commit | Tipo | Descripción |
+|---|---|---|
+| `58752ab` | feat | Tokens CSS expandidos, dark mode y ThemeService |
+| `35593d8` | feat | Mejorar identidad visual de todos los componentes con dark mode |
+| `afe6975` | docs | Registrar implementación de identidad visual y modo oscuro en Plan Maestro |
+| `2f097e5` | docs | Agregar documento de entrega y criterios de aceptación |
+| `cbe0461` | style | Refinar identidad hacia minimalismo funcional y limpio en ambos temas |
+
+## Principio rector: Minimalismo Funcional (Clean Minimal UI/UX)
+
+La identidad visual de AulaSmart se diseñó bajo una filosofía estricta de **Clean Minimal UI/UX**:
+- **Sin efectos decorativos superfluos:** se eliminaron animaciones gratuitas (como rotación en toggle o pulsos en celdas).
+- **Sin patrones genéricos de IA:** cero bordes de colores asimétricos en tarjetas o barras laterales; las jerarquías se comunican con tipografía, espaciado e indicadores semánticos naturales.
+- **Identidad azul y blanco sólida:** el logotipo y acentos utilizan un azul institucional estable y sereno (`#2563EB` en claro, `#3B82F6` en oscuro) sin degradados artificiales.
+- **Contraste garantizado:** todos los textos e iconos sobre fondos coloreados (botones, avatares, burbujas de usuario) mantienen `#FFFFFF` o el token semántico contrastado, asegurando cumplimiento WCAG AA/AAA tanto en tema claro como en oscuro.
+- **Cada elemento tiene una razón para existir.**
 
 Se amplió el sistema de tokens CSS en `aulasmart-frontend/src/styles.css` pasando de 110 a 477 líneas.
 
