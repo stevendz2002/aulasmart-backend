@@ -39,6 +39,8 @@
   margin: 26px 0;
 }
 
+/* ---------- Tarjetas de indicadores ---------- */
+
 .tarjeta {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -48,6 +50,12 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.tarjeta:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .tarjeta header {
@@ -62,19 +70,56 @@
   color: var(--color-text-secondary);
 }
 
+/* Icono: círculo semántico por variante */
 .tarjeta .icono {
   font-size: 0.7rem;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-background-subtle, var(--color-background));
   color: var(--color-border);
+  flex-shrink: 0;
 }
 
-.tarjeta.var-libre .icono { color: var(--color-success); }
-.tarjeta.var-catalogo .icono { color: var(--color-primary); }
-.tarjeta.var-pendiente .icono { color: var(--color-warning); }
-.tarjeta.var-aprobada .icono { color: var(--color-success); }
+/* Variantes: borde superior semántico + icono semántico */
+.tarjeta.var-libre {
+  border-top: 3px solid var(--color-success);
+}
+.tarjeta.var-libre .icono {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+}
+
+.tarjeta.var-catalogo {
+  border-top: 3px solid var(--color-primary);
+}
+.tarjeta.var-catalogo .icono {
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.tarjeta.var-pendiente {
+  border-top: 3px solid var(--color-warning);
+}
+.tarjeta.var-pendiente .icono {
+  color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+}
+
+.tarjeta.var-aprobada {
+  border-top: 3px solid var(--color-success);
+}
+.tarjeta.var-aprobada .icono {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+}
 
 .tarjeta .valor {
   font-size: 2.1rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--color-text);
   line-height: 1.1;
 }
@@ -83,6 +128,8 @@
   font-size: 0.8rem;
   color: var(--color-text-secondary);
 }
+
+/* ---------- Tablero de dos columnas ---------- */
 
 .tablero {
   display: grid;
@@ -97,6 +144,8 @@
   }
 }
 
+/* ---------- Panel genérico ---------- */
+
 .panel {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -106,6 +155,11 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  transition: box-shadow var(--transition-base);
+}
+
+.panel:hover {
+  box-shadow: var(--shadow-md);
 }
 
 .panel header {
@@ -132,7 +186,7 @@
   font-size: 0.85rem;
   color: var(--color-primary);
   text-decoration: none;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   white-space: nowrap;
 }
 
@@ -156,6 +210,8 @@
   border-bottom: 0;
 }
 
+/* ---------- Solicitudes ---------- */
+
 .solicitudes .aula {
   flex: 0 0 auto;
   width: 64px;
@@ -165,7 +221,7 @@
   color: var(--color-text-secondary);
   border-radius: var(--radius-sm);
   font-size: 0.72rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   padding: 6px 4px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -192,13 +248,38 @@
   color: var(--color-text-secondary);
 }
 
+/* Badge de estado */
 .solicitudes .estado {
   flex: 0 0 auto;
   font-size: 0.72rem;
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   border: 1px solid var(--color-border);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  background: var(--color-background);
 }
+
+/* Estados semánticos */
+.solicitudes .estado.PENDIENTE {
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-warning) 40%, transparent);
+  color: var(--color-warning);
+}
+
+.solicitudes .estado.APROBADA {
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-success) 40%, transparent);
+  color: var(--color-success);
+}
+
+.solicitudes .estado.RECHAZADA {
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-danger) 40%, transparent);
+  color: var(--color-danger);
+}
+
+/* ---------- Edificios y barras ---------- */
 
 .edificios .nombre {
   flex: 0 0 118px;
@@ -212,7 +293,7 @@
 .edificios .barra {
   flex: 1;
   height: 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: var(--color-background);
   border: 1px solid var(--color-border);
   overflow: hidden;
@@ -222,7 +303,8 @@
   display: block;
   height: 100%;
   background: var(--color-primary);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
+  transition: width var(--transition-slow);
 }
 
 .edificios .cifra {
@@ -232,6 +314,8 @@
   white-space: nowrap;
 }
 
+/* ---------- AulaBot panel ---------- */
+
 .aulabot {
   margin-top: 14px;
   flex-direction: row;
@@ -239,11 +323,15 @@
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
+  background: var(--color-primary-light);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius-lg);
 }
 
 .aulabot h3 {
   margin: 0 0 4px;
   font-size: 1rem;
+  color: var(--color-text);
 }
 
 .aulabot .apagada {
