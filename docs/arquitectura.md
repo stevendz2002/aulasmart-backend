@@ -93,3 +93,12 @@ autenticación no reciben el access anterior. Los perfiles local/prod separan HT
 de desarrollo y HTTPS obligatorio; prod rechaza clave ausente y orígenes inseguros.
 El servicio técnico de sesiones vive en infraestructura de seguridad, sin acoplar
 los modelos de dominio a JWT, cookies ni JdbcTemplate. Detalles en fase-4.md.
+
+## Fase 5: AulaBot (local, base 5e4b4da)
+
+El módulo aulabot interpreta mensajes mediante un puerto y adaptador Groq. Un servicio
+de aplicación reutiliza ConsultarAulasService y DisponibilidadAulaService, resuelve
+catálogos y construye respuestas comprobadas. La presentación aplica cuota por
+identidad y deriva acciones del rol autenticado. No hay escrituras de datos por IA.
+La SPA usa dominio, puerto de aplicación y repositorio HTTP; contexto solo en memoria.
+Límites de cuota de una instancia y privacidad descritos en docs/fase-5.md.

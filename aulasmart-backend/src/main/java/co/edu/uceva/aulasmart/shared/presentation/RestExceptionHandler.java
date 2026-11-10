@@ -24,6 +24,10 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 @RestControllerAdvice
 public class RestExceptionHandler {
+    @ExceptionHandler(co.edu.uceva.aulasmart.aulabot.domain.model.AulaBotNoDisponibleException.class)
+    ResponseEntity<ApiError> manejarAulaBot(co.edu.uceva.aulasmart.aulabot.domain.model.AulaBotNoDisponibleException exception, HttpServletRequest request) {
+        return respuesta(HttpStatus.SERVICE_UNAVAILABLE, exception.getMessage(), request);
+    }
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     ResponseEntity<ApiError> manejarRevisionConcurrente(RuntimeException exception, HttpServletRequest request) {
         return respuesta(HttpStatus.CONFLICT, "La solicitud cambió mientras la revisabas. Actualiza la lista antes de continuar.", request);

@@ -170,8 +170,8 @@ function horaCorta(iso: string): string {
       <div class="texto">
         <h3>Preguntar a AulaBot</h3>
         <p class="apagada">
-          Asistente para consultas en lenguaje natural. El módulo chatbot del backend aún no está
-          publicado; la vista de AulaBot documenta esa dependencia en lugar de simular respuestas.
+          Busca aulas en lenguaje natural, precisa tu fecha y horario y abre los detalles
+          o la solicitud. AulaBot verifica disponibilidad con los datos actuales del sistema.
         </p>
       </div>
       <a class="boton" routerLink="/aulabot">Abrir AulaBot</a>

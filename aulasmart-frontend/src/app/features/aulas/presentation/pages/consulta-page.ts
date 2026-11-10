@@ -380,7 +380,7 @@ export class ConsultaPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
-  private seleccionPendiente: { id: number; accion: string } | null = null;
+  private seleccionPendiente: { id: number; accion: string; franjaBot: boolean } | null = null;
   private readonly getAllClassrooms = inject<GetAllClassroomsUseCase>(GET_ALL_CLASSROOMS_USE_CASE);
   private readonly getAvailableClassrooms = inject<GetAvailableClassroomsUseCase>(GET_AVAILABLE_CLASSROOMS_USE_CASE);
   private readonly getOccupation = inject<GetClassroomOccupationUseCase>(GET_CLASSROOM_OCCUPATION_USE_CASE);
@@ -542,8 +542,24 @@ export class ConsultaPage implements OnInit {
       this.pestanaActiva.set('TODAS');
       this.bloqueSeleccionado.set('');
       this.tipoAulaSeleccionado.set('');
+      const inicioBot = params.get('inicio');
+      const finBot = params.get('fin');
+      let franjaBot = false;
+      if (inicioBot && finBot) {
+        const inicio = new Date(inicioBot), fin = new Date(finBot);
+        if (Number.isFinite(inicio.getTime()) && Number.isFinite(fin.getTime()) && fin > inicio) {
+          const localInicio = new Date(inicio.getTime() - 5 * 3600000).toISOString();
+          const localFin = new Date(fin.getTime() - 5 * 3600000).toISOString();
+          if (localInicio.slice(0, 10) === localFin.slice(0, 10)) {
+            franjaBot = true;
+            this.fechaConsulta.set(localInicio.slice(0, 10));
+            this.horaInicio.set(localInicio.slice(11, 16));
+            this.horaFin.set(localFin.slice(11, 16));
+          }
+        }
+      }
       const id = params.get('aula');
-      this.seleccionPendiente = id && /^\d+$/.test(id) ? { id: Number(id), accion: params.get('accion') ?? 'detalle' } : null;
+      this.seleccionPendiente = id && /^\d+$/.test(id) ? { id: Number(id), accion: params.get('accion') ?? 'detalle', franjaBot } : null;
       this.abrirSeleccionPendiente();
     });
     this.cargarCatalogo({});
@@ -561,9 +577,14 @@ export class ConsultaPage implements OnInit {
       const card = ClassroomCardBuilder.of(aula, 'DESCONOCIDO');
       if (seleccion.accion === 'solicitar' && this.puedeSolicitar()) this.abrirSolicitudDirecta(card);
       else this.abrirDetalle(card);
+      // Conservar exactamente la franja elegida en AulaBot, sin sugerir otra por estado desconocido.
+      if (seleccion.franjaBot && seleccion.accion === 'solicitar' && this.modalSolicitudAbierto()) {
+        this.inicioSolicitud.set(this.horaInicio());
+        this.finSolicitud.set(this.horaFin());
+      }
     }
     // Consumir la acción permite abrir de nuevo el mismo resultado desde la cabecera.
-    void this.router.navigate([], { relativeTo: this.route, queryParams: { aula: null, accion: null }, queryParamsHandling: 'merge', replaceUrl: true });
+    void this.router.navigate([], { relativeTo: this.route, queryParams: { aula: null, accion: null, inicio: null, fin: null }, queryParamsHandling: 'merge', replaceUrl: true });
   }
 
   protected elegirPestana(valor: PestanaEstadoValor): void {

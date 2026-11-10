@@ -24,6 +24,10 @@ Revisión: 2026-11-09. Base publicada: `f432436` (SIGA). Fase 4: `6965a7a`, cier
    y dio la fase por terminada. Incluye entornos, configuración HTTPS, sesiones,
    access/refresh, rotación, revocación y CSRF. Entrega y límites en [fase 4](fase-4.md).
    HTTPS instalado requiere certificados propios; no se afirma despliegue real.
+6. **Fase 5: AulaBot.** Implementación autorizada el 2026-11-09.
+   Groq GPT-OSS 120B, cuenta Free sin facturación confirmada por el usuario.
+   Trabajo local en `feature/aulabot`; publicación pendiente de aprobación.
+   Entrega, pruebas y límites en [fase 5](fase-5.md).
 
 Se adelanta el rol único para evitar rehacer los permisos de solicitudes y JWT.
 La configuración por entorno y BCrypt ya existen; no deben reconstruirse.

@@ -16,7 +16,13 @@ Tarjetas aprobadas y publicadas: `f481bad` en `origin/refactor/classroom-search-
 Búsquedas aprobadas y publicadas: `5fea5b4`.
 [Corrección SIGA](sincronizacion-siga.md) publicada: `f432436`.
 [Fase 4: autenticación y configuración](fase-4.md) aceptada por el usuario,
-con publicación en `develop` y después `main` autorizada. No hay otra fase activa.
+con publicación en `develop` y después `main` autorizada.
+Fase 4 publicada en ambas ramas: `5e4b4da`.
+Trabajo actual: [fase 5, AulaBot](fase-5.md), implementación local autorizada en
+`feature/aulabot`, sobre `5e4b4da`. Publicación pendiente de aprobación del usuario.
+Revisión 5A–5E implementada localmente el 2026-11-10 (memoria en servidor,
+equipamiento, alternativas sin resultados y chat único), también sin commit;
+ver `fase-5.md`, sección «Revisión autorizada 5A–5E».
 No sustituyen la inspección de diferencias ni demuestran que una base instalada
 ya recibió las migraciones. El informe de auditoría previo mencionado por el
 usuario no fue localizado; esta documentación registra la revisión actual.

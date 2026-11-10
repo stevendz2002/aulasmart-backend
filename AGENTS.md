@@ -61,9 +61,62 @@
   y `docs/fase-4.md` para decisiones y evidencia. No hay otra fase activa.
 - Implementado: JWT Bearer, refresh HttpOnly con rotación/revocación en PostgreSQL,
   V10 aditiva, API relativa /api y perfiles local/prod con configuración HTTPS.
-  No restaurar Basic. No guardar contraseñas ni tokens en almacenamiento web o env.
+  No restaurar Basic. No guardar contraseñas ni tokens individuales de usuarios en almacenamiento web o env.
 - Validado: 109 pruebas backend, 91 frontend, compilaciones y configuración Compose.
   PostgreSQL descartable detenido; no se modificó la base instalada del usuario.
 - El usuario aprobó explícitamente la publicación y el cierre de fase 4 el 2026-11-09.
 - Límites de entorno: HTTPS real requiere certificados propios; SIGA vivo no verificado
   por el agente. Advertencia CSS previa documentada como mantenimiento.
+- Fase 4 publicada y cerrada: `5e4b4da` en `develop` y `main`.
+- Fase 5: usuario autorizó implementar con Groq GPT-OSS 120B y continuar el trabajo
+  de Kimi. Cuenta Free sin facturación confirmada. Rama `feature/aulabot`, base `5e4b4da`.
+- Consultar `docs/fase-5.md`. Cambios locales sin commits; publicación pendiente.
+- Costo API cero: no activar facturación ni fallback de pago. Clave solo en `.env`
+  ignorado; no imprimirla ni copiarla a código, docs, reportes o frontend.
+- AulaBot interpreta filtros, pero disponibilidad y acciones provienen del backend.
+
+- Fase 5 local validada: 125 pruebas backend, prueba Groq separada con tres llamadas
+  sintéticas, 99 pruebas frontend; ambas compilaciones y Compose correctos.
+  PostgreSQL descartable detenido. Pendiente prueba del usuario; no publicar todavía.
+
+- Revisión 5A–5E de la fase 5 autorizada e implementada el 2026-11-10 en el mismo
+  árbol local de `feature/aulabot`, sin commits. Memoria conversacional en servidor
+  (sin Redis, TTL 30 min, deduplicación 90 s), equipamiento resuelto contra nombres
+  reales del catálogo (sin migración), alternativas reales ante búsquedas sin
+  resultados (chips con conteos verificados localmente) y un solo chat (eliminado
+  el endpoint y el modo «Consulta guiada»). El cliente ya no envía contexto; solo
+  `{mensaje, nuevaConversacion}`. Ver `docs/fase-5.md`, sección «Revisión autorizada 5A–5E».
+  Validación: `mvnw.cmd -o verify` con PostgreSQL descartable, 139 pruebas backend,
+  99 frontend, builds y Compose correctos; base descartable detenida.
+  GroqConexionTest actualizada al flujo `SolicitudInterpretacion` (opt-in, sin reejecutar).
+  Pendiente: prueba funcional del usuario, reemplazar la clave Groq expuesta en el
+  chat y autorización de publicación. Sin otra sub-fase activa.
+- Corrección de fase 5 tras la prueba del usuario (2026-11-10), sin commits en el
+  mismo árbol: la aclaración ya conserva el filtro parcial entendido (mezcla con lo
+  vigente y se muestra en `filtros`), la deduplicación se firma con el estado
+  (repetir un mensaje con otro contexto se interpreta de nuevo; el registro queda
+  contra el estado resultante del turno) y NO_VERIFICABLE ofrece el chip «Busca en
+  el catálogo sin horario» (el frontend lo muestra igual que en SIN_RESULTADOS).
+  Validado: 143 pruebas backend tras recrear la base descartable limpia, 99 frontend,
+  build correcto y conversación reproducida en vivo contra PostgreSQL descartable
+  (filtros conservados en los tres turnos y CATALOGO que lleva a Solicitar).
+  Pendiente: prueba funcional del usuario con esta corrección, nueva clave Groq
+  y autorización de publicación.
+- Rechazo de la gestión de solicitudes desde el chat (respuesta a la prueba del
+  usuario): chat informativo pregunta a pregunta sin memoria multi-turno, contrato
+  sin `puedeSolicitar`/`acciones`, aclaraciones con ejemplo de frase completa.
+  Validado: 137 backend, 98 frontend, builds correctos y conversación de prueba
+  reproducida en vivo. Sin otra sub-fase activa.
+- Cambio a IA totalmente determinista y a un lado de Groq (respuesta a la petición
+  del usuario): `InterpretacionDeterminista` local reemplaza a `GroqInterpretador`
+  como bean primario del puerto; la interpretación sale de reglas locales sobre el
+  texto. Validado: 137 backend, repro en vivo con respuestas deterministas y sin
+  consumo de cuota Groq; frontend sin cambios (98 pruebas, build OK).
+  Sin otra sub-fase activa.
+- Arquitectura híbrida final (2026-11-10), tras nueva petición del usuario: Groq
+  solo extrae JSON; motor determinista con consulta vigente + franja pendiente
+  (fecha y horario pueden llegar en turnos distintos), plantillas backend, fechas
+  relativas resueltas en backend y chips como acciones estructuradas sin Groq.
+  Cuota: 6/min/usuario y 20/min global, acciones sin cuota, fallo → respuesta guiada
+  sin 503. Validado: 146 backend, 99 frontend, build OK. Se eliminó el interpretador
+  local determinista intermedio. Rama `feature/aulabot`; autorizado commit/push.

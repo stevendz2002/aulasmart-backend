@@ -42,6 +42,16 @@ describe('Consulta: disponibilidad verificable', () => {
     page['fechaConsulta'].set('2026-11-10');
   });
 
+  it('conserva fecha y franja de AulaBot en el formulario', () => {
+    execute.mockReturnValue(of([]));
+    disponibilidad.mockReturnValue(of({ range: { start: '', end: '', verifiedAt: '' }, classrooms: [] }));
+    parametros.next(convertToParamMap({ name: 'Aula', aula: '1', accion: 'solicitar', inicio: '2030-01-10T19:00:00Z', fin: '2030-01-10T21:00:00Z' }));
+    page.ngOnInit();
+    expect(page['fechaSolicitud']()).toBe('2030-01-10');
+    expect(page['inicioSolicitud']()).toBe('14:00');
+    expect(page['finSolicitud']()).toBe('16:00');
+  });
+
   it('no muestra franjas libres cuando falla la consulta', () => {
     execute.mockReturnValue(throwError(() => ({ status: 503 })));
     page['abrirDetalle'](ClassroomCardBuilder.of(aula, 'LIBRE'));
