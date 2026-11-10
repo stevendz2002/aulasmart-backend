@@ -19,6 +19,8 @@
 | `afe6975` | docs | Registrar implementación de identidad visual y modo oscuro en Plan Maestro |
 | `2f097e5` | docs | Agregar documento de entrega y criterios de aceptación |
 | `cbe0461` | style | Refinar identidad hacia minimalismo funcional y limpio en ambos temas |
+| `c07ffa1` | docs | Documentar refinamiento hacia minimalismo funcional y lista de commits |
+| `b39225d` | fix | Corregir contraste de iconos en consulta de aulas y calibrar modo oscuro profundo |
 
 ## Principio rector: Minimalismo Funcional (Clean Minimal UI/UX)
 
