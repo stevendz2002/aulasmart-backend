@@ -174,8 +174,9 @@
 }
 
 .panel-formulario input:focus {
-  outline: 2px solid var(--color-primary-light);
+  outline: none;
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
 }
 
 /* Contraseña con ojo (mostrar/ocultar). */

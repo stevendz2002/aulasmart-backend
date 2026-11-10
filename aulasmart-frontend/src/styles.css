@@ -96,39 +96,39 @@
 }
 
 /* ═══════════════════════════════════════════════════════════
-   TEMA OSCURO — atributo explícito
+   TEMA OSCURO — atributo explícito (Verdadero modo oscuro profundo y elegante)
    ═══════════════════════════════════════════════════════════ */
 [data-theme="dark"] {
   --color-primary:        #3B82F6;
-  --color-primary-hover:  #2563EB;
-  --color-primary-dark:   #93C5FD;
-  --color-primary-light:  rgba(59, 130, 246, 0.15);
+  --color-primary-hover:  #60A5FA;
+  --color-primary-dark:   #60A5FA;
+  --color-primary-light:  rgba(59, 130, 246, 0.16);
 
   --color-secondary:      #94A3B8;
 
-  --color-surface:          #1E293B;
-  --color-surface-elevated: #263548;
-  --color-background:       #0F172A;
-  --color-background-subtle:#0D1526;
+  --color-surface:          #111726;
+  --color-surface-elevated: #192236;
+  --color-background:       #0A0E17;
+  --color-background-subtle:#0E1420;
 
   --color-text:          #F1F5F9;
   --color-text-secondary:#94A3B8;
   --color-text-disabled: #475569;
 
-  --color-border:        #334155;
-  --color-border-strong: #475569;
+  --color-border:        #1E293B;
+  --color-border-strong: #334155;
 
-  --color-success: #22C55E;
+  --color-success: #10B981;
   --color-warning: #F59E0B;
-  --color-danger:  #F87171;
+  --color-danger:  #EF4444;
   --color-info:    #38BDF8;
   --color-muted:   #64748B;
 
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45), 0 2px 4px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.35);
-  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.55), 0 8px 16px rgba(0, 0, 0, 0.4);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.7), 0 4px 8px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.8), 0 8px 16px rgba(0, 0, 0, 0.5);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -137,35 +137,35 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --color-primary:        #3B82F6;
-    --color-primary-hover:  #2563EB;
-    --color-primary-dark:   #93C5FD;
-    --color-primary-light:  rgba(59, 130, 246, 0.15);
+    --color-primary-hover:  #60A5FA;
+    --color-primary-dark:   #60A5FA;
+    --color-primary-light:  rgba(59, 130, 246, 0.16);
 
     --color-secondary:      #94A3B8;
 
-    --color-surface:          #1E293B;
-    --color-surface-elevated: #263548;
-    --color-background:       #0F172A;
-    --color-background-subtle:#0D1526;
+    --color-surface:          #111726;
+    --color-surface-elevated: #192236;
+    --color-background:       #0A0E17;
+    --color-background-subtle:#0E1420;
 
     --color-text:          #F1F5F9;
     --color-text-secondary:#94A3B8;
     --color-text-disabled: #475569;
 
-    --color-border:        #334155;
-    --color-border-strong: #475569;
+    --color-border:        #1E293B;
+    --color-border-strong: #334155;
 
-    --color-success: #22C55E;
+    --color-success: #10B981;
     --color-warning: #F59E0B;
-    --color-danger:  #F87171;
+    --color-danger:  #EF4444;
     --color-info:    #38BDF8;
     --color-muted:   #64748B;
 
-    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45), 0 2px 4px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.35);
-    --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.55), 0 8px 16px rgba(0, 0, 0, 0.4);
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.7), 0 4px 8px rgba(0, 0, 0, 0.4);
+    --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.8), 0 8px 16px rgba(0, 0, 0, 0.5);
   }
 }
 
