@@ -1,12 +1,30 @@
-/* Consulta de aulas: filtro compacto + tarjetas densas + modales */
+/* Consulta de aulas: filtro compacto + tarjetas densas + modales
+   Fase 6 — dark mode via variables CSS (sin hex hardcodeados) */
 
+/* ─── Overlay de modal: variable local para ajustar opacidad por tema ─── */
+:root {
+  --color-modal-overlay: rgba(15, 23, 42, 0.45);
+}
+[data-theme="dark"] {
+  --color-modal-overlay: rgba(0, 0, 0, 0.65);
+}
+
+/* ─── Cabecera ─── */
 .cabecera { margin-bottom: 12px; }
 .cabecera h2 { margin: 0 0 2px; font-size: 1.25rem; color: var(--color-text); }
 .cabecera .ayuda { margin: 0; color: var(--color-text-secondary); font-size: 0.82rem; max-width: 72ch; }
 
-.tarjeta { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: 12px 14px; margin-bottom: 12px; }
+/* ─── Tarjeta contenedor ─── */
+.tarjeta {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
 
-/* Barra de filtros compacta: 6 campos en una sola fila */
+/* ─── Barra de filtros compacta: 6 campos en una sola fila ─── */
 .filtros__grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -20,13 +38,31 @@
   .filtros__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-.campo { display: flex; flex-direction: column; gap: 3px; font-size: 0.72rem; color: var(--color-text-secondary); font-weight: 600; }
-.campo input, .campo select {
-  padding: 6px 8px; border: 1px solid var(--color-border); border-radius: var(--radius-sm);
-  font: inherit; font-size: 0.82rem; background: var(--color-background); color: var(--color-text);
-  width: 100%;
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+  font-weight: 600;
 }
-.campo input:focus, .campo select:focus { outline: 2px solid var(--color-primary-light); border-color: var(--color-primary); }
+.campo input,
+.campo select {
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 0.82rem;
+  background: var(--color-background);
+  color: var(--color-text);
+  width: 100%;
+  transition: var(--transition-base);
+}
+.campo input:focus,
+.campo select:focus {
+  outline: 2px solid var(--color-primary-light);
+  border-color: var(--color-primary);
+}
 
 .input-icono { position: relative; display: flex; align-items: center; }
 .input-icono svg { position: absolute; right: 8px; width: 14px; height: 14px; color: var(--color-text-secondary); pointer-events: none; }
@@ -37,29 +73,126 @@
 .filtros__acciones .boton { padding: 6px 12px; font-size: 0.8rem; }
 .nota-franja { margin: 6px 0 0; font-size: 0.75rem; color: var(--color-text-secondary); }
 
-/* Controles: pestañas + buscador compactos */
+/* ─── Controles: pestañas + buscador ─── */
 .controles { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
 .pestanas { display: inline-flex; gap: 4px; border: 1px solid var(--color-border); border-radius: 999px; padding: 3px; background: var(--color-background); }
-.pestanas button { border: 0; background: transparent; font: inherit; font-size: 0.78rem; color: var(--color-text-secondary); padding: 4px 10px; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.pestanas button {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  transition: var(--transition-base);
+}
 .pestanas button:hover { color: var(--color-text); }
 .pestanas button.activa { background: var(--color-primary); color: #fff; font-weight: 600; }
 .pestanas .cuenta { font-size: 0.68rem; border-radius: 999px; padding: 0 6px; background: var(--color-primary-light); color: var(--color-primary-dark); }
-.pestanas button.activa .cuenta { background: rgba(255,255,255,0.24); color: #fff; }
+.pestanas button.activa .cuenta { background: rgba(255, 255, 255, 0.24); color: #fff; }
 
-.busqueda { width: min(100%, 460px); height: 32px; display: flex; align-items: center; gap: 6px; border: 1px solid var(--color-border); border-radius: 999px; padding: 5px 10px; background: var(--color-background); color: var(--color-text-secondary); }
+.busqueda {
+  width: min(100%, 460px);
+  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: var(--color-background);
+  color: var(--color-text-secondary);
+  transition: var(--transition-base);
+}
 .busqueda svg { width: 14px; height: 14px; flex: 0 0 auto; }
 .busqueda input { border: 0; background: transparent; font: inherit; font-size: 0.9rem; line-height: 20px; color: var(--color-text); min-width: 0; width: 100%; }
 .busqueda input:focus { outline: none; }
 .busqueda:focus-within { border-color: var(--color-primary); }
 
-/* Tarjetas: conservar identidad visual y dar espacio a títulos y estados. */
+/* ─── Grid de tarjetas de aula ─── */
 .grid-aulas { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
-.aula-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; min-height: 240px; transition: box-shadow 0.15s ease, border-color 0.15s ease; }
-.aula-card:hover { box-shadow: var(--shadow-sm); border-color: var(--color-primary-light); }
+.aula-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  min-height: 240px;
+  transition: var(--transition-base);
+}
+.aula-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary);
+}
 @media (max-width: 1199px) { .grid-aulas { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 800px) { .grid-aulas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 520px) { .grid-aulas { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 800px)  { .grid-aulas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px)  { .grid-aulas { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) {
+  .aula-card,
+  .aula-card__acciones .boton,
+  .chip,
+  .campo input,
+  .campo select,
+  .pestanas button,
+  .busqueda { transition: none; }
+}
 
+/* ─── Encabezado superior de la tarjeta ─── */
+.aula-card__superior { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+/* Icono de tipo de aula: identidad azul sin fotografías */
+.aula-card__icono {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  transition: var(--transition-base);
+}
+.aula-card__icono svg { width: 23px; height: 23px; }
+
+/* Estado libre / ocupada — prominente y adaptable al tema */
+.aula-card__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  background: var(--color-background-subtle);
+  transition: var(--transition-base);
+}
+.aula-card__estado::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: currentColor;
+}
+.aula-card__estado.libre {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 15%, transparent);
+}
+.aula-card__estado.ocupada {
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+}
+
+/* ─── Cabecera interna de tarjeta ─── */
 .aula-card__cabecera { display: flex; flex-direction: column; gap: 12px; }
 .aula-card__cabecera h3 { margin: 0; font-size: 1.05rem; color: var(--color-primary-dark); line-height: 1.35; overflow-wrap: anywhere; }
 .aula-card__ubicacion { margin: 0; font-size: 0.82rem; color: var(--color-text-secondary); line-height: 1.5; overflow-wrap: anywhere; }
@@ -68,89 +201,224 @@
 .aula-card__codigo { font-variant-numeric: tabular-nums; }
 .aula-card__ubicacion { display: flex; align-items: flex-start; gap: 6px; }
 .aula-card svg { width: 18px; height: 18px; flex-shrink: 0; }
-.aula-card__capacidad { display: flex; align-items: center; gap: 8px; color: var(--color-primary-dark); padding: 10px 0; }
+
+/* Bloque de capacidad: fondo sutil del tema */
+.aula-card__capacidad {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-primary-dark);
+  background: var(--color-background-subtle);
+  border-radius: var(--radius-md);
+  padding: 10px;
+}
 .aula-card__capacidad strong { font-size: 1.05rem; font-weight: 600; line-height: 1; }
 .aula-card__capacidad span { font-size: 0.8rem; line-height: 1.3; }
 .aula-card__capacidad small { color: var(--color-text-secondary); }
-@media (prefers-reduced-motion: reduce) { .aula-card { transition: none; } }
+
 .meta-item { display: inline-flex; align-items: center; gap: 3px; }
 .meta-icono { font-size: 0.85rem; }
 
+/* ─── Chips ─── */
 .chips { display: flex; flex-wrap: wrap; gap: 4px; }
-.chip { display: inline-flex; align-items: center; border-radius: 999px; padding: 2px 8px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
-.chip.caracteristica { background: var(--color-background); border: 1px solid var(--color-border); color: var(--color-text-secondary); }
-.chip.estado-chip { padding: 2px 8px; }
-.chip.estado-chip.libre { background: #DCFCE7; color: var(--color-success); }
-.chip.estado-chip.ocupada { background: #FEE2E2; color: var(--color-danger); }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: var(--transition-base);
+}
 
-.aula-card__acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 10px; }
-.aula-card__acciones .boton { padding: 8px; min-height: 44px; font-size: 0.8rem; flex: 1 1 70px; }
+/* Chip de característica en la lista (sin modal) */
+.chip.caracteristica {
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+/* Chip de característica DENTRO de la tarjeta de aula */
+.aula-card .chip.caracteristica {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  border: 0;
+  gap: 6px;
+  padding: 5px 9px;
+  font-weight: 500;
+}
+.aula-card .chip.caracteristica svg { width: 13px; height: 13px; }
 .aula-card .chip { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 .aula-card .meta-item { min-width: 0; overflow-wrap: anywhere; }
+
+/* Chips de estado en vista timeline/tarjeta */
+.chip.estado-chip { padding: 2px 8px; }
+.chip.estado-chip.libre {
+  background: color-mix(in srgb, var(--color-success) 18%, transparent);
+  color: var(--color-success);
+}
+.chip.estado-chip.ocupada {
+  background: color-mix(in srgb, var(--color-danger) 18%, transparent);
+  color: var(--color-danger);
+}
+
+/* ─── Acciones de la tarjeta ─── */
+.aula-card__acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 10px; }
+.aula-card__acciones .boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  min-height: 44px;
+  font-size: 0.8rem;
+  flex: 1 1 70px;
+  border-radius: 10px;
+  background: var(--color-primary);
+  font-weight: 600;
+  transition: var(--transition-base);
+}
+.aula-card__acciones .boton.secundario {
+  background: var(--color-surface);
+  color: var(--color-primary-dark);
+  border-color: var(--color-border);
+}
 .aula-card__acciones .boton:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
+.aula-card__acciones svg { width: 15px; height: 15px; }
 
 .liberacion { margin: 2px 0 0; font-size: 0.72rem; color: var(--color-text-secondary); font-style: italic; }
 
-.mensaje-info { color: var(--color-text-secondary); font-size: 0.85rem; margin: 6px 0; }
+/* ─── Mensajes de estado ─── */
+.mensaje-info  { color: var(--color-text-secondary); font-size: 0.85rem; margin: 6px 0; }
 .mensaje-error { color: var(--color-danger); font-size: 0.85rem; margin: 6px 0; }
 .mensaje-exito { color: var(--color-success); font-size: 0.85rem; margin: 6px 0; }
 
-.boton { border: 0; background: var(--color-primary); color: #fff; font: inherit; font-size: 0.8rem; padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap; }
+/* ─── Botones globales del componente ─── */
+.boton {
+  border: 0;
+  background: var(--color-primary);
+  color: #fff;
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-base);
+}
 .boton:disabled { opacity: 0.5; cursor: not-allowed; }
 .boton.secundario { background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border); }
-.boton.boton-solicitar { background: #0f172a; }
+.boton.boton-solicitar { background: var(--color-text); }
 .boton.no { background: var(--color-danger); }
 
-/* Modales compactos */
-.modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.45); display: flex; align-items: center; justify-content: center; padding: 12px; z-index: 1000; }
-.modal { background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); width: 100%; max-width: 560px; max-height: 88vh; overflow: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+/* ─── Modales compactos ─── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-modal-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  z-index: var(--z-modal);
+}
+.modal {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  width: 100%;
+  max-width: 560px;
+  max-height: 88vh;
+  overflow: auto;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 .modal__cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .modal__cabecera h3 { margin: 0 0 2px; font-size: 1.1rem; color: var(--color-text); }
 .modal__subtitulo { margin: 0; color: var(--color-text-secondary); font-size: 0.8rem; }
-.modal__cerrar { border: 0; background: transparent; font-size: 1.3rem; line-height: 1; cursor: pointer; color: var(--color-text-secondary); }
+.modal__cerrar { border: 0; background: transparent; font-size: 1.3rem; line-height: 1; cursor: pointer; color: var(--color-text-secondary); transition: var(--transition-base); }
 .modal__cerrar:hover { color: var(--color-text); }
-.modal__metricas { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; background: var(--color-background); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 8px; }
+.modal__metricas {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 8px;
+}
 .metrica { display: flex; flex-direction: column; align-items: center; gap: 1px; font-size: 0.75rem; color: var(--color-text-secondary); }
 .metrica__icono { font-size: 1rem; }
 .metrica__valor { font-weight: 600; color: var(--color-text); text-align: center; }
 .modal__seccion h4 { margin: 0 0 4px; font-size: 0.68rem; letter-spacing: 0.06em; color: var(--color-text-secondary); text-transform: uppercase; }
-.chips { display: flex; flex-wrap: wrap; gap: 4px; }
-.chip.caracteristica { background: var(--color-primary-light); color: var(--color-primary-dark); border-radius: 999px; padding: 2px 8px; font-size: 0.72rem; font-weight: 600; }
+
+/* Chip de característica en modal — usa primary-light/dark */
+.chip.caracteristica {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+/* ─── Timeline de horario ─── */
 .timeline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden; }
 .timeline__fila { display: flex; gap: 10px; padding: 6px 10px; border-bottom: 1px solid var(--color-border); font-size: 0.8rem; }
 .timeline__fila:last-child { border-bottom: 0; }
-.timeline__fila.libre { background: #F0FDF4; }
+.timeline__fila.libre {
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+}
 .timeline__hora { flex: 0 0 95px; font-variant-numeric: tabular-nums; color: var(--color-text-secondary); }
 .timeline__detalle { color: var(--color-text); }
 .timeline__detalle.libre { color: var(--color-success); font-weight: 600; }
 .modal__acciones { display: flex; justify-content: flex-end; gap: 6px; }
 
-/* Modal de solicitud */
-.fila-tiempo { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+/* ─── Modal de solicitud ─── */
+.fila-tiempo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .fila-tiempo label { display: flex; flex-direction: column; gap: 3px; font-size: 0.75rem; color: var(--color-text-secondary); }
-.fila-tiempo input, .formulario label input, .formulario label select, .formulario label textarea { padding: 6px 8px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); font: inherit; font-size: 0.82rem; background: var(--color-background); color: var(--color-text); }
-.banner-info { display: flex; gap: 6px; align-items: flex-start; background: #FEF9C3; border: 1px solid #FDE68A; border-radius: var(--radius-sm); padding: 6px 8px; font-size: 0.75rem; color: #713F12; }
+.fila-tiempo input,
+.formulario label input,
+.formulario label select,
+.formulario label textarea {
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 0.82rem;
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+/* Banner informativo: amarillo/advertencia, adaptable al tema */
+.banner-info {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 40%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  font-size: 0.75rem;
+  color: var(--color-warning);
+}
 .banner-info__icono { font-weight: 700; }
 
+/* ─── Franjas libres ─── */
 .franjas-libres { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-bottom: 8px; }
 .franjas-libres__etiqueta { font-size: 0.75rem; color: var(--color-text-secondary); margin-right: 2px; }
 .franjas-libres .chip-franja { padding: 3px 8px; font-size: 0.72rem; }
 
-/* Oculta el icono nativo del picker para evitar el duplicado con el SVG */
-.input-icono input::-webkit-calendar-picker-indicator { opacity: 0; cursor: pointer; width: 100%; height: 100%; position: absolute; right: 0; top: 0; }
-
-
-/* Iconos de tipo de aula: misma identidad azul y sin fotografías. */
-.aula-card__superior { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.aula-card__icono { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border-radius: 12px; background: #eaf0ff; color: #244bea; }
-.aula-card__icono svg { width: 23px; height: 23px; }
-.aula-card__estado { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; color: var(--color-text-secondary); background: var(--color-background); }
-.aula-card__estado::before { content: ''; width: 6px; height: 6px; flex-shrink: 0; border-radius: 50%; background: currentColor; }
-.aula-card__estado.libre { color: #15803d; background: #e7f6ec; }
-.aula-card__estado.ocupada { color: #b91c1c; background: #fdefed; }
-.aula-card__capacidad { background: #f5f7fc; border-radius: var(--radius-md); padding: 10px; }
-.aula-card__acciones .boton { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 10px; background: #214be2; font-weight: 600; }
-.aula-card__acciones .boton.secundario { background: var(--color-surface); color: var(--color-primary-dark); border-color: #dbe3f0; }
-.aula-card .chip.caracteristica { background: #eef2ff; color: #25418f; border: 0; gap: 6px; padding: 5px 9px; font-weight: 500; }
-.aula-card .chip.caracteristica svg { width: 13px; height: 13px; }
-.aula-card__acciones svg { width: 15px; height: 15px; }
+/* Ocultar el icono nativo del picker para evitar duplicado con el SVG */
+.input-icono input::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  right: 0;
+  top: 0;
+}

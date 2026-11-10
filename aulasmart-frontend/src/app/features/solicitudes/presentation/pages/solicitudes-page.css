@@ -1,6 +1,8 @@
-/* Solicitudes de aula (diseño aprobado): cabecera, tarjetas, pestanas con
-   conteos reales, buscador y tabla con acciones de revisión. */
+/* Solicitudes de aula — Fase 6: dark mode via variables CSS (sin hex hardcodeados)
+   Diseño aprobado: cabecera, tarjetas, pestanas con conteos reales,
+   buscador y tabla con acciones de revisión. */
 
+/* ─── Cabecera ─── */
 .cabecera {
   margin-bottom: 20px;
 }
@@ -18,6 +20,7 @@
   max-width: 72ch;
 }
 
+/* ─── Tarjeta contenedor ─── */
 .tarjeta {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -46,6 +49,7 @@
   color: var(--color-text-secondary);
 }
 
+/* ─── Controles ─── */
 .controles {
   display: flex;
   align-items: center;
@@ -55,7 +59,7 @@
   margin-bottom: 14px;
 }
 
-/* Pestañas con conteo real por estado. */
+/* ─── Pestañas con conteo real por estado ─── */
 .pestanas {
   display: inline-flex;
   gap: 6px;
@@ -78,6 +82,7 @@
   align-items: center;
   gap: 7px;
   white-space: nowrap;
+  transition: var(--transition-base);
 }
 
 .pestanas button:hover {
@@ -103,7 +108,7 @@
   color: #fff;
 }
 
-/* Buscador dentro de la tarjeta. */
+/* ─── Buscador ─── */
 .busqueda {
   display: flex;
   align-items: center;
@@ -113,6 +118,7 @@
   padding: 7px 13px;
   background: var(--color-background);
   min-width: min(320px, 100%);
+  transition: var(--transition-base);
 }
 
 .busqueda svg {
@@ -132,10 +138,17 @@
   min-width: 0;
 }
 
-.tabla-envoltorio {
-  overflow-x: auto;
+.busqueda:focus-within {
+  border-color: var(--color-primary);
 }
 
+/* ─── Tabla con scroll horizontal en mobile ─── */
+.tabla-envoltorio {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ─── Código monoespaciado ─── */
 .codigo {
   font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
   font-size: 0.8rem;
@@ -146,6 +159,7 @@
   white-space: nowrap;
 }
 
+/* ─── Columnas de tabla ─── */
 td.aula {
   font-weight: 600;
   color: var(--color-text);
@@ -160,7 +174,7 @@ td.motivo {
   color: var(--color-text-secondary);
 }
 
-/* Chips de estado (sobrepasa el color texto del estilo global). */
+/* ─── Chips de estado (sobrepasa el estilo global) ─── */
 .estado {
   display: inline-flex;
   align-items: center;
@@ -171,29 +185,36 @@ td.motivo {
   white-space: nowrap;
 }
 
+/* PENDIENTE — amarillo/advertencia */
 .estado.PENDIENTE {
-  background: #FEF3C7;
-  color: #92400E;
+  background: color-mix(in srgb, var(--color-warning) 18%, transparent);
+  color: var(--color-warning);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 35%, transparent);
 }
 
+/* APROBADA — verde/éxito */
 .estado.APROBADA {
-  background: #DCFCE7;
-  color: #166534;
+  background: color-mix(in srgb, var(--color-success) 18%, transparent);
+  color: var(--color-success);
+  border: 1px solid color-mix(in srgb, var(--color-success) 35%, transparent);
 }
 
+/* RECHAZADA — rojo/peligro */
 .estado.RECHAZADA {
-  background: #FEE2E2;
-  color: #991B1B;
+  background: color-mix(in srgb, var(--color-danger) 18%, transparent);
+  color: var(--color-danger);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 35%, transparent);
 }
 
-/* Acciones de revisión ✓ / ✕ para el personal revisor. */
+/* ─── Acciones de revisión ✓ / ✕ ─── */
 td.acciones {
   white-space: nowrap;
 }
 
 .accion {
-  width: 28px;
-  height: 28px;
+  position: relative;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
   background: var(--color-surface);
@@ -202,27 +223,86 @@ td.acciones {
   line-height: 1;
   cursor: pointer;
   margin-right: 6px;
+  transition: var(--transition-base);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Tooltip visible accesible */
+.accion[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-text);
+  color: var(--color-surface);
+  font-size: 0.7rem;
+  white-space: nowrap;
+  padding: 3px 7px;
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+  z-index: var(--z-dropdown);
 }
 
 .accion.si {
   color: var(--color-success);
-  border-color: #BBF7D0;
+  border-color: color-mix(in srgb, var(--color-success) 40%, transparent);
 }
 
 .accion.si:hover {
-  background: #DCFCE7;
+  background: color-mix(in srgb, var(--color-success) 15%, transparent);
 }
 
 .accion.no {
   color: var(--color-danger);
-  border-color: #FECACA;
+  border-color: color-mix(in srgb, var(--color-danger) 40%, transparent);
 }
 
 .accion.no:hover {
-  background: #FEE2E2;
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
 }
 
+/* ─── Resuelta ─── */
 .resuelta {
   font-size: 0.78rem;
   color: var(--color-muted);
+}
+
+/* ─── Skeleton loader para carga de solicitudes ─── */
+.cargando .skeleton-row {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cargando .skeleton-cell {
+  height: 14px;
+  border-radius: var(--radius-sm);
+  background: var(--color-border);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+  flex: 1;
+}
+
+.cargando .skeleton-cell.ancho {
+  flex: 2;
+}
+
+.cargando .skeleton-cell.estrecho {
+  flex: 0 0 60px;
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+/* ─── Accesibilidad: sin transiciones si el usuario lo prefiere ─── */
+@media (prefers-reduced-motion: reduce) {
+  .pestanas button,
+  .busqueda,
+  .accion { transition: none; }
+  .cargando .skeleton-cell { animation: none; }
 }
