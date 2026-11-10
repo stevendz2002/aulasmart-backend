@@ -5,6 +5,7 @@ import { filter, map } from 'rxjs';
 
 import { Sidebar } from './shared/presentation/sidebar/sidebar';
 import { Header } from './shared/presentation/header/header';
+import { ThemeService } from './core/theme.service';
 
 /** Shell de la SPA: menú lateral + topbar + contenido (sin chrome en el ingreso). */
 @Component({
@@ -15,6 +16,8 @@ import { Header } from './shared/presentation/header/header';
 })
 export class App {
   private readonly router = inject(Router);
+  /** Inicializa ThemeService para aplicar el tema al arrancar. */
+  protected readonly themeService = inject(ThemeService);
 
   private readonly rutaActual = toSignal(
     this.router.events.pipe(
