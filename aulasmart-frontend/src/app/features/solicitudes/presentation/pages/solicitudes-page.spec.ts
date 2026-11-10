@@ -11,7 +11,7 @@ import { ClassroomRequest } from '../../domain/entities/classroom-request';
 describe('Seguimiento de solicitudes', () => {
   const rol = signal('ADMINISTRADOR');
   const revisar = vi.fn(); const listar = vi.fn();
-  const solicitud: ClassroomRequest = { id: 77, classroomId: 1, requesterId: 5, start: '2026-11-10T13:00:00Z', end: '2026-11-10T15:00:00Z', status: 'PENDIENTE', reason: 'Clase', reviewedById: null, reviewedAt: null, createdAt: '' };
+  const solicitud: ClassroomRequest = { id: 77, classroomId: 1, requesterId: 5, start: '2099-11-10T13:00:00Z', end: '2099-11-10T15:00:00Z', status: 'PENDIENTE', reason: 'Clase', reviewedById: null, reviewedAt: null, createdAt: '' };
   beforeEach(() => {
     rol.set('ADMINISTRADOR'); revisar.mockReset(); listar.mockReset().mockReturnValue(of([solicitud]));
     TestBed.configureTestingModule({ imports: [SolicitudesPage], providers: [
@@ -22,6 +22,17 @@ describe('Seguimiento de solicitudes', () => {
       { provide: GET_CLASSROOM_REQUESTS_USE_CASE, useValue: { execute: listar } },
       { provide: REVIEW_CLASSROOM_REQUEST_USE_CASE, useValue: { execute: revisar } }
     ] });
+  });
+  it('separa las reservas finalizadas y rechazadas en el historial', () => {
+    listar.mockReturnValue(of([solicitud,
+      { ...solicitud, id: 78, status: 'APROBADA', end: '2020-01-01T15:00:00Z' },
+      { ...solicitud, id: 79, status: 'RECHAZADA' }]));
+    const fixture = TestBed.createComponent(SolicitudesPage); fixture.detectChanges();
+    const page = fixture.componentInstance;
+    page['buscar']('');
+    expect(page['visibles']().map(s => s.id)).toEqual([77]);
+    page['historial'].set(true);
+    expect(page['visibles']().map(s => s.id)).toEqual([78, 79]);
   });
   it('abre el seguimiento solicitado desde la confirmación', () => {
     const fixture = TestBed.createComponent(SolicitudesPage); fixture.detectChanges();

@@ -71,6 +71,19 @@ class RevisarSolicitudServiceTest {
     }
 
     @Test
+    void alInicioRechazaSinRevisorNiConsultarSiga() {
+        service = new RevisarSolicitudService(solicitudReservaPort, solicitudAprobadaPort,
+                horarioAcademicoPort, aulaConsultaPort, verificacionEventosSigaPort,
+                Clock.fixed(INTERVALO.inicio(), ZoneOffset.UTC));
+        when(solicitudReservaPort.buscarPorId(SOLICITUD)).thenReturn(Optional.of(pendiente()));
+        when(solicitudReservaPort.guardar(any())).thenAnswer(i -> i.getArgument(0));
+        var resultado = service.revisar(SOLICITUD, REVISOR, "APROBAR");
+        assertEquals(SolicitudReserva.RECHAZADA, resultado.estado());
+        org.junit.jupiter.api.Assertions.assertNull(resultado.revisadaPorId());
+        verifyNoInteractions(verificacionEventosSigaPort, solicitudAprobadaPort);
+    }
+
+    @Test
     void apruebaSolicitudPendienteDejandoAuditoria() {
         when(aulaConsultaPort.buscarActivaPorId(AULA)).thenReturn(Optional.of(aulaActiva()));
         when(solicitudReservaPort.buscarPorId(SOLICITUD)).thenReturn(Optional.of(pendiente()));

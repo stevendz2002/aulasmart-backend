@@ -1,5 +1,10 @@
 # Plan maestro de evolución de AulaSmart
 
+Estado vigente (2026-11-10): AulaBot publicado en main `1e7da77`. Corrección de solicitudes
+aceptada en `feature/solicitudes-historial`, publicación en main autorizada. Las secciones anteriores de fase 5
+describen su evolución; prevalece la actualización final de este documento.
+
+
 Revisión: 2026-11-09. Base publicada: `f432436` (SIGA). Fase 4: `6965a7a`, cierre e integración `develop` → `main` aprobados.
 
 ## Orden y alcance
@@ -49,3 +54,19 @@ fase 3, 3–5; fase 4, 5–8. Reestimar al aprobar cada alcance.
 Objetivo: mantener continuidad entre sesiones y reducir análisis repetitivos sin
 sacrificar calidad. La autorización de toda la fase 0 no autoriza fases posteriores
 ni commits. La siguiente fase requiere su checkpoint de aprobación.
+
+## Corrección de solicitudes (2026-11-10)
+
+AulaBot publicado en `origin/main`: `1e7da77` (incluye `7db7cde`).
+Corrección autorizada en `feature/solicitudes-historial`, base `1e7da77`; usuario aprobó cierre y publicación en main el 2026-11-10.
+- Bandeja separada de activas e historial: últimas 50 históricas por ámbito de permisos,
+  ordenadas por creación e ID descendente. Docentes solo ven las propias.
+- Se conservan hasta 50 históricas por usuario en almacenamiento; las activas no se podan.
+  Archivo lógico en la misma tabla al finalizar; los intervalos [inicio, fin) no bloquean
+  reservas futuras. No se borra la constancia histórica para liberar el aula.
+- Pendientes al llegar inicio: RECHAZADA, sin motivo adicional ni revisor humano ficticio.
+  Limpieza automática cada segundo; lectura y revisión también aplican el límite temporal.
+  Al reiniciar se procesan vencimientos acumulados. Interfaz se actualiza cada 15 segundos.
+- V11 cambia solo la restricción de revisión para permitir rechazo automático sin persona;
+  no migra datos ni modifica SIGA. No se borraron datos de la base instalada ni mocks globales.
+- Usuario confirmó «quedó bien» y autorizó publicar la corrección el 2026-11-10.

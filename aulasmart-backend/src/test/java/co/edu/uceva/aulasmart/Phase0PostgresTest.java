@@ -77,13 +77,30 @@ class Phase0PostgresTest {
         jdbc.update("INSERT INTO aula (id_aula,codigo_siga,nombre,id_edificio,capacidad,id_tipo_aula,id_dependencia) VALUES (-100,-100,'Auditoria',-100,30,-100,-100) ON CONFLICT DO NOTHING");
     }
 
+    @Test
+    void rechazaAlInicioYConservaSoloCincuentaHistoricasSinBorrarActivas() {
+        var tx = new TransactionTemplate(transactions);
+        jdbc.update("DELETE FROM solicitud_aula WHERE id_usuario=9001");
+        for (int i = 1; i <= 55; i++) {
+            jdbc.update("INSERT INTO solicitud_aula (id_solicitud,id_usuario,id_aula,fecha_inicio,fecha_fin,motivo,creada_en) VALUES (?,9001,-100,'2020-01-01 13:00Z','2020-01-01 14:00Z','Prueba','2020-01-01 12:00Z')", -1000-i);
+        }
+        solicitud(-101);
+        tx.executeWithoutResult(status -> {
+            repository.rechazarVencidas(java.time.Instant.parse("2020-01-01T13:00:00Z"));
+            repository.depurarHistorial(java.time.Instant.parse("2020-01-01T13:00:00Z"));
+        });
+        assertEquals(50, jdbc.queryForObject("SELECT count(*) FROM solicitud_aula WHERE id_usuario=9001 AND estado='RECHAZADA' AND revisada_por IS NULL", Integer.class));
+        assertEquals("PENDIENTE", jdbc.queryForObject("SELECT estado FROM solicitud_aula WHERE id_solicitud=-101", String.class));
+        assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM solicitud_aula WHERE id_solicitud=-1055", Integer.class));
+    }
+
     private void solicitud(long id) {
         jdbc.update("INSERT INTO solicitud_aula (id_solicitud,id_usuario,id_aula,fecha_inicio,fecha_fin,motivo) VALUES (?,9001,-100,'2030-01-10 13:00Z','2030-01-10 14:00Z','Auditoria')", id);
     }
 
     @Test
     void migracionesAplicadasYRevisionVersionada() {
-        assertEquals("10", jdbc.queryForObject("SELECT version FROM flyway_schema_history WHERE success AND version IS NOT NULL ORDER BY installed_rank DESC LIMIT 1", String.class));
+        assertEquals("11", jdbc.queryForObject("SELECT version FROM flyway_schema_history WHERE success AND version IS NOT NULL ORDER BY installed_rank DESC LIMIT 1", String.class));
         solicitud(-101);
         revisar.revisar(-101L, 9002L, "RECHAZAR");
         assertEquals(1L, jdbc.queryForObject("SELECT version FROM solicitud_aula WHERE id_solicitud=-101", Long.class));

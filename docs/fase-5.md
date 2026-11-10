@@ -1,5 +1,10 @@
 # Fase 5: AulaBot — plan e implementación local
 
+Estado vigente (2026-11-10): AulaBot publicado en main `1e7da77`. Corrección de solicitudes
+aceptada en `feature/solicitudes-historial`, publicación en main autorizada. Las secciones anteriores de fase 5
+describen su evolución; prevalece la actualización final de este documento.
+
+
 Fecha: 2026-11-09. Base revisada: `main`, commit `5e4b4da`, árbol inicialmente limpio.
 Estado: implementación autorizada, cambios locales en `feature/aulabot`, sin commit/push.
 El usuario autorizó Groq, confirmó cuenta Free sin facturación y pidió continuar el
@@ -384,3 +389,25 @@ Tras la petición del usuario se reintroduce Groq con una única responsabilidad
   sin resultados con chips, nueva conversación y permisos por rol.
 - Reemplazar la clave Groq expuesta en el chat por una nueva (solo en `.env`).
 - Autorización de commit/push de esta revisión.
+
+## Corrección de solicitudes (2026-11-10)
+
+AulaBot publicado en `origin/main`: `1e7da77` (incluye `7db7cde`).
+Corrección autorizada en `feature/solicitudes-historial`, base `1e7da77`; usuario aprobó cierre y publicación en main el 2026-11-10.
+- Bandeja separada de activas e historial: últimas 50 históricas por ámbito de permisos,
+  ordenadas por creación e ID descendente. Docentes solo ven las propias.
+- Se conservan hasta 50 históricas por usuario en almacenamiento; las activas no se podan.
+  Archivo lógico en la misma tabla al finalizar; los intervalos [inicio, fin) no bloquean
+  reservas futuras. No se borra la constancia histórica para liberar el aula.
+- Pendientes al llegar inicio: RECHAZADA, sin motivo adicional ni revisor humano ficticio.
+  Limpieza automática cada segundo; lectura y revisión también aplican el límite temporal.
+  Al reiniciar se procesan vencimientos acumulados. Interfaz se actualiza cada 15 segundos.
+- V11 cambia solo la restricción de revisión para permitir rechazo automático sin persona;
+  no migra datos ni modifica SIGA. No se borraron datos de la base instalada ni mocks globales.
+- Usuario confirmó «quedó bien» y autorizó publicar la corrección el 2026-11-10.
+
+Validación real: backend `mvnw.cmd -o verify` correcto, 148 casos (147 aprobados y
+1 omitido opt-in Groq), más una prueba posterior de límite/permisos aprobada.
+Frontend: 100 pruebas aprobadas y build correcto. Advertencia CSS previa de Consulta
+sin cambios. PostgreSQL 17 descartable en puerto 55440 detenido y retirado al terminar.
+No se ejecutó Groq ni SIGA vivo. No se desplegó la corrección en los contenedores instalados.

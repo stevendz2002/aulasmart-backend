@@ -17,26 +17,29 @@ import java.util.Locale;
 public class ConsultarSolicitudesService {
 
     private final SolicitudReservaPort solicitudReservaPort;
+    private final java.time.Clock clock;
 
-    public ConsultarSolicitudesService(SolicitudReservaPort solicitudReservaPort) {
+    public ConsultarSolicitudesService(SolicitudReservaPort solicitudReservaPort, java.time.Clock clock) {
         this.solicitudReservaPort = solicitudReservaPort;
+        this.clock = clock;
     }
 
     @Transactional(readOnly = true)
     public List<SolicitudReserva> consultar(PrincipalDeSolicitudes.UsuarioActivo usuario, String estado) {
         String estadoNormalizado = normalizarEstado(estado);
-        if (usuario.esDocente()) {
-            List<SolicitudReserva> propias = solicitudReservaPort.buscarPorDocente(usuario.id());
-            if (estadoNormalizado == null) {
-                return propias;
-            }
-            return propias.stream()
-                    .filter(solicitud -> estadoNormalizado.equals(solicitud.estado()))
-                    .toList();
-        }
-        return estadoNormalizado == null
-                ? solicitudReservaPort.buscarTodas()
-                : solicitudReservaPort.buscarPorEstado(estadoNormalizado);
+        var solicitudes = usuario.esDocente()
+                ? solicitudReservaPort.buscarPorDocente(usuario.id()) : solicitudReservaPort.buscarTodas();
+        var ahora = clock.instant();
+        var ordenadas = solicitudes.stream().map(s -> s.estaPendiente() && !s.intervalo().inicio().isAfter(ahora)
+                ? new SolicitudReserva(s.id(), s.aulaId(), s.docenteId(), s.intervalo(), SolicitudReserva.RECHAZADA,
+                    s.motivo(), null, s.intervalo().inicio(), s.creadaEn()) : s)
+                .sorted(java.util.Comparator.comparing(SolicitudReserva::creadaEn)
+                    .thenComparing(SolicitudReserva::id).reversed()).toList();
+        var historial = ordenadas.stream().filter(s -> SolicitudReserva.RECHAZADA.equals(s.estado())
+                || !s.intervalo().fin().isAfter(ahora)).limit(50).toList();
+        return ordenadas.stream().filter(s -> historial.contains(s)
+                || (!SolicitudReserva.RECHAZADA.equals(s.estado()) && s.intervalo().fin().isAfter(ahora)))
+                .filter(s -> estadoNormalizado == null || estadoNormalizado.equals(s.estado())).toList();
     }
 
     private String normalizarEstado(String estado) {

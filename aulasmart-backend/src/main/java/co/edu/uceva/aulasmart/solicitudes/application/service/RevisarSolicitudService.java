@@ -67,6 +67,11 @@ public class RevisarSolicitudService {
         if (!solicitud.estaPendiente()) {
             throw new SolicitudYaRevisadaException(idSolicitud, solicitud.estado());
         }
+        if (!solicitud.intervalo().inicio().isAfter(clock.instant())) {
+            return solicitudReservaPort.guardar(new SolicitudReserva(
+                    solicitud.id(), solicitud.aulaId(), solicitud.docenteId(), solicitud.intervalo(),
+                    SolicitudReserva.RECHAZADA, solicitud.motivo(), null, clock.instant(), solicitud.creadaEn()));
+        }
         if (SolicitudReserva.APROBADA.equals(estadoDestino)) {
             if (solicitudAprobadaPort.buscarAulasConSolicitudesAprobadas(solicitud.intervalo())
                     .contains(solicitud.aulaId())) {

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, computed, inject, signal } from '@angular/core';
 
 import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../../core/auth-service';
@@ -97,6 +97,9 @@ function horaCorta(iso: string): string {
 
     <section class="tarjeta listado">
       <div class="controles">
+        <button type="button" class="boton secundario" (click)="historial.set(!historial())">
+          {{ historial() ? 'Ver solicitudes activas' : 'Ver historial (últimas 50)' }}
+        </button>
         <div class="pestanas" role="tablist" aria-label="Filtrar por estado">
           @for (pestana of pestanas(); track pestana.valor) {
             <button
@@ -172,7 +175,7 @@ function horaCorta(iso: string): string {
                   <td><span class="estado {{ solicitud.status }}">{{ solicitud.status }}</span></td>
                   @if (esRevisor()) {
                     <td class="acciones">
-                      @if (solicitud.status === 'PENDIENTE') {
+                      @if (solicitud.status === 'PENDIENTE' && !esHistorica(solicitud)) {
                         <button
                           type="button"
                           class="accion si"
@@ -204,7 +207,13 @@ function horaCorta(iso: string): string {
     </section>
   `
 })
-export class SolicitudesPage implements OnInit {
+export class SolicitudesPage implements OnInit, OnDestroy {
+  private refresco?: ReturnType<typeof setInterval>;
+  protected readonly historial = signal(false);
+  protected esHistorica(s: ClassroomRequest): boolean {
+    return s.status === 'RECHAZADA' || new Date(s.end).getTime() <= Date.now();
+  }
+  ngOnDestroy(): void { clearInterval(this.refresco); }
   private readonly route = inject(ActivatedRoute);
   protected readonly revisando = signal<Set<number>>(new Set());
   protected readonly puedeSolicitar = computed(() => this.esDocente() || this.esRevisor());
@@ -241,7 +250,7 @@ export class SolicitudesPage implements OnInit {
 
   /** Conteos reales por estado a partir de la única lista de la API. */
   protected readonly pestanas = computed<PestanaEstado[]>(() => {
-    const solicitudes = this.solicitudes() ?? [];
+    const solicitudes = (this.solicitudes() ?? []).filter(s => this.esHistorica(s) === this.historial());
     const cuenta = (estado: RequestStatus) => solicitudes.filter(s => s.status === estado).length;
     return [
       { etiqueta: 'Todas', valor: 'TODAS', cuenta: solicitudes.length },
@@ -257,6 +266,7 @@ export class SolicitudesPage implements OnInit {
     const pestana = this.pestanaActiva();
     const texto = this.textoBusqueda().trim().toLowerCase();
     return lista.filter(solicitud => {
+      if (this.esHistorica(solicitud) !== this.historial()) return false;
       if (pestana !== 'TODAS' && solicitud.status !== pestana) {
         return false;
       }
@@ -288,6 +298,7 @@ export class SolicitudesPage implements OnInit {
       }
     });
     this.cargar('ALL');
+    this.refresco = setInterval(() => this.cargar('ALL'), 15000);
   }
 
   protected elegirPestana(valor: RequestStatus | 'TODAS'): void {

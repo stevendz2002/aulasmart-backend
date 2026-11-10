@@ -61,6 +61,9 @@ public class RegistrarSolicitudService {
             throw new IllegalArgumentException("El motivo de la solicitud es obligatorio.");
         }
         var intervalo = new Intervalo(inicio, fin);
+        if (!inicio.isAfter(clock.instant())) {
+            throw new IllegalArgumentException("La reserva debe comenzar en el futuro.");
+        }
 
         var aula = aulaConsultaPort.buscarActivaPorId(aulaId)
                 .orElseThrow(() -> new AulaNoEncontradaException(aulaId));
