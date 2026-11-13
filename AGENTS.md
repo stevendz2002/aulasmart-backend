@@ -143,3 +143,26 @@ Validación real: backend `mvnw.cmd -o verify` correcto, 148 casos (147 aprobado
 Frontend: 100 pruebas aprobadas y build correcto. Advertencia CSS previa de Consulta
 sin cambios. PostgreSQL 17 descartable en puerto 55440 detenido y retirado al terminar.
 No se ejecutó Groq ni SIGA vivo. No se desplegó la corrección en los contenedores instalados.
+
+## Despliegue en producción (2026-11-13)
+
+Despliegue autorizado en la VM Ubuntu de Oracle (150.136.80.177), dominio
+`stevendz.tech`. Documentación completa en `docs/despliegue.md`. Cambios sin
+commit en el árbol local de `main`: `docs/despliegue.md` nuevo y este registro.
+- Publicado en GitHub: workflow `deploy-frontend.yml` (`0573644`) con pin
+  `easingthemes/ssh-deploy@v6.0.3` (el tag `@v5` no existe). Run real exitoso
+  (run `43364235865`); secretos `DEPLOY_HOST` y `DEPLOY_SSH_KEY` configurados
+  con llave ed25519 de despliegue distinta de la personal.
+- VM: Docker Compose con `db` (PostgreSQL 17.4) y `backend` (perfil `prod`,
+  migraciones V1-V11 aplicadas) desde `/opt/aulasmart` (`6cda410`); Nginx del
+  host sirve la SPA (`/var/www/aulasmart`) y hace proxy de `/api` a
+  127.0.0.1:8080; HTTPS Let's Encrypt con redirección y renovación automática.
+- Cuenta administrador real `admin@stevendz.tech` (contraseña aleatoria en
+  `/opt/aulasmart/.credencial-admin`, 600; cambiarla en el primer acceso).
+  Cuentas de prueba de V7 inhabilitadas por `AULASMART_ALLOW_TEST_ACCOUNTS=false`.
+- Login, whoami, 401 sin token y health verificados en vivo sobre HTTPS.
+- Limitación verificada: el WAF de SIGA (Datasae) bloquea la IP de Oracle con
+  403; los ciclos de la VM fallan y el catálogo se mantiene por bootstrap local
+  (túnel SSH a la base de producción; probado: 106 aulas, 1.761 registros de
+  horario, filas EXITOSA). Procedimiento documentado en `docs/despliegue.md`.
+  Pendiente: blanqueo de IP ante Datasae o refresco manual periódico.
