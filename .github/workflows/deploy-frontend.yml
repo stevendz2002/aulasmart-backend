@@ -1,0 +1,55 @@
+# CI/CD del frontend AulaSmart.
+# Compila la SPA Angular con Node 22, ejecuta las pruebas (vitest) y despliega
+# el `dist` por SSH/rsync a la VM de despliegue (Nginx sirve los estaticos).
+# Requiere los secretos del repositorio:
+#   DEPLOY_HOST     -> IP publica de la VM (150.136.80.177)
+#   DEPLOY_SSH_KEY  -> contenido de la llave privada ed25519 de despliegue
+name: deploy-frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'aulasmart-frontend/**'
+      - '.github/workflows/deploy-frontend.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-frontend
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: aulasmart-frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: aulasmart-frontend/package-lock.json
+
+      - name: Dependencias
+        run: npm ci
+
+      - name: Pruebas
+        run: npm test -- --watch=false
+
+      - name: Compilacion de produccion
+        run: npm run build -- --configuration=production
+
+      - name: Despliegue por SSH/rsync
+        uses: easingthemes/ssh-deploy@v5
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.DEPLOY_HOST }}
+          REMOTE_USER: ubuntu
+          SOURCE: aulasmart-frontend/dist/aulasmart-frontend/browser/
+          TARGET: /var/www/aulasmart/
+          ARGS: -rlgoDzvc --delete
