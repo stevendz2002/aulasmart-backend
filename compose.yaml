@@ -42,6 +42,8 @@ services:
       AULASMART_SIGA_SYNC_CRON: ${AULASMART_SIGA_SYNC_CRON:-0 */15 * * * *}
       AULASMART_ALLOW_TEST_ACCOUNTS: ${AULASMART_ALLOW_TEST_ACCOUNTS:-false}
       AULASMART_CORS_ORIGINS: ${AULASMART_CORS_ORIGINS:-http://localhost:4200,http://localhost}
+      # URL de SIGA: por defecto la directa; en produccion puede apuntar al proxy Cloudflare
+      AULASMART_SIGA_BASE_URL: ${AULASMART_SIGA_BASE_URL:-https://uceva.datasae.co/siga_new/web/app.php}
     ports:
       - "127.0.0.1:${SERVER_PORT:-8080}:8080"
     depends_on:
