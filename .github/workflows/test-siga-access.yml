@@ -1,0 +1,24 @@
+# Prueba de acceso a SIGA desde los runners de GitHub Actions.
+# Comprueba si las IPs de salida de los runners (Azure) están bloqueadas por el
+# WAF de Datasae. 302/200 = accesible; 403 = bloqueado.
+# Ejecutar con "Run workflow" o vía API workflow_dispatch.
+name: test-siga-access
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probar acceso a SIGA
+        run: |
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 https://uceva.datasae.co/siga_new/web/app.php)
+          echo "SIGA desde el runner: HTTP $CODE" | tee siga-probe.txt
+          echo "SIGA desde el runner: HTTP $CODE" >> "$GITHUB_STEP_SUMMARY"
+      - name: Guardar resultado
+        uses: actions/upload-artifact@v4
+        with:
+          name: siga-probe
+          path: siga-probe.txt
+          retention-days: 7
