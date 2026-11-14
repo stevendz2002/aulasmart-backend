@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
 import { AuthService } from './core/auth-service';
+import { routerFeatures } from './core/router-features';
 import { AulaBotGateway } from './features/aulabot/application/aulabot-gateway';
 import { AulaBotRepository } from './features/aulabot/infrastructure/aulabot-repository';
 import { routes } from './app.routes';
@@ -16,7 +17,7 @@ export const appConfig: ApplicationConfig = {
     { provide: AulaBotGateway, useExisting: AulaBotRepository },
     provideBrowserGlobalErrorListeners(),
     provideAppInitializer(() => inject(AuthService).restore()),
-    provideRouter(routes),
+    provideRouter(routes, ...routerFeatures),
     provideHttpClient(withInterceptors([authInterceptor])),
     ...AULAS_PROVIDERS,
     ...SOLICITUDES_PROVIDERS,
