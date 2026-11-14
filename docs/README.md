@@ -1,5 +1,21 @@
 # Documentación técnica de continuidad
 
+## Migración de AulaSmart a GitHub Pages (2026-11-14)
+
+Rama `refactor/github-pages-frontend`, base `88fa573`. El flujo anterior de SSH está descrito en el [registro del despliegue de Oracle](despliegue.md).
+
+El acceso previsto es [stevendz.tech/aulasmart/](https://stevendz.tech/aulasmart/). Nginx en Oracle sirve esa ruta mediante un proxy HTTPS al artefacto público de Pages en `stevendz2002.github.io/aulasmart-backend/`. La raíz `/` queda disponible para el portafolio. El DNS y los certificados del dominio pueden seguir apuntando a Oracle.
+
+El workflow `deploy-frontend` se ejecuta al cambiar el frontend o el workflow en `main`, y admite ejecución manual desde esa rama. Usa Node 22, `npm ci` y Vitest, compila `production,pages` y publica `dist/aulasmart-frontend/browser/` en el entorno `github-pages`. La base relativa `./` resuelve los recursos bajo ambos prefijos y Angular usa rutas con fragmento, como `/aulasmart/#/consulta`. El resultado de Actions enlaza el origen de Pages. El acceso con sesión se hace desde `stevendz.tech`.
+
+El navegador llama a `/api` en su propio origen y Nginx dirige esas peticiones a Spring Boot en Oracle. Esto conserva JWT Bearer, la cookie HttpOnly `SameSite=Strict` y la verificación de origen y CSRF. El proxy de archivos descarta las cabeceras entrantes, incluidas cookies y autorización, antes de solicitar recursos a GitHub.
+
+Con Node 22 pasaron las 100 pruebas de Vitest y el build de Pages. `actionlint` validó el workflow. En Edge se verificaron JavaScript, CSS, favicon, navegación y recarga bajo `/aulasmart/` y `/aulasmart-backend/`, con la API simulada en el mismo origen. Queda pendiente validar Nginx y la sesión contra Oracle en la ruta pública.
+
+1. En **Settings → Pages → Build and deployment → Source**, seleccionar **GitHub Actions** y dejar el dominio de Pages predeterminado. El entorno `github-pages` debe permitir `main`. Tras integrar los cambios revisar el workflow o lanzarlo manualmente desde **Actions → deploy-frontend**.
+2. Comprobar que el origen de Pages devuelve el `index.html` con `<base href="./">`. Instalar [el fragmento del proxy](../deploy/nginx/aulasmart-pages.conf) en la VM e incluirlo dentro del bloque HTTPS de `stevendz.tech` en `/etc/nginx/sites-available/aulasmart`. Mantener las rutas existentes de `/api/` y `/actuator/health`. Validar con `sudo nginx -t` antes de recargar.
+3. Comprobar el redireccionamiento de `/aulasmart`, la carga de recursos en `/aulasmart/`, la API y la sesión tras recargar una ruta. Una vez comprobada la ruta nueva, retirar la regla que sirve la SPA antigua en `/` o reemplazarla por la configuración del portafolio.
+
 Estado vigente (2026-11-10): AulaBot publicado en main `1e7da77`. Corrección de solicitudes
 aceptada en `feature/solicitudes-historial`, publicación en main autorizada. Las secciones anteriores de fase 5
 describen su evolución; prevalece la actualización final de este documento.

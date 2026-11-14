@@ -11,7 +11,7 @@ Estado de la auditoría y validaciones: [fase 0](docs/fase-0.md).
 
 ## Arquitectura
 
-Backend único tipo **monolito modular** con Spring Boot 3.x (Java 17) organizado con Clean Architecture (`domain · application · infrastructure · presentation`), una única base PostgreSQL y una sola canalización de despliegue. La SPA Angular replica la misma separación por feature (`domain · application · infrastructure · presentation`).
+Backend único tipo **monolito modular** con Spring Boot 3.x (Java 17) organizado con Clean Architecture (`domain · application · infrastructure · presentation`) y una única base PostgreSQL. La SPA Angular replica la misma separación por feature (`domain · application · infrastructure · presentation`).
 
 | Módulo | Responsabilidad | Estado |
 |---|---|---|
@@ -27,7 +27,7 @@ La decisión monolito modular frente a microservicios se revisará solo con evid
 
 ## Stack y roles
 
-- **Java 17 / Spring Boot 3.5.7**: Web MVC, Security (autenticación Basic y autorización por rol), Validation, Data JPA (Hibernate), Actuator.
+- **Java 17 / Spring Boot 3.5.7**: Web MVC, Security (JWT Bearer y autorización por rol), Validation, Data JPA (Hibernate), Actuator.
 - **Angular 21.2** (SPA, señales y standalone components; `npm start` en `http://localhost:4200`).
 - **PostgreSQL 17.4** en Docker Compose (puerto 5433, base `aulasmart_test`), migraciones Flyway V1→V9.
 - **Roles**: `ESTUDIANTE`, `DOCENTE`, `ADMINISTRATIVO`, `ADMINISTRADOR`. El docente crea solicitudes; el administrativo revisa; **solo el administrador crea cuentas** (el administrativo no ve la gestión de usuarios).
@@ -46,6 +46,10 @@ Ruta | Método | Descripción
 `/api/usuarios` | GET / POST | Directorio y creación de cuentas (solo ADMINISTRADOR)
 `/api/usuarios/whoami` | GET | Perfil de la sesión activa (correo, nombre real y rol único)
 `/api/sincronizaciones` | POST | Lanzar una corrida de sincronización con SIGA (`recurso=AULAS` o `recurso=EVENTOS`)
+
+## Publicación del frontend
+
+GitHub Actions instala dependencias con Node 22, ejecuta Vitest, compila Angular y publica en GitHub Pages. La entrada prevista es [stevendz.tech/aulasmart/](https://stevendz.tech/aulasmart/). El proxy de Nginx sirve los archivos de Pages en esa ruta y dirige `/api` al backend de Oracle Cloud. Consulta el [procedimiento de activación](docs/README.md#migración-de-aulasmart-a-github-pages-2026-11-14).
 
 ## Puesta en marcha
 
@@ -97,7 +101,7 @@ Jhon Edward Steven Loaiza Díaz · Ingeniería de Sistemas · Unidad Central del
 
 La documentación académica del proyecto se gestiona localmente y se excluye del repositorio. Los documentos técnicos de continuidad listados en `docs/README.md` sí están habilitados para versionarse (ver `/.gitignore`).
 
-Tras aplicar V8, sincronizar AULAS y luego EVENTOS: las corridas antiguas no tienen cobertura verificable. La sesión Basic permanece solo en memoria; recargar la página requiere iniciar sesión otra vez. JWT queda para la fase 4.
+Tras aplicar V8, sincronizar AULAS y luego EVENTOS: las corridas antiguas no tienen cobertura verificable. El JWT de acceso permanece en memoria y la sesión se restaura mediante una cookie de renovación HttpOnly.
 
 ## Rol único (fase 2)
 

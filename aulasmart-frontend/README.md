@@ -8,7 +8,7 @@ Este proyecto es la SPA del sistema **AulaSmart** de la UCEVA: gestión y consul
 
 ```
 src/app/
-├── core/                  Sesion (HTTP Basic), interceptor, guardas de ruta,
+├── core/                  Sesión JWT, interceptor, guardas de ruta,
 │                          url de API, derivaciones de presentación del correo
 │                          (nombre-usuario.ts) y configuración del período
 │                          académico (2026-2, 16 semanas).
@@ -45,7 +45,7 @@ El cableado (Dependency Inversion) queda en `infrastructure/*-providers.ts`, reg
 
 ## Rutas y roles
 
-El guard `requiereRoles()` exige sesión (HTTP Basic) y, opcionalmente, roles. La matriz sigue la seguridad real del backend:
+El guard `requiereRoles()` exige sesión y, opcionalmente, roles. La matriz sigue la seguridad real del backend:
 
 | Ruta | Vista | Roles (backend) |
 |---|---|---|
@@ -71,7 +71,17 @@ npm run build      # build de producción
 ```
 
 Credenciales del entorno de prueba (semilla sintética, no institucional):
-`docente@prueba.aulasmart.local` / `revisor@prueba.aulasmart.local`, contraseña `password` (hash público de ejemplo). Autenticación por HTTP Basic en cada petición — la SPA no mantiene sesión en el servidor.
+`docente@prueba.aulasmart.local` / `revisor@prueba.aulasmart.local`, contraseña `password` (hash público de ejemplo). La SPA conserva el JWT de acceso en memoria y usa una cookie HttpOnly para renovar la sesión.
+
+## Build para GitHub Pages
+
+```bash
+npm ci
+npm test -- --watch=false
+npm run build -- --configuration=production,pages
+```
+
+El resultado está en `dist/aulasmart-frontend/browser/`. La configuración `pages` usa base relativa `./` y rutas con fragmento, como `/aulasmart/#/consulta`. La SPA llama a `/api` en el mismo origen. La [guía de publicación](../docs/README.md#migración-de-aulasmart-a-github-pages-2026-11-14) describe cómo Nginx expone el artefacto de Pages en `https://stevendz.tech/aulasmart/` y la API del backend de Oracle en `https://stevendz.tech/api`.
 
 El frontend adopta el **diseño visual aprobado** (identidad azul y blanco) delimitando a lo que la API entrega. Mapeo honesto del diseño: los KPIs y paneles del dashboard derivan de los endpoints reales (_Aulas disponibles_, _Aulas registradas_, _Solicitudes pendientes_, _Solicitudes aprobadas_, _Libres ahora por edificio_); las métricas del boceto que el backend no expone (ocupación semanal, ocupación por día, actividad reciente) **no se simulan**. El nombre visible en el shell se deriva del correo real (`paola.ramirez@uceva.edu.co` → «Paola Ramirez`) porque `whoami` solo expone `correo` y `roles`, y el "solicitante" se muestra como `Docente id N` (no hay endpoint de personas).
 
