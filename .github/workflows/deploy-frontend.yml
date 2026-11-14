@@ -1,9 +1,4 @@
-# CI/CD del frontend AulaSmart.
-# Compila la SPA Angular con Node 22, ejecuta las pruebas (vitest) y despliega
-# el `dist` por SSH/rsync a la VM de despliegue (Nginx sirve los estaticos).
-# Requiere los secretos del repositorio:
-#   DEPLOY_HOST     -> IP publica de la VM (150.136.80.177)
-#   DEPLOY_SSH_KEY  -> contenido de la llave privada ed25519 de despliegue
+# CI/CD del frontend AulaSmart a GitHub Pages.
 name: deploy-frontend
 
 on:
@@ -15,12 +10,16 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-frontend
+  group: github-pages
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
     defaults:
       run:
         working-directory: aulasmart-frontend
@@ -41,15 +40,29 @@ jobs:
       - name: Pruebas
         run: npm test -- --watch=false
 
-      - name: Compilacion de produccion
-        run: npm run build -- --configuration=production
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
 
-      - name: Despliegue por SSH/rsync
-        uses: easingthemes/ssh-deploy@v6.0.3
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          REMOTE_HOST: ${{ secrets.DEPLOY_HOST }}
-          REMOTE_USER: ubuntu
-          SOURCE: aulasmart-frontend/dist/aulasmart-frontend/browser/
-          TARGET: /var/www/aulasmart/
-          ARGS: -rlgoDzvc --delete
+      - name: Compilar para GitHub Pages
+        run: |
+          npm run build -- --configuration=production,pages
+          test -f dist/aulasmart-frontend/browser/index.html
+
+      - name: Subir artefacto de GitHub Pages
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: aulasmart-frontend/dist/aulasmart-frontend/browser/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
