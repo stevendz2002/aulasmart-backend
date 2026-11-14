@@ -66,3 +66,19 @@ jobs:
       - name: Publicar en GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Verificar el sitio publicado
+        env:
+          PAGES_URL: ${{ steps.deployment.outputs.page_url }}
+        shell: bash
+        run: |
+          fetch() {
+            curl --fail --silent --show-error --location \
+              --retry 6 --retry-all-errors --retry-delay 5 --max-time 15 "$1"
+          }
+          fetch "$PAGES_URL" > "$RUNNER_TEMP/pages.html"
+          grep -Fq '<app-root>' "$RUNNER_TEMP/pages.html"
+          fetch 'https://stevendz.tech/aulasmart/' > "$RUNNER_TEMP/aulasmart.html"
+          grep -Fq '<app-root>' "$RUNNER_TEMP/aulasmart.html"
+          fetch 'https://stevendz.tech/actuator/health' > "$RUNNER_TEMP/health.json"
+          grep -Eq '"status"[[:space:]]*:[[:space:]]*"UP"' "$RUNNER_TEMP/health.json"

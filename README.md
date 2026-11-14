@@ -49,7 +49,7 @@ Ruta | Método | Descripción
 
 ## Publicación del frontend
 
-GitHub Actions instala dependencias con Node 22, ejecuta Vitest, compila Angular y publica en GitHub Pages. La entrada prevista es [stevendz.tech/aulasmart/](https://stevendz.tech/aulasmart/). El proxy de Nginx sirve los archivos de Pages en esa ruta y dirige `/api` al backend de Oracle Cloud. Consulta el [procedimiento de activación](docs/README.md#migración-de-aulasmart-a-github-pages-2026-11-14).
+GitHub Actions instala dependencias con Node 22, ejecuta Vitest, compila Angular y publica en GitHub Pages. Tras el despliegue, el workflow verifica el HTML publicado y la salud de la API. La aplicación se usa en [stevendz.tech/aulasmart/](https://stevendz.tech/aulasmart/), donde Nginx sirve el frontend desde Pages y dirige `/api` al backend de Oracle Cloud. El [enlace de Pages](https://stevendz2002.github.io/aulasmart-backend/) abre la aplicación en ese dominio para que funcione la sesión. Consulta el [procedimiento de activación](docs/README.md#migración-de-aulasmart-a-github-pages-2026-11-14).
 
 ## Puesta en marcha
 
