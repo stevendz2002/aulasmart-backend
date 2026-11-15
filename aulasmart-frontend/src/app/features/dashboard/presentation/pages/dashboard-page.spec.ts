@@ -8,16 +8,26 @@ import { GET_CLASSROOM_REQUESTS_USE_CASE } from '../../../solicitudes/applicatio
 
 describe('Recuperación de disponibilidad del panel', () => {
   const disponibilidad = vi.fn();
+  const solicitudes = vi.fn(() => of([]));
   beforeEach(() => {
-    vi.useFakeTimers(); disponibilidad.mockReset();
+    vi.useFakeTimers(); disponibilidad.mockReset(); solicitudes.mockClear();
     TestBed.configureTestingModule({ providers: [
       { provide: AuthService, useValue: { sesion: signal(null) } },
       { provide: GET_ALL_CLASSROOMS_USE_CASE, useValue: { execute: () => of([]) } },
       { provide: GET_AVAILABLE_CLASSROOMS_USE_CASE, useValue: { execute: disponibilidad } },
-      { provide: GET_CLASSROOM_REQUESTS_USE_CASE, useValue: { execute: () => of([]) } }
+      { provide: GET_CLASSROOM_REQUESTS_USE_CASE, useValue: { execute: solicitudes } }
     ] });
   });
   afterEach(() => { TestBed.resetTestingModule(); vi.useRealTimers(); });
+  it('consulta datos públicos sin pedir solicitudes de usuarios', () => {
+    disponibilidad.mockReturnValue(of({ classrooms: [] }));
+    const page = TestBed.runInInjectionContext(() => new DashboardPage());
+    page.ngOnInit();
+    expect(disponibilidad).toHaveBeenCalledOnce();
+    expect(solicitudes).not.toHaveBeenCalled();
+    expect(page['indicadores']().map(indicador => indicador.titulo))
+      .toEqual(['Aulas disponibles', 'Aulas registradas']);
+  });
   it('se recupera de 503 sin recargar la página ni declarar desactualización', () => {
     disponibilidad.mockReturnValueOnce(throwError(() => ({ status: 503 })))
       .mockReturnValue(of({ classrooms: [], range: {} }));

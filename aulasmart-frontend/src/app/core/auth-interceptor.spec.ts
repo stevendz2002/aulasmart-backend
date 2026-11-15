@@ -49,15 +49,18 @@ describe('Credenciales limitadas a AulaSmart', () => {
     }
     await Promise.all([a,b]);
   });
-  it('una renovación rechazada cierra la sesión sin bucle', async () => {
+  it('una renovación rechazada permite continuar la consulta pública sin Bearer', async () => {
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
     const result = firstValueFrom(http.get('/api/aulas'));
-    const rejected = expect(result).rejects.toBeDefined();
     requests.expectOne('/api/aulas').flush({}, { status: 401, statusText: 'Unauthorized' });
     requests.expectOne('/api/auth/refresh').flush({}, { status: 401, statusText: 'Unauthorized' });
-    await rejected;
+    await vi.waitFor(() => expect(auth.sesion()).toBeNull());
+    const anonima = requests.expectOne('/api/aulas');
+    expect(anonima.request.headers.has('Authorization')).toBe(false);
+    anonima.flush([]);
+    await expect(result).resolves.toEqual([]);
     expect(auth.sesion()).toBeNull();
-    expect(navigate).toHaveBeenCalledWith('/login');
+    expect(navigate).not.toHaveBeenCalled();
   });
   it('no renueva ni cierra sesión ante un permiso denegado', async () => {
     const result = firstValueFrom(http.get('/api/usuarios'));

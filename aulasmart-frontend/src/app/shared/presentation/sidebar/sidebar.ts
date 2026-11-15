@@ -116,6 +116,8 @@ export class Sidebar implements OnInit {
 
   /** Conteo real de solicitudes pendientes visibles para el rol (null sin dato). */
   protected readonly pendientes = signal<number | null>(null);
+  private readonly puedeVerSolicitudes = computed(() =>
+    this.authService.tieneAlgunRol(['ADMINISTRATIVO', 'ADMINISTRADOR', 'DOCENTE']));
 
   /**
    * Grupos visibles según la sesión: «Administración» solo para
@@ -130,11 +132,14 @@ export class Sidebar implements OnInit {
         links: [
           { path: '/', label: 'Dashboard', icon: 'dashboard' },
           { path: '/consulta', label: 'Consulta de aulas', icon: 'consulta' },
-          { path: '/aulabot', label: 'AulaBot', icon: 'aulabot' },
-          { path: '/solicitudes', label: 'Solicitudes', icon: 'solicitudes', badgePendientes: true }
+          { path: '/aulabot', label: 'AulaBot', icon: 'aulabot' }
         ]
       }
     ];
+
+    if (this.puedeVerSolicitudes()) {
+      grupos[0].links.push({ path: '/solicitudes', label: 'Solicitudes', icon: 'solicitudes', badgePendientes: true });
+    }
 
     if (this.authService.tieneAlgunRol(['ADMINISTRATIVO', 'ADMINISTRADOR'])) {
       const enlaces: SidebarLink[] = [{ path: '/aulas', label: 'Gestión de aulas', icon: 'aulas' }];
@@ -148,7 +153,7 @@ export class Sidebar implements OnInit {
   });
 
   ngOnInit(): void {
-    if (this.authService.sesion() === null) {
+    if (!this.puedeVerSolicitudes()) {
       return;
     }
     this.getRequests.execute('PENDIENTE').subscribe({

@@ -8,15 +8,19 @@ import { AuthService } from './auth-service';
  * sesion activa; con roles, redirige al dashboard cuando el usuario no
  * cuenta con ninguno de ellos.
  */
-export const requiereRoles = (...rolesRequeridos: string[]): CanActivateFn => () => {
+export const requiereRoles = (...rolesRequeridos: string[]): CanActivateFn => (_ruta, estado) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
   if (authService.sesion() === null) {
-    return router.parseUrl('/login');
+    return router.createUrlTree(['/login'], { queryParams: { volver: estado.url } });
   }
   if (rolesRequeridos.length > 0 && !authService.tieneAlgunRol(rolesRequeridos)) {
     return router.parseUrl('/');
   }
   return true;
 };
+
+export function esRutaPrivada(url: string): boolean {
+  return /^\/(solicitudes|aulas|usuarios)(?:[/?#;]|$)/.test(url);
+}

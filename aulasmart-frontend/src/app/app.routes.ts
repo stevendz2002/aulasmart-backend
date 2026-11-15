@@ -5,7 +5,6 @@ import { requiereRoles } from './core/auth-guard';
 export const routes: Routes = [
   {
     path: '',
-    canActivate: [requiereRoles()],
     loadComponent: () =>
       import('./features/dashboard/presentation/pages/dashboard-page').then(m => m.DashboardPage)
   },
@@ -15,13 +14,11 @@ export const routes: Routes = [
   },
   {
     path: 'consulta',
-    canActivate: [requiereRoles()],
     loadComponent: () =>
       import('./features/aulas/presentation/pages/consulta-page').then(m => m.ConsultaPage)
   },
   {
     path: 'aulabot',
-    canActivate: [requiereRoles()],
     loadComponent: () => import('./features/aulabot/aulabot-page').then(m => m.AulaBotPage)
   },
   {

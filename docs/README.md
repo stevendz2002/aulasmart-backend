@@ -1,5 +1,15 @@
 # Documentación técnica de continuidad
 
+## Acceso público y presentación del ingreso (2026-11-14)
+
+Rama `refactor/public-access-login`, base `1edc83b`. El dashboard, el catálogo, la consulta de disponibilidad y AulaBot admiten visitantes. Las franjas ocupadas son públicas y se identifican sin el detalle institucional del evento. Solicitudes, indicadores de solicitudes, gestión de aulas, sincronización y gestión de usuarios conservan los permisos por rol.
+
+El botón **Iniciar sesión** de la barra abre una tarjeta con el formulario existente y una opción para continuar sin cuenta. El ingreso conserva el destino interno cuando es válido. Al vencer la sesión, las consultas públicas pueden continuar sin Bearer. El método de autenticación conserva JWT, renovación con cookie HttpOnly y las comprobaciones de origen y CSRF.
+
+AulaBot usa una cookie HttpOnly separada para el contexto de cada visitante. Las peticiones de visitantes comparten un tope de ocho por minuto. La interpretación de texto también conserva las cuotas existentes y tiene un tope diario visitante del 40 % de la cuota global (20 con la configuración predeterminada). Las acciones estructuradas no llaman a Groq.
+
+Validación local: 101 pruebas Vitest y build de Pages correctos. Maven `verify` ejecutó 153 casos contra PostgreSQL 17 descartable (152 aprobados, un caso opcional de Groq omitido). Se verificaron el acceso anónimo, el enmascaramiento de ocupación, la separación de conversaciones, las cuotas y la protección de las rutas privadas. El cambio no incluye migraciones. Se mantiene el aviso de tamaño CSS de Consulta.
+
 ## Migración de AulaSmart a GitHub Pages (2026-11-14)
 
 Publicado en `main` y `refactor/github-pages-frontend` en `8f687ef`. El flujo anterior de SSH está descrito en el [registro del despliegue de Oracle](despliegue.md).

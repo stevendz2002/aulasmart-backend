@@ -40,6 +40,9 @@ describe('Sidebar', () => {
     const textos = f.debugElement.queryAll(By.css('.titulo-grupo')).map(e => e.nativeElement.textContent);
     expect(textos).toContain('General');
     expect(textos).not.toContain('Administración');
+    expect(f.debugElement.queryAll(By.css('a')).map(e => e.nativeElement.getAttribute('href')))
+      .toEqual(['/', '/consulta', '/aulabot']);
+    requests.expectNone('/api/solicitudes?estado=PENDIENTE');
   });
 
   it('no muestra Administración a un DOCENTE', () => {

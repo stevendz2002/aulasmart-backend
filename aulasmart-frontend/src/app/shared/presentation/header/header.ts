@@ -9,6 +9,7 @@ import {
 import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../../core/auth-service';
+import { esRutaPrivada } from '../../../core/auth-guard';
 import { ThemeService } from '../../../core/theme.service';
 import { inicialesDesdeCorreo, inicialesDesdeNombre, nombreDesdeCorreo } from '../../../core/nombre-usuario';
 import { GET_ALL_CLASSROOMS_USE_CASE } from '../../../features/aulas/application/classrooms-di';
@@ -123,7 +124,7 @@ import { ShellState } from '../shell-state';
           }
         </div>
       } @else {
-        <a routerLink="/login" class="ingresar">Ingresar</a>
+        <a routerLink="/login" [queryParams]="{ volver: router.url }" class="ingresar">Iniciar sesión</a>
       }
     </header>
   `
@@ -226,7 +227,9 @@ export class Header {
       next: () => {
         this.cerrandoSesion.set(false);
         this.menuAbierto.set(false);
-        void this.router.navigateByUrl('/login');
+        if (esRutaPrivada(this.router.url)) {
+          void this.router.navigateByUrl('/');
+        }
       },
       error: () => {
         this.cerrandoSesion.set(false);

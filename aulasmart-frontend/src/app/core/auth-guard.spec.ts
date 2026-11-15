@@ -20,11 +20,11 @@ describe('requiereRoles', () => {
   const ruta = { url: [] } as unknown as ActivatedRouteSnapshot;
 
   const evaluar = (guarda: Parameters<typeof requiereRoles>[0] extends string[] ? never : ReturnType<typeof requiereRoles>) =>
-    TestBed.runInInjectionContext(() => guarda(ruta, { url: [] } as never)) as boolean | UrlTree;
+    TestBed.runInInjectionContext(() => guarda(ruta, { url: '/solicitudes' } as never)) as boolean | UrlTree;
 
   it('sin sesion redirige a /login', () => {
     const resultado: UrlTree = evaluar(requiereRoles()) as UrlTree;
-    expect(resultado.toString()).toBe('/login');
+    expect(resultado.toString()).toBe('/login?volver=%2Fsolicitudes');
   });
 
   it('con sesion pero sin el rol pedido redirige al dashboard', () => {

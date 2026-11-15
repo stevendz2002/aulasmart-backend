@@ -13,8 +13,10 @@ public class CuotaAulaBot {
     private final int userMinuteLimit;
     private final int dayLimit;
     private final Deque<Instant> recent=new ArrayDeque<>();
+    private final Deque<Instant> visitantesRecientes = new ArrayDeque<>();
     private LocalDate day;
     private int used;
+    private int interpretacionesVisitantes;
     private final Map<String,Deque<Instant>> users=new HashMap<>();
     public CuotaAulaBot(Clock clock) { this(clock,20,6,50); }
     @org.springframework.beans.factory.annotation.Autowired
@@ -28,7 +30,7 @@ public class CuotaAulaBot {
     }
     public synchronized void consumir(String user) {
         Instant now=clock.instant(); LocalDate today=LocalDate.now(clock);
-        if(!today.equals(day)) { day=today; used=0; users.clear(); }
+        if(!today.equals(day)) { day=today; used=0; interpretacionesVisitantes=0; users.clear(); }
         while(!recent.isEmpty() && !recent.peekFirst().isAfter(now.minusSeconds(60))) recent.removeFirst();
         if(recent.size()>=minuteLimit || used>=dayLimit) throw new AulaBotNoDisponibleException();
         var userRecent=users.computeIfAbsent(user,k -> new ArrayDeque<>());
@@ -36,5 +38,22 @@ public class CuotaAulaBot {
         if(userRecent.size()>=userMinuteLimit) throw new AulaBotNoDisponibleException();
         userRecent.addLast(now);
         recent.addLast(now); used++;
+    }
+
+    /** Aplica un tope compartido aunque un visitante borre su cookie o cambie de navegador. */
+    public synchronized void consumirVisitante(String visitante, boolean interpreta) {
+        Instant ahora = clock.instant();
+        while (!visitantesRecientes.isEmpty() && !visitantesRecientes.peekFirst().isAfter(ahora.minusSeconds(60))) {
+            visitantesRecientes.removeFirst();
+        }
+        if (visitantesRecientes.size() >= 8) throw new AulaBotNoDisponibleException();
+        if (interpreta) {
+            if (LocalDate.now(clock).equals(day) && interpretacionesVisitantes >= Math.max(1, dayLimit * 2 / 5)) {
+                throw new AulaBotNoDisponibleException();
+            }
+            consumir(visitante);
+            interpretacionesVisitantes++;
+        }
+        visitantesRecientes.addLast(ahora);
     }
 }

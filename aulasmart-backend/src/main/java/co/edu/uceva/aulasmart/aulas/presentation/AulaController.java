@@ -7,6 +7,7 @@ import co.edu.uceva.aulasmart.aulas.domain.model.Intervalo;
 import co.edu.uceva.aulasmart.aulas.presentation.dto.AulaResponse;
 import co.edu.uceva.aulasmart.aulas.presentation.dto.DisponibilidadResponse;
 import co.edu.uceva.aulasmart.aulas.presentation.dto.OcupacionResponse;
+import java.security.Principal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -61,11 +62,12 @@ public class AulaController {
     public List<OcupacionResponse> ocupacion(
             @PathVariable Long idAula,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime inicio,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime fin
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime fin,
+            Principal principal
     ) {
         var intervalo = new Intervalo(inicio.toInstant(), fin.toInstant());
         return disponibilidadAulaService.consultarOcupacion(idAula, intervalo).stream()
-                .map(o -> new OcupacionResponse(o.inicio(), o.fin(), o.detalles()))
+                .map(o -> new OcupacionResponse(o.inicio(), o.fin(), principal == null ? "Ocupada" : o.detalles()))
                 .toList();
     }
 }

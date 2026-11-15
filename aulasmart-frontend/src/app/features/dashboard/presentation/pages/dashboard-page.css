@@ -91,6 +91,10 @@
   align-items: stretch;
 }
 
+.tablero.solo-edificios {
+  grid-template-columns: 1fr;
+}
+
 @media (max-width: 1000px) {
   .tablero {
     grid-template-columns: 1fr;

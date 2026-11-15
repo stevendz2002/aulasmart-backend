@@ -78,7 +78,7 @@ function horaCorta(iso: string): string {
       <p class="fecha">{{ fechaHoy }}</p>
       <div class="fila">
         <div>
-          <h1>{{ saludo }}, {{ nombreVisible() }}</h1>
+          <h1>{{ nombreVisible() ? saludo + ', ' + nombreVisible() : 'Bienvenido a AulaSmart' }}</h1>
           @if (mensajeDisponibilidad(); as mensaje) {
             <p class="lazo">{{ mensaje }}</p>
           } @else {
@@ -108,7 +108,8 @@ function horaCorta(iso: string): string {
       }
     </section>
 
-    <section class="tablero">
+    <section class="tablero" [class.solo-edificios]="!puedeVerSolicitudes()">
+      @if (puedeVerSolicitudes()) {
       <article class="panel solicitudes">
         <header>
           <div>
@@ -137,6 +138,7 @@ function horaCorta(iso: string): string {
           </ul>
         }
       </article>
+      }
 
       <article class="panel edificios">
         <header>
@@ -170,8 +172,8 @@ function horaCorta(iso: string): string {
       <div class="texto">
         <h3>Preguntar a AulaBot</h3>
         <p class="apagada">
-          Busca aulas en lenguaje natural, precisa tu fecha y horario y abre los detalles
-          o la solicitud. AulaBot verifica disponibilidad con los datos actuales del sistema.
+          Busca aulas en lenguaje natural y precisa la fecha y el horario que necesitas.
+          AulaBot consulta la disponibilidad con los datos actuales del sistema.
         </p>
       </div>
       <a class="boton" routerLink="/aulabot">Abrir AulaBot</a>
@@ -187,6 +189,10 @@ export class DashboardPage implements OnInit {
     GET_AVAILABLE_CLASSROOMS_USE_CASE
   );
   private readonly getRequests = inject<GetClassroomRequestsUseCase>(GET_CLASSROOM_REQUESTS_USE_CASE);
+  protected readonly puedeVerSolicitudes = computed(() => {
+    const rol = this.authService.sesion()?.rol;
+    return rol === 'ADMINISTRADOR' || rol === 'ADMINISTRATIVO' || rol === 'DOCENTE';
+  });
 
   private readonly ahora = new Date();
   protected readonly saludo = saludoDelDia(this.ahora);
@@ -227,7 +233,8 @@ export class DashboardPage implements OnInit {
     this.actualizarDisponibilidad();
     interval(30000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.actualizarDisponibilidad());
 
-    this.getRequests.execute('ALL').subscribe({
+    if (!this.puedeVerSolicitudes()) return;
+    this.getRequests.execute('ALL').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: solicitudes => {
         this.solicitudes.set(solicitudes);
         this.pendientes.set(solicitudes.filter(s => s.status === 'PENDIENTE').length);
@@ -270,7 +277,7 @@ export class DashboardPage implements OnInit {
     const catalogo = this.catalogo();
     const total = catalogo.length;
     const bloques = new Set(catalogo.map(aula => aula.building.id)).size;
-    return [
+    const indicadores: Indicador[] = [
       {
         titulo: 'Aulas disponibles',
         valor: `${this.libres() ?? '—'}`,
@@ -282,7 +289,9 @@ export class DashboardPage implements OnInit {
         valor: `${total}`,
         detalle: bloques > 0 ? `en ${bloques} edificio(s)` : 'sincronizadas desde SIGA',
         variante: 'catalogo'
-      },
+      }
+    ];
+    if (this.puedeVerSolicitudes()) indicadores.push(
       {
         titulo: 'Solicitudes pendientes',
         valor: `${this.pendientes() ?? '—'}`,
@@ -295,7 +304,8 @@ export class DashboardPage implements OnInit {
         detalle: 'visibles para tu rol',
         variante: 'aprobada'
       }
-    ];
+    );
+    return indicadores;
   });
 
   protected readonly ultimas = computed<UltimaSolicitud[]>(() => {

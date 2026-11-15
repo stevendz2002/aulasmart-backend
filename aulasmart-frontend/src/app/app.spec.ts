@@ -49,5 +49,6 @@ describe('App', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const buscador = compiled.querySelector('app-header input[type=search]');
     expect(buscador).not.toBeNull();
+    expect(compiled.querySelector('app-header a[href^="/login"]')?.textContent?.trim()).toBe('Iniciar sesión');
   });
 });

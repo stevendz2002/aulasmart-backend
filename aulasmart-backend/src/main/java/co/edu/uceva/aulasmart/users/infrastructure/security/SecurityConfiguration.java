@@ -11,6 +11,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -37,14 +38,16 @@ public class SecurityConfiguration {
             http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
         }
         return http
-                // La API requiere Bearer; los endpoints con cookies tienen verificación estricta de origen/cabecera.
+                // Las operaciones privadas requieren Bearer. La cookie de autenticación conserva su protección de origen.
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
                 .addFilterBefore(new AuthOriginFilter(origenesCorsPermitidos), org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/aulabot/mensajes").hasAnyRole("ADMINISTRADOR", "ADMINISTRATIVO", "DOCENTE", "ESTUDIANTE")
+                        .requestMatchers(HttpMethod.GET, "/api/aulas", "/api/aulas/disponibles", "/api/aulas/{idAula}/ocupacion").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/aulabot/mensajes").access(new WebExpressionAuthorizationManager(
+                                "isAnonymous() or hasAnyRole('ADMINISTRADOR','ADMINISTRATIVO','DOCENTE','ESTUDIANTE')"))
                         .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/refresh", "/api/auth/logout").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/usuarios").hasRole("ADMINISTRADOR")
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").hasRole("ADMINISTRADOR")
@@ -60,9 +63,6 @@ public class SecurityConfiguration {
                         )
                         .requestMatchers("/api/sincronizaciones/**").hasAnyRole(
                                 "ADMINISTRADOR", "ADMINISTRATIVO"
-                        )
-                        .requestMatchers(HttpMethod.GET, "/api/aulas/**").hasAnyRole(
-                                "ADMINISTRADOR", "ADMINISTRATIVO", "DOCENTE", "ESTUDIANTE"
                         )
                         .anyRequest().authenticated()
                 )
