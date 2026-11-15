@@ -6,7 +6,9 @@ import {
   inject,
   signal
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
+import { filter, map } from 'rxjs';
 
 import { AuthService } from '../../../core/auth-service';
 import { esRutaPrivada } from '../../../core/auth-guard';
@@ -124,7 +126,7 @@ import { ShellState } from '../shell-state';
           }
         </div>
       } @else {
-        <a routerLink="/login" [queryParams]="{ volver: router.url }" class="ingresar">Iniciar sesión</a>
+        <a routerLink="/login" [queryParams]="{ volver: rutaActual() }" class="ingresar">Iniciar sesión</a>
       }
     </header>
   `
@@ -135,6 +137,13 @@ export class Header {
   protected readonly authService = inject(AuthService);
   protected readonly themeService = inject(ThemeService);
   protected readonly router = inject(Router);
+  protected readonly rutaActual = toSignal(
+    this.router.events.pipe(
+      filter((evento): evento is NavigationEnd => evento instanceof NavigationEnd),
+      map(evento => evento.urlAfterRedirects)
+    ),
+    { initialValue: this.router.url }
+  );
   protected readonly shell = inject(ShellState);
   private readonly getAllClassrooms = inject<GetAllClassroomsUseCase>(GET_ALL_CLASSROOMS_USE_CASE);
 

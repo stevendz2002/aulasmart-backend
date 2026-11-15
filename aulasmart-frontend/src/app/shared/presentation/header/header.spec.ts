@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { signal } from '@angular/core';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { Header } from './header';
 import { AuthService } from '../../../core/auth-service';
 import { GET_ALL_CLASSROOMS_USE_CASE } from '../../../features/aulas/application/classrooms-di';
@@ -12,13 +12,20 @@ const aula: Classroom = { id: 12, externalCode: 195, name: 'B101', capacity: 50,
 describe('Búsqueda principal', () => {
   const navigate = vi.fn().mockResolvedValue(true);
   const rol = signal('DOCENTE');
+  let events: Subject<NavigationEnd>;
   beforeEach(() => {
     navigate.mockClear(); rol.set('DOCENTE');
+    events = new Subject<NavigationEnd>();
     TestBed.configureTestingModule({ providers: [
-      { provide: Router, useValue: { navigate } },
+      { provide: Router, useValue: { navigate, events, url: '/' } },
       { provide: AuthService, useValue: { sesion: signal(null), tieneAlgunRol: (roles: string[]) => roles.includes(rol()) } },
       { provide: GET_ALL_CLASSROOMS_USE_CASE, useValue: { execute: () => of([aula]) } }
     ] });
+  });
+  it('actualiza el destino de retorno al cambiar de pantalla pública', () => {
+    const header = TestBed.runInInjectionContext(() => new Header());
+    events.next(new NavigationEnd(1, '/consulta?name=B101', '/consulta?name=B101'));
+    expect(header['rutaActual']()).toBe('/consulta?name=B101');
   });
   it('abre detalles del resultado seleccionado, no del texto parcial', () => {
     const header = TestBed.runInInjectionContext(() => new Header());
