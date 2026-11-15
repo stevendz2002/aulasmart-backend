@@ -7,6 +7,11 @@ on:
     paths:
       - 'aulasmart-frontend/**'
       - '.github/workflows/deploy-frontend.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'aulasmart-frontend/**'
+      - '.github/workflows/deploy-frontend.yml'
   workflow_dispatch:
 
 concurrency:
@@ -15,7 +20,6 @@ concurrency:
 
 jobs:
   build:
-    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -41,6 +45,7 @@ jobs:
         run: npm test -- --watch=false
 
       - name: Configurar GitHub Pages
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
 
       - name: Compilar para GitHub Pages
@@ -49,11 +54,13 @@ jobs:
           test -f dist/aulasmart-frontend/browser/index.html
 
       - name: Subir artefacto de GitHub Pages
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
         with:
           path: aulasmart-frontend/dist/aulasmart-frontend/browser/
 
   deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -70,15 +77,18 @@ jobs:
       - name: Verificar el sitio publicado
         env:
           PAGES_URL: ${{ steps.deployment.outputs.page_url }}
+          PUBLIC_URL: ${{ vars.AULASMART_PUBLIC_URL || 'https://stevendz.tech/aulasmart/' }}
+          HEALTH_URL: ${{ vars.AULASMART_HEALTH_URL || 'https://stevendz.tech/actuator/health' }}
         shell: bash
         run: |
           fetch() {
             curl --fail --silent --show-error --location \
+              --proto '=https' --proto-redir '=https' \
               --retry 6 --retry-all-errors --retry-delay 5 --max-time 15 "$1"
           }
-          fetch "$PAGES_URL" > "$RUNNER_TEMP/pages.html"
+          fetch "${PAGES_URL/#http:/https:}" > "$RUNNER_TEMP/pages.html"
           grep -Fq '<app-root>' "$RUNNER_TEMP/pages.html"
-          fetch 'https://stevendz.tech/aulasmart/' > "$RUNNER_TEMP/aulasmart.html"
+          fetch "$PUBLIC_URL" > "$RUNNER_TEMP/aulasmart.html"
           grep -Fq '<app-root>' "$RUNNER_TEMP/aulasmart.html"
-          fetch 'https://stevendz.tech/actuator/health' > "$RUNNER_TEMP/health.json"
+          fetch "$HEALTH_URL" > "$RUNNER_TEMP/health.json"
           grep -Eq '"status"[[:space:]]*:[[:space:]]*"UP"' "$RUNNER_TEMP/health.json"
