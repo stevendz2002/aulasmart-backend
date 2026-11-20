@@ -78,10 +78,10 @@ Credenciales del entorno de prueba (semilla sintética, no institucional):
 ```bash
 npm ci
 npm test -- --watch=false
-npm run build -- --configuration=production,pages
+npm run build:pages
 ```
 
-El resultado está en `dist/aulasmart-frontend/browser/`. La configuración `pages` usa base relativa `./` y rutas con fragmento, como `/aulasmart/#/consulta`. La SPA llama a `/api` en el mismo origen. La [guía de publicación](../docs/README.md#migración-de-aulasmart-a-github-pages-2026-11-14) describe cómo Nginx expone el artefacto de Pages en `https://stevendz.tech/aulasmart/` y la API del backend de Oracle en `https://stevendz.tech/api`.
+El resultado está en `dist/aulasmart-frontend/browser/`. Define `AULASMART_API_ORIGIN=https://stevendz.tech` en el `.env` de la raíz o en el entorno de compilación. Pages usa ese origen para la API y admite rutas con fragmento, como `/#/consulta`. El build de Docker y el servidor de desarrollo usan `/api` relativo. Consulta la [guía del subdominio de Pages](../docs/README.md#subdominio-de-github-pages-2026-11-19).
 
 El frontend adopta el **diseño visual aprobado** (identidad azul y blanco) delimitando a lo que la API entrega. Mapeo honesto del diseño: los KPIs y paneles del dashboard derivan de los endpoints reales (_Aulas disponibles_, _Aulas registradas_, _Solicitudes pendientes_, _Solicitudes aprobadas_, _Libres ahora por edificio_); las métricas del boceto que el backend no expone (ocupación semanal, ocupación por día, actividad reciente) **no se simulan**. El nombre visible en el shell se deriva del correo real (`paola.ramirez@uceva.edu.co` → «Paola Ramirez`) porque `whoami` solo expone `correo` y `roles`, y el "solicitante" se muestra como `Docente id N` (no hay endpoint de personas).
 

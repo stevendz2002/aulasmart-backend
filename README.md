@@ -6,7 +6,7 @@
 
 Aplicación web desarrollada para facilitar la consulta de espacios académicos y la gestión de solicitudes de aulas en la **Unidad Central del Valle del Cauca (UCEVA)**.
 
-[**🌐 Explorar la aplicación**](https://stevendz.tech/aulasmart/) · [**🏗️ Arquitectura**](docs/arquitectura.md) · [**📚 Documentación técnica**](docs/README.md)
+[**🌐 Explorar la aplicación**](https://aulasmart.stevendz.tech/) · [**🏗️ Arquitectura**](docs/arquitectura.md) · [**📚 Documentación técnica**](docs/README.md)
 
 ![Java](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.7-6DB33F?logo=springboot&logoColor=white)
@@ -210,7 +210,7 @@ El acceso a cada ruta depende de sus reglas de seguridad; las operaciones de ges
 
 El frontend se compila y publica en **GitHub Pages** mediante **GitHub Actions**. La aplicación se expone en el dominio del proyecto, mientras que **Nginx y Oracle Cloud** proporcionan acceso a la API Spring Boot y a PostgreSQL.
 
-- **Aplicación:** [stevendz.tech/aulasmart](https://stevendz.tech/aulasmart/)
+- **Aplicación:** [aulasmart.stevendz.tech](https://aulasmart.stevendz.tech/)
 - **Workflow:** [deploy-frontend.yml](.github/workflows/deploy-frontend.yml)
 - **Documentación:** [despliegue e infraestructura](docs/despliegue.md)
 

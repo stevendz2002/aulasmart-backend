@@ -6,10 +6,11 @@ import { AulaBotGateway } from '../application/aulabot-gateway';
 @Injectable({providedIn: 'root'})
 export class AulaBotRepository implements AulaBotGateway {
   private readonly http = inject(HttpClient);
+  private readonly options = { timeout: 25000, withCredentials: true };
   send(mensaje: string, nuevaConversacion: boolean) {
-    return this.http.post<BotReply>(apiUrl + '/aulabot/mensajes',{mensaje,nuevaConversacion},{timeout: 25000});
+    return this.http.post<BotReply>(apiUrl + '/aulabot/mensajes', { mensaje, nuevaConversacion }, this.options);
   }
   sendAction(accion: string) {
-    return this.http.post<BotReply>(apiUrl + '/aulabot/mensajes',{accion},{timeout: 25000});
+    return this.http.post<BotReply>(apiUrl + '/aulabot/mensajes', { accion }, this.options);
   }
 }

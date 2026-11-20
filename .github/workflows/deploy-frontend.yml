@@ -18,6 +18,9 @@ concurrency:
   group: github-pages
   cancel-in-progress: false
 
+env:
+  AULASMART_API_ORIGIN: ${{ vars.AULASMART_API_ORIGIN || 'https://stevendz.tech' }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -50,7 +53,7 @@ jobs:
 
       - name: Compilar para GitHub Pages
         run: |
-          npm run build -- --configuration=production,pages
+          npm run build:pages
           test -f dist/aulasmart-frontend/browser/index.html
 
       - name: Subir artefacto de GitHub Pages
@@ -77,8 +80,8 @@ jobs:
       - name: Verificar el sitio publicado
         env:
           PAGES_URL: ${{ steps.deployment.outputs.page_url }}
-          PUBLIC_URL: ${{ vars.AULASMART_PUBLIC_URL || 'https://stevendz.tech/aulasmart/' }}
-          HEALTH_URL: ${{ vars.AULASMART_HEALTH_URL || 'https://stevendz.tech/actuator/health' }}
+          PUBLIC_URL: ${{ vars.AULASMART_PUBLIC_URL || 'https://aulasmart.stevendz.tech/' }}
+          HEALTH_URL: ${{ vars.AULASMART_HEALTH_URL }}
         shell: bash
         run: |
           fetch() {
@@ -90,5 +93,5 @@ jobs:
           grep -Fq '<app-root>' "$RUNNER_TEMP/pages.html"
           fetch "$PUBLIC_URL" > "$RUNNER_TEMP/aulasmart.html"
           grep -Fq '<app-root>' "$RUNNER_TEMP/aulasmart.html"
-          fetch "$HEALTH_URL" > "$RUNNER_TEMP/health.json"
+          fetch "${HEALTH_URL:-${AULASMART_API_ORIGIN%/}/actuator/health}" > "$RUNNER_TEMP/health.json"
           grep -Eq '"status"[[:space:]]*:[[:space:]]*"UP"' "$RUNNER_TEMP/health.json"

@@ -1,5 +1,15 @@
 # Documentación técnica de continuidad
 
+## Subdominio de GitHub Pages (2026-11-19)
+
+Corrección en `fix/pages-custom-domain` sobre `10c093a` del repositorio `stevendz2002/aulasmart-classroom-management`. El sitio de Pages usa `aulasmart.stevendz.tech` como dominio personalizado y el CNAME `aulasmart` apunta a `stevendz2002.github.io`. Los archivos se sirven desde la raíz del subdominio, con base relativa y rutas con fragmento. El enlace anterior en `stevendz.tech/aulasmart/` redirige al subdominio mediante [Nginx](../deploy/nginx/aulasmart-pages.conf).
+
+El build `npm run build:pages` publica el valor no secreto de `AULASMART_API_ORIGIN` en el HTML. En local lo toma del entorno o del `.env` de la raíz. En Actions se puede cambiar en **Settings → Secrets and variables → Actions → Variables**. El valor de producción es `https://stevendz.tech`. Las variables opcionales `AULASMART_PUBLIC_URL` y `AULASMART_HEALTH_URL` permiten cambiar las URLs de verificación. El nombre del repositorio se obtiene de GitHub Pages en cada ejecución.
+
+Oracle autoriza el origen exacto `https://aulasmart.stevendz.tech` mediante `AULASMART_CORS_ORIGINS`. La aplicación usa HTTPS para ambos orígenes del mismo sitio y envía las cookies de sesión y del chat con credenciales. Angular dev y Docker conservan `/api` relativo.
+
+Validación del 2026-11-19: 102 pruebas Vitest, build de Pages con el origen correcto en el HTML y validación del workflow con `actionlint`. Se comprobó el CNAME, el certificado y el preflight de la renovación de sesión con CORS y credenciales. Mientras se publica el cambio, el proxy anterior de Oracle sirve el artefacto desde el nuevo dominio de Pages y recupera `stevendz.tech/aulasmart/` con HTTP 200. La redirección definitiva se instala después de verificar el nuevo build en producción.
+
 ## Acceso público y presentación del ingreso (2026-11-14)
 
 Rama `refactor/public-access-login`, base `1edc83b`. El dashboard, el catálogo, la consulta de disponibilidad y AulaBot admiten visitantes. Las franjas ocupadas son públicas y se identifican sin el detalle institucional del evento. Solicitudes, indicadores de solicitudes, gestión de aulas, sincronización y gestión de usuarios conservan los permisos por rol.
