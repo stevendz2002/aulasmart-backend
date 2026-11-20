@@ -1,113 +1,236 @@
-# AulaSmart
+<div align="center">
 
-AulaSmart es un sistema web académico de **reservas de aulas** para la Unidad Central del Valle del Cauca (UCEVA): los docentes registran solicitudes de reserva con semántica de intervalo medio abierto `[inicio, fin)`, el personal administrativo las revisa (aprobar/rechazar), el catálogo de aulas y la ocupación real por clases se mantienen sincronizados desde el sistema SIGA de la universidad, y el administrador gestiona las cuentas de todos los usuarios.
+# 🏫 AulaSmart
 
-> Estado actual: backend monolito modular **implementado y verificado** (pruebas Maven en verde y validaciones SQL automatizadas contra la base) y SPA Angular **implementada** (dashboard, consulta de disponibilidad, solicitudes, gestión de aulas, usuarios y sesión).
+### Gestión de aulas, disponibilidad académica y solicitudes de reserva
 
-## Continuidad del desarrollo
+Aplicación web desarrollada para facilitar la consulta de espacios académicos y la gestión de solicitudes de aulas en la **Unidad Central del Valle del Cauca (UCEVA)**.
 
-Consultar [AGENTS.md](AGENTS.md) y [documentación técnica](docs/README.md) al iniciar una fase.
-Estado de la auditoría y validaciones: [fase 0](docs/fase-0.md).
+[**🌐 Explorar la aplicación**](https://stevendz.tech/aulasmart/) · [**🏗️ Arquitectura**](docs/arquitectura.md) · [**📚 Documentación técnica**](docs/README.md)
 
-## Arquitectura
+![Java](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.7-6DB33F?logo=springboot&logoColor=white)
+![Angular](https://img.shields.io/badge/Angular-21-DD0031?logo=angular&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17.4-4169E1?logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+[![Frontend CI/CD](https://github.com/stevendz2002/aulasmart-classroom-management/actions/workflows/deploy-frontend.yml/badge.svg)](https://github.com/stevendz2002/aulasmart-classroom-management/actions/workflows/deploy-frontend.yml)
 
-Backend único tipo **monolito modular** con Spring Boot 3.x (Java 17) organizado con Clean Architecture (`domain · application · infrastructure · presentation`) y una única base PostgreSQL. La SPA Angular replica la misma separación por feature (`domain · application · infrastructure · presentation`).
+</div>
 
-| Módulo | Responsabilidad | Estado |
-|---|---|---|
-| `users` | Cuentas, roles y seguridad; directorio y creación de cuentas exclusivos del ADMINISTRADOR | Verificado |
-| `aulas` | API REST de catálogo y reglas de disponibilidad (puerta de calidad de sincronización ≤ 24 h) | Verificado |
-| `solicitudes` | Registro, revisión y consulta de reservas con auditoría y re-verificación de solape | Verificado |
-| `integrations.siga` | Sincronización del catálogo de aulas (AULAS) y de la ocupación académica por clases (EVENTOS), manual y programada, con transformación estricta y registro de corridas | Verificado |
-| `persistencia` | Repositorios Spring Data JPA y migraciones Flyway compartidos | Verificado |
-| Frontend Angular | SPA de consulta, solicitudes, gestión de aulas, usuarios y autenticación | Implementado |
-| `chatbot` + `integrations.ai` | AulaBot con proveedor de IA (API Gemini); puerto definido, adaptador pendiente | Planeado |
+## 📌 ¿Qué es AulaSmart?
 
-La decisión monolito modular frente a microservicios se revisará solo con evidencia de equipos autónomos, cargas de escalado distintas o requisitos de aislamiento; los puertos internos permiten extraer un componente sin reescribir el resto.
+AulaSmart centraliza la **consulta de aulas**, la **visualización de disponibilidad por fecha y horario** y el **flujo de solicitudes de reserva**. Combina las solicitudes registradas en la aplicación con el catálogo y la ocupación académica consultados desde **SIGA**, el sistema de información de la universidad.
 
-## Stack y roles
+El proyecto aborda un problema real: consultar espacios disponibles sin perder de vista las clases programadas, gestionar solicitudes según el rol del usuario y evitar que se aprueben reservas locales que se solapen.
 
-- **Java 17 / Spring Boot 3.5.7**: Web MVC, Security (JWT Bearer y autorización por rol), Validation, Data JPA (Hibernate), Actuator.
-- **Angular 21.2** (SPA, señales y standalone components; `npm start` en `http://localhost:4200`).
-- **PostgreSQL 17.4** en Docker Compose (puerto 5433, base `aulasmart_test`), migraciones Flyway V1→V9.
-- **Roles**: `ESTUDIANTE`, `DOCENTE`, `ADMINISTRATIVO`, `ADMINISTRADOR`. El docente crea solicitudes; el administrativo revisa; **solo el administrador crea cuentas** (el administrativo no ve la gestión de usuarios).
+> [!IMPORTANT]
+> Una solicitud **aprobada en AulaSmart** no equivale a una reserva institucional confirmada en SIGA. La integración actual **consulta y sincroniza** información académica; no registra reservas directamente en SIGA.
 
-La integridad de las reservas no depende de la aplicación sola: intervalos `TIMESTAMPTZ`, restricciones CHECK de fechas/estados/auditoría y una **restricción de exclusión (EXCLUDE)** que impide en la base dos reservas APROBADAS solapadas en la misma aula.
+## ✨ Funcionalidades
 
-## API REST
+- **Consulta pública:** catálogo, dashboard y disponibilidad de aulas, sin iniciar sesión para las vistas habilitadas.
+- **Búsqueda de espacios:** consulta por edificio, tipo, capacidad y franja horaria.
+- **Disponibilidad verificable:** combina horarios académicos de SIGA y solicitudes locales aprobadas; evita informar un aula como libre cuando los datos carecen de cobertura o vigencia suficiente.
+- **Solicitudes de reserva:** registro por docentes y revisión (aprobación o rechazo) por personal autorizado.
+- **Gestión administrativa:** administración de aulas, usuarios y sincronizaciones según permisos.
+- **AulaBot:** asistente conversacional para orientar búsquedas de aulas en lenguaje natural y continuar hacia la consulta o el formulario correspondiente. Utiliza Groq cuando la integración está habilitada; no crea ni aprueba reservas automáticamente.
+- **Autenticación y autorización:** JWT Bearer, renovación de sesión mediante cookie HttpOnly y control de acceso por rol.
+- **Interfaz adaptable:** SPA Angular con diseño responsivo, modo claro y modo oscuro.
 
-Ruta | Método | Descripción
----|---|---
-`/api/aulas` | GET | Catálogo de aulas
-`/api/aulas/disponibles` | GET | Aulas libres en una franja: descuenta reservas APROBADAS y clases del calendario académico de SIGA (`horario_academico`); exige sincronización vigente de AULAS y EVENTOS
-`/api/aulas/{idAula}` | GET | Detalle de un aula
-`/api/solicitudes` | GET / POST | Consultar o registrar una solicitud de reserva (DOCENTE)
-`/api/solicitudes/{idSolicitud}/revision` | POST | Revisar una solicitud (ADMINISTRATIVO/ADMINISTRADOR)
-`/api/usuarios` | GET / POST | Directorio y creación de cuentas (solo ADMINISTRADOR)
-`/api/usuarios/whoami` | GET | Perfil de la sesión activa (correo, nombre real y rol único)
-`/api/sincronizaciones` | POST | Lanzar una corrida de sincronización con SIGA (`recurso=AULAS` o `recurso=EVENTOS`)
+### Roles y permisos
 
-## Publicación del frontend
+| Rol | Capacidades principales |
+| --- | --- |
+| Visitante | Consultar las vistas públicas y utilizar las funciones públicas de AulaBot |
+| Estudiante | Consultar el catálogo y la disponibilidad |
+| Docente | Consultar aulas y crear solicitudes |
+| Administrativo | Revisar solicitudes y gestionar aulas |
+| Administrador | Administrar usuarios y acceder a funciones de gestión autorizadas |
 
-GitHub Actions instala dependencias con Node 22, ejecuta Vitest, compila Angular y publica en GitHub Pages. Tras el despliegue, el workflow verifica el HTML publicado y la salud de la API. La aplicación se usa en [stevendz.tech/aulasmart/](https://stevendz.tech/aulasmart/), donde Nginx sirve el frontend desde Pages y dirige `/api` al backend de Oracle Cloud. El [enlace de Pages](https://stevendz2002.github.io/aulasmart-backend/) abre la aplicación en ese dominio para que funcione la sesión. Consulta el [procedimiento de activación](docs/README.md#migración-de-aulasmart-a-github-pages-2026-11-14).
+## 🧱 Arquitectura
 
-## Puesta en marcha
+Se utiliza un **monolito modular** en el backend y una SPA Angular en el frontend. Los módulos mantienen responsabilidades separadas y siguen una organización inspirada en **Clean Architecture**: `domain`, `application`, `infrastructure` y `presentation`.
 
-### Opción 1: Todo en Docker (Recomendado)
-
-Copiar `.env.example` a `.env`, configurar las claves locales (la de PostgreSQL y la del backend deben coincidir) y levantar toda la suite (PostgreSQL, Backend Spring Boot y Frontend Angular):
-
-```bash
-docker compose up -d --build
+```mermaid
+flowchart LR
+    U["Visitantes y usuarios"] --> F["Angular 21 · SPA"]
+    F -->|"API REST /api"| B["Java 17 · Spring Boot 3.5.7"]
+    B --> DB[("PostgreSQL 17.4")]
+    B -->|"Sincronización de lectura"| SIGA["SIGA · catálogo y horarios"]
+    B -.->|"Interpretación de consultas (opcional)"| AI["Groq · AulaBot"]
 ```
 
-- **Frontend:** [http://localhost:4200](http://localhost:4200)
-- **Backend API:** [http://localhost:8080/api](http://localhost:8080/api) (Salud: [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health))
-- **Base de datos:** PostgreSQL en el puerto `5433` (red interna `db:5432`). Las migraciones Flyway se aplican automáticamente al iniciar.
+**Módulos principales del backend**
 
-Para detener todos los servicios:
+| Módulo | Responsabilidad |
+| --- | --- |
+| `users` | Usuarios, roles, autenticación y permisos |
+| `aulas` | Catálogo, filtros y disponibilidad |
+| `solicitudes` | Solicitudes, revisiones y reglas de solapamiento |
+| `integrations.siga` | Sincronización del catálogo y los eventos académicos |
+| `aulabot` / integración de IA | Interpretación conversacional y acceso a consultas reales |
+| Persistencia compartida | Spring Data JPA y migraciones Flyway |
+
+### Decisiones técnicas relevantes
+
+- **Integridad en base de datos:** PostgreSQL usa una restricción `EXCLUDE` para evitar solicitudes **aprobadas** con franjas superpuestas en una misma aula.
+- **Concurrencia:** las revisiones de solicitudes incorporan control de versiones y manejo de conflictos.
+- **Sincronización responsable:** si SIGA falla o sus datos no cubren el intervalo solicitado, la aplicación muestra un estado no verificable en lugar de asumir disponibilidad.
+- **Separación de responsabilidades:** AulaBot interpreta consultas, mientras que el backend valida filtros, permisos y disponibilidad mediante los casos de uso existentes.
+- **Migraciones versionadas:** Flyway administra los cambios de esquema de la base de datos.
+
+Más información en [arquitectura y decisiones](docs/arquitectura.md) y [sincronización de SIGA](docs/sincronizacion-siga.md).
+
+## 🛠️ Tecnologías
+
+| Capa | Herramientas |
+| --- | --- |
+| Backend | Java 17, Spring Boot 3.5.7, Spring Web MVC, Spring Security, Spring Data JPA, Hibernate |
+| Frontend | Angular 21.2, TypeScript, RxJS, Vitest |
+| Base de datos | PostgreSQL 17.4, Flyway |
+| Seguridad | JWT, BCrypt, cookies HttpOnly, autorización por roles |
+| Pruebas | Maven, JUnit / pruebas de integración, Vitest |
+| Infraestructura | Docker Compose, Nginx, Oracle Cloud |
+| CI/CD | GitHub Actions, GitHub Pages |
+| Asistente | Integración opcional con Groq |
+
+## 📁 Estructura del repositorio
+
+```text
+aulasmart-classroom-management/
+├── aulasmart-backend/       # API Spring Boot
+├── aulasmart-frontend/      # SPA Angular
+├── database/                # Scripts y validaciones SQL
+├── docs/                    # Arquitectura, fases y despliegue
+├── deploy/                  # Configuración de despliegue
+├── .github/workflows/       # Automatizaciones
+├── compose.yaml             # Entorno local
+└── .env.example             # Ejemplo de configuración
+```
+
+## 🚀 Ejecutar en local
+
+**Requisitos:** Git, Docker y Docker Compose. Para ejecutar los componentes sin Docker también se necesitan Java 17 y Node.js compatible con Angular 21.
+
+### Opción recomendada: Docker Compose
+
+1. Clona el repositorio:
+
+   ```bash
+   git clone https://github.com/stevendz2002/aulasmart-classroom-management.git
+   cd aulasmart-classroom-management
+   ```
+
+2. Crea un archivo `.env` a partir de `.env.example`. En PowerShell:
+
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+
+   En Bash:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Configura las variables requeridas. En particular, `POSTGRES_PASSWORD` y `DB_PASSWORD` deben coincidir; define también el secreto JWT según el archivo de ejemplo. No subas `.env` al repositorio. **Groq es opcional** para la ejecución local.
+
+4. Levanta los servicios:
+
+   ```bash
+   docker compose up -d --build
+   ```
+
+| Servicio | Dirección local |
+| --- | --- |
+| Frontend | http://localhost:4200 |
+| API | http://localhost:8080/api |
+| Health check | http://localhost:8080/actuator/health |
+| PostgreSQL | `localhost:5433` |
+
+Para revisar registros y detener el entorno:
+
 ```bash
+docker compose logs -f backend
 docker compose down
 ```
 
----
+### Desarrollo por componentes
 
-### Opción 2: Desarrollo local (terminal por componente)
+Con la base PostgreSQL levantada y las variables de entorno configuradas:
 
 ```bash
-# 1. Base de datos
 docker compose up -d db
 
-# 2. Backend (Flyway aplica las migraciones V1→V9 al arrancar)
+# Terminal 1: backend
 cd aulasmart-backend
-./mvnw spring-boot:run  # http://localhost:8080
+./mvnw spring-boot:run
 
-# 3. SPA Angular
-cd ../aulasmart-frontend
-npm install && npm start        # http://localhost:4200
-
-# 4. Pruebas automatizadas
-cd ../aulasmart-backend && ./mvnw test
-cd ../aulasmart-frontend && npm test -- --watch=false
+# Terminal 2: frontend (desde la raíz del repositorio)
+cd aulasmart-frontend
+npm ci
+npm start
 ```
 
-Cuentas sintéticas de prueba (deshabilitadas para autenticación por defecto; solo para desarrollo local habilitar `AULASMART_ALLOW_TEST_ACCOUNTS=true` en `.env` y reiniciar backend; credenciales no institucionales): `docente@prueba.aulasmart.local` (DOCENTE), `revisor@prueba.aulasmart.local` (ADMINISTRATIVO) y `admin@prueba.aulasmart.local` (ADMINISTRADOR); todas con clave `password`. La sincronización de eventos descarga la ocupación por clases del calendario público de SIGA (`publicomanejoespacios`) para la ventana configurable `aulasmart.siga.eventos.dias-ventana` (7 días por omisión).
+> En Windows, utiliza `mvnw.cmd` en lugar de `./mvnw`. Las migraciones Flyway se aplican durante el arranque del backend.
 
-Estructura de la base: `usuario`, `rol`, `usuario_rol`; catálogos sincronizados de SIGA `edificio`, `tipo_aula`, `dependencia` (con `codigo_siga` única); núcleo de reservas `aula` y `solicitud_aula`; ocupación académica `horario_academico` (fuente SIGA); y la entidad de control `sincronizacion_siga` (recursos AULAS y EVENTOS).
+## 🧪 Pruebas
 
-## Registro
+**Backend**, desde `aulasmart-backend/`:
 
-Jhon Edward Steven Loaiza Díaz · Ingeniería de Sistemas · Unidad Central del Valle del Cauca (UCEVA), Tuluá.
+```bash
+./mvnw test
+```
 
-La documentación académica del proyecto se gestiona localmente y se excluye del repositorio. Los documentos técnicos de continuidad listados en `docs/README.md` sí están habilitados para versionarse (ver `/.gitignore`).
+**Frontend**, desde `aulasmart-frontend/`:
 
-Tras aplicar V8, sincronizar AULAS y luego EVENTOS: las corridas antiguas no tienen cobertura verificable. El JWT de acceso permanece en memoria y la sesión se restaura mediante una cookie de renovación HttpOnly.
+```bash
+npm ci
+npm test -- --watch=false
+```
 
-## Rol único (fase 2)
+Las pruebas y validaciones documentadas pueden consultarse en [documentación técnica](docs/README.md). El workflow de frontend ejecuta pruebas y compilación antes de publicar en GitHub Pages.
 
-Las cuentas y `/api/usuarios/whoami` exponen `rol` singular. Desplegar backend
-y frontend juntos; el contrato anterior `roles[]` se rechaza. Antes de V9,
-ejecutar `database/validation/002_preflight_rol_unico.sql` sobre el esquema V8.
-Si devuelve cuentas ambiguas, acordar la asignación y registrar el mapeo mediante
-`003_resolucion_rol_unico.sql` antes de arrancar. V9 conserva las asociaciones
-anteriores en `usuario_rol_historial_v9`. Detalles en `docs/fase-2.md`.
+## 🔌 API REST: ejemplos de rutas
+
+| Método | Endpoint | Propósito |
+| --- | --- | --- |
+| `GET` | `/api/aulas` | Listar aulas |
+| `GET` | `/api/aulas/disponibles` | Consultar disponibilidad en una franja |
+| `GET` | `/api/aulas/{idAula}` | Obtener el detalle de un aula |
+| `GET / POST` | `/api/solicitudes` | Consultar o registrar solicitudes según permisos |
+| `POST` | `/api/solicitudes/{idSolicitud}/revision` | Aprobar o rechazar una solicitud |
+| `GET / POST` | `/api/usuarios` | Directorio y creación de usuarios para administradores |
+| `GET` | `/api/usuarios/whoami` | Consultar el perfil de sesión |
+| `POST` | `/api/sincronizaciones` | Iniciar la sincronización de aulas o eventos |
+
+El acceso a cada ruta depende de sus reglas de seguridad; las operaciones de gestión requieren autenticación y permisos.
+
+## ☁️ Despliegue
+
+El frontend se compila y publica en **GitHub Pages** mediante **GitHub Actions**. La aplicación se expone en el dominio del proyecto, mientras que **Nginx y Oracle Cloud** proporcionan acceso a la API Spring Boot y a PostgreSQL.
+
+- **Aplicación:** [stevendz.tech/aulasmart](https://stevendz.tech/aulasmart/)
+- **Workflow:** [deploy-frontend.yml](.github/workflows/deploy-frontend.yml)
+- **Documentación:** [despliegue e infraestructura](docs/despliegue.md)
+
+> La consulta de disponibilidad depende de la sincronización con SIGA. Si la fuente externa es inaccesible o los datos están desactualizados, AulaSmart debe indicar que no puede verificar la disponibilidad.
+
+## 📚 Documentación adicional
+
+- [Arquitectura y decisiones](docs/arquitectura.md)
+- [Documentación técnica y validaciones](docs/README.md)
+- [Sincronización con SIGA](docs/sincronizacion-siga.md)
+- [Plan de desarrollo](docs/plan-maestro.md)
+- [Guía de continuidad para desarrollo](AGENTS.md)
+
+## 👨‍💻 Autor
+
+**Jhon Edward Steven Loaiza Díaz**  
+Estudiante de Ingeniería de Sistemas · Unidad Central del Valle del Cauca (UCEVA), Tuluá, Colombia.
+
+[GitHub](https://github.com/stevendz2002)
+
+---
+
+<sub>Proyecto académico de desarrollo de software. AulaSmart es una herramienta de consulta y gestión local de solicitudes; no sustituye los procesos oficiales de asignación de aulas de la universidad.</sub>
