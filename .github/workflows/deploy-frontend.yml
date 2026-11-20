@@ -81,7 +81,6 @@ jobs:
         env:
           PAGES_URL: ${{ steps.deployment.outputs.page_url }}
           PUBLIC_URL: ${{ vars.AULASMART_PUBLIC_URL || 'https://aulasmart.stevendz.tech/' }}
-          HEALTH_URL: ${{ vars.AULASMART_HEALTH_URL }}
         shell: bash
         run: |
           fetch() {
@@ -93,5 +92,5 @@ jobs:
           grep -Fq '<app-root>' "$RUNNER_TEMP/pages.html"
           fetch "$PUBLIC_URL" > "$RUNNER_TEMP/aulasmart.html"
           grep -Fq '<app-root>' "$RUNNER_TEMP/aulasmart.html"
-          fetch "${HEALTH_URL:-${AULASMART_API_ORIGIN%/}/actuator/health}" > "$RUNNER_TEMP/health.json"
+          fetch "${AULASMART_API_ORIGIN%/}/actuator/health" > "$RUNNER_TEMP/health.json"
           grep -Eq '"status"[[:space:]]*:[[:space:]]*"UP"' "$RUNNER_TEMP/health.json"

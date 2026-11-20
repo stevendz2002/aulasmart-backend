@@ -4,11 +4,11 @@
 
 Corrección en `fix/pages-custom-domain` sobre `10c093a` del repositorio `stevendz2002/aulasmart-classroom-management`. El sitio de Pages usa `aulasmart.stevendz.tech` como dominio personalizado y el CNAME `aulasmart` apunta a `stevendz2002.github.io`. Los archivos se sirven desde la raíz del subdominio, con base relativa y rutas con fragmento. El enlace anterior en `stevendz.tech/aulasmart/` redirige al subdominio mediante [Nginx](../deploy/nginx/aulasmart-pages.conf).
 
-El build `npm run build:pages` publica el valor no secreto de `AULASMART_API_ORIGIN` en el HTML. En local lo toma del entorno o del `.env` de la raíz. En Actions se puede cambiar en **Settings → Secrets and variables → Actions → Variables**. El valor de producción es `https://stevendz.tech`. Las variables opcionales `AULASMART_PUBLIC_URL` y `AULASMART_HEALTH_URL` permiten cambiar las URLs de verificación. El nombre del repositorio se obtiene de GitHub Pages en cada ejecución.
+El build `npm run build:pages` publica el valor no secreto de `AULASMART_API_ORIGIN` en el HTML. En local lo toma del entorno o del `.env` de la raíz. En Actions se puede cambiar en **Settings → Secrets and variables → Actions → Variables**. El valor de producción es `https://stevendz.tech`. El workflow deriva `/actuator/health` del mismo origen. La variable opcional `AULASMART_PUBLIC_URL` cambia la URL que se verifica para el frontend. El nombre del repositorio se obtiene de GitHub Pages en cada ejecución.
 
 Oracle autoriza el origen exacto `https://aulasmart.stevendz.tech` mediante `AULASMART_CORS_ORIGINS`. La aplicación usa HTTPS para ambos orígenes del mismo sitio y envía las cookies de sesión y del chat con credenciales. Angular dev y Docker conservan `/api` relativo.
 
-Validación del 2026-11-19: 102 pruebas Vitest, build de Pages con el origen correcto en el HTML y validación del workflow con `actionlint`. Se comprobó el CNAME, el certificado y el preflight de la renovación de sesión con CORS y credenciales. Mientras se publica el cambio, el proxy anterior de Oracle sirve el artefacto desde el nuevo dominio de Pages y recupera `stevendz.tech/aulasmart/` con HTTP 200. La redirección definitiva se instala después de verificar el nuevo build en producción.
+Validación del 2026-11-19: 102 pruebas Vitest, build de Pages con el origen correcto en el HTML y validación del workflow con `actionlint`. Se comprobó el CNAME, el certificado y el preflight de la renovación de sesión con CORS y credenciales. El 2026-11-20 se publicó `1b63595` en `main`. En Edge se verificaron el catálogo, Consulta, la pantalla de ingreso y AulaBot en el subdominio. Nginx pasó la validación y ambos enlaces anteriores redirigen al nuevo dominio.
 
 ## Acceso público y presentación del ingreso (2026-11-14)
 
